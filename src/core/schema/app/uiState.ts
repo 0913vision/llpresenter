@@ -1,10 +1,13 @@
 import * as v from 'valibot';
 import type {Result} from '@core/common/result';
-import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
 import {
-  mediaBrowserChangeSchema,
-  mediaBrowserSchema,
-} from '../media/mediaBrowser';
+  MACRO_VIEWS,
+  rememberedViewEntries,
+  SHOW_TOOL_TABS,
+  sizeClasses,
+  type AppConfig,
+} from './appConfig';
+import {mediaBrowserChangeSchema} from '../media/mediaBrowser';
 import {screenIdSchema, macroCollectionIdSchema} from '../common/ids';
 import {panelRowsChangeSchema} from './panelRows';
 import {
@@ -59,19 +62,7 @@ const layoutChangeSchema = v.pipe(
   ),
 );
 
-const uiStateSchema = payloadObject({
-  layout: v.exactOptional(appLayoutSchema),
-  mediaStrip: v.exactOptional(v.boolean()),
-  mediaBrowser: v.exactOptional(mediaBrowserSchema),
-  previewBig: v.exactOptional(screenIdSchema),
-  previewBigVisible: v.exactOptional(v.boolean()),
-  macroView: v.exactOptional(v.picklist(['grid', 'list'])),
-  macroCollection: v.exactOptional(macroCollectionIdSchema),
-  showToolTab: v.exactOptional(
-    v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
-  ),
-  slideColumns: v.exactOptional(slideColumnsSchema),
-});
+const uiStateSchema = payloadObject(rememberedViewEntries);
 
 const rememberedViewChangeSchema = v.pipe(
   payloadObject({
@@ -80,11 +71,9 @@ const rememberedViewChangeSchema = v.pipe(
     mediaBrowser: v.exactOptional(mediaBrowserChangeSchema),
     previewBig: v.exactOptional(screenIdSchema),
     previewBigVisible: v.exactOptional(v.boolean()),
-    macroView: v.exactOptional(v.picklist(['grid', 'list'])),
+    macroView: v.exactOptional(v.picklist(MACRO_VIEWS)),
     macroCollection: v.exactOptional(v.nullable(macroCollectionIdSchema)),
-    showToolTab: v.exactOptional(
-      v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
-    ),
+    showToolTab: v.exactOptional(v.picklist(SHOW_TOOL_TABS)),
     slideColumns: v.exactOptional(slideColumnsSchema),
   }),
   v.check(

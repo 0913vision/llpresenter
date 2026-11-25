@@ -71,6 +71,34 @@ export const appLayoutSchema = jsonObject({
   wide: sizeClassLayout,
 });
 
+/** The tabs of the 진행 tools panel. */
+export const SHOW_TOOL_TABS = [
+  'audio',
+  'stage',
+  'timer',
+  'message',
+  'prop',
+  'macro',
+] as const;
+/** How the 매크로 panel shows its macros. */
+export const MACRO_VIEWS = ['grid', 'list'] as const;
+
+/**
+ * The views the windows remember, as `app.json` keeps them and `ui:get`
+ * gives them to the control window.
+ */
+export const rememberedViewEntries = {
+  layout: v.exactOptional(appLayoutSchema),
+  previewBig: v.exactOptional(screenIdSchema),
+  previewBigVisible: v.exactOptional(v.boolean()),
+  macroView: v.exactOptional(v.picklist(MACRO_VIEWS)),
+  macroCollection: v.exactOptional(macroCollectionIdSchema),
+  showToolTab: v.exactOptional(v.picklist(SHOW_TOOL_TABS)),
+  slideColumns: v.exactOptional(slideColumnsSchema),
+  mediaStrip: v.exactOptional(v.boolean()),
+  mediaBrowser: v.exactOptional(mediaBrowserSchema),
+};
+
 const appConfigSchema = jsonObject({
   format: v.literal('llapp'),
   schemaVersion: positiveInteger,
@@ -82,20 +110,10 @@ const appConfigSchema = jsonObject({
   uiZoomPercent: v.exactOptional(
     v.fallback(uiZoomPercentSchema, UI_ZOOM.defaultPercent),
   ),
-  layout: v.exactOptional(appLayoutSchema),
   screensWindow: v.exactOptional(windowPlacementSchema),
   preferencesWindow: v.exactOptional(windowPlacementSchema),
   preferencesPage: v.exactOptional(v.picklist(PREFERENCE_PAGE_IDS)),
-  previewBig: v.exactOptional(screenIdSchema),
-  previewBigVisible: v.exactOptional(v.boolean()),
-  macroView: v.exactOptional(v.picklist(['grid', 'list'])),
-  macroCollection: v.exactOptional(macroCollectionIdSchema),
-  showToolTab: v.exactOptional(
-    v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
-  ),
-  slideColumns: v.exactOptional(slideColumnsSchema),
-  mediaStrip: v.exactOptional(v.boolean()),
-  mediaBrowser: v.exactOptional(mediaBrowserSchema),
+  ...rememberedViewEntries,
   mediaImportFolder: v.exactOptional(v.string()),
   mediaRelinkFolder: v.exactOptional(v.string()),
   textImportFolder: v.exactOptional(v.string()),
