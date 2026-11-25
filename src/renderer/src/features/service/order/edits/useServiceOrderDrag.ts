@@ -9,7 +9,7 @@ import {selectionDragImage} from '@renderer/ui/lists/drag/selectionDrag';
 import {useEffect, useRef, useState, type DragEvent} from 'react';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songs/songDrag';
 import type {ServiceRow} from '@core/presentation';
-import {quickAddBefore, sectionBoundaryIndex} from '@core/services';
+import {quickAddBefore, sectionDropIndex} from '@core/services';
 import {useShow} from '@renderer/session/show/showStore';
 import {beforeRowMidpoint} from '@renderer/ui/lists/drag/rowDrag';
 import {useDragClickGuard} from '@renderer/ui/lists/drag/useDragClickGuard';
@@ -90,22 +90,12 @@ export function useServiceOrderDrag({
     const targetIndex = rows.findIndex(row => row.id === id);
     if (targetIndex < 0) return id;
     const requested = targetIndex + (after ? 1 : 0);
-    let index = requested;
-    if (
-      rows.some(row => moving.current.includes(row.id) && row.kind === 'header')
-    ) {
-      index = sectionBoundaryIndex(
-        rows,
-        requested,
-        row => row.kind === 'header',
-      );
-      if (after && index < requested) {
-        const next = rows.findIndex(
-          (row, position) => position >= requested && row.kind === 'header',
-        );
-        index = next < 0 ? rows.length : next;
-      }
-    }
+    const movesSection = rows.some(
+      row => moving.current.includes(row.id) && row.kind === 'header',
+    );
+    const index = movesSection
+      ? sectionDropIndex(rows, {requested, after}, row => row.kind === 'header')
+      : requested;
     return rows[index]?.id ?? null;
   };
   const unchanged = (before: string | null): boolean => {
