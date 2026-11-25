@@ -20,7 +20,7 @@ import {
   type SongCommandContext,
 } from './songCommands';
 import {failureReasonLines} from '@renderer/platform/problemReasons';
-import {SONG_NOT_FOUND} from './readLibrarySong';
+import {SONG_NOT_FOUND, SONG_OPEN_FAILED} from './readLibrarySong';
 
 /** The parts of the app API that the library uses. */
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
@@ -41,7 +41,7 @@ const titles = new Intl.Collator('ko', {numeric: true});
 const problemTitles = {
   load: '라이브러리 불러오기 실패',
   search: '라이브러리 검색 실패',
-  open: '곡 열기 실패',
+  open: SONG_OPEN_FAILED,
   missing: SONG_NOT_FOUND,
   create: '새 곡 만들기 실패',
   delete: '곡 삭제 실패',

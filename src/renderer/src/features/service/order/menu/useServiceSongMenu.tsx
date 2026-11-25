@@ -20,7 +20,10 @@ import {
   useSongDraft,
 } from '@renderer/features/songs/draft';
 import {focusSlides, openDeckAt} from '@renderer/features/slides/deckSelection';
-import {SONG_LOAD_FAILED} from '@renderer/features/songs/library/readLibrarySong';
+import {
+  SONG_LOAD_FAILED,
+  SONG_OPEN_FAILED,
+} from '@renderer/features/songs/library/readLibrarySong';
 import {MISSING_SONG_TIP} from '@renderer/platform/problemReasons';
 
 interface SongMenuTarget {
@@ -77,7 +80,7 @@ async function openItemInSongEditor(
   await pendingWritesOf(api).settle();
   const latest = await readSongMenu(api, data.target, data.revision);
   if (latest === null) {
-    onProblem(warningNotice('song-transfer', '곡 열기 실패'));
+    onProblem(warningNotice('song-transfer', SONG_OPEN_FAILED));
     return;
   }
   requestLeaveSong(() => {

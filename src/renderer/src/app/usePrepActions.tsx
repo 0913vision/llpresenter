@@ -19,6 +19,7 @@ import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {editItemInPrep, type PrepBinding} from './workspaces/prepPanels';
 import {useShow} from '@renderer/session/show/showStore';
 import {logFailure} from '@renderer/platform/logFailure';
+import {SONG_OPEN_FAILED} from '@renderer/features/songs/library/readLibrarySong';
 
 /** Where 준비 imports songs from. */
 export type ImportSource =
@@ -48,7 +49,7 @@ export function usePrepActions(session: ControlSession): PrepActions {
   const songOpen = usePrepTarget(view => view.target?.kind === 'song');
   const failed = (songId: SongId, cause: unknown): void => {
     logFailure(api, `Could not open song ${songId} in 준비`, cause);
-    report(warningNotice('prep:song-open', '곡 열기 실패'));
+    report(warningNotice('prep:song-open', SONG_OPEN_FAILED));
   };
   const openSong = (songId: SongId, position = 0): void =>
     requestLeaveSong(() => {

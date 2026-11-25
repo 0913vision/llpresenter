@@ -6,6 +6,8 @@ import {warningNotice, type Notice} from '@renderer/ui/popups/notices';
 
 /** The title of the card of a 라이브러리 song that could not be read. */
 export const SONG_LOAD_FAILED = '곡 불러오기 실패';
+/** The title of the card of a song that could not be opened in 준비. */
+export const SONG_OPEN_FAILED = '곡 열기 실패';
 /** What a 라이브러리 song that is not there says. */
 export const SONG_NOT_FOUND = '곡을 찾을 수 없습니다.';
 
