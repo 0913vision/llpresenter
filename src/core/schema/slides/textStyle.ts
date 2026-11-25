@@ -38,6 +38,9 @@ export const lyricTextEntries = {
   outline: v.boolean(),
 };
 
+/** Why a color code can't be used: it is not six hex digits after #. */
+export const COLOR_CODE_REASON = '#RRGGBB 형식으로 입력하십시오.';
+
 /** Matches the saved text color format without exposing the validation library. */
 export function isLyricTextColor(value: string): boolean {
   return v.safeParse(hexColor, value).success;

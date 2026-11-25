@@ -2,7 +2,10 @@ import {useState, type JSX} from 'react';
 import {createPropId} from '@core/schema/common/ids';
 import type {MediaItem} from '@core/schema/media/mediaList';
 import type {Prop} from '@core/schema/tools/props';
-import {isLyricTextColor} from '@core/schema/slides/textStyle';
+import {
+  COLOR_CODE_REASON,
+  isLyricTextColor,
+} from '@core/schema/slides/textStyle';
 import type {Screen} from '@core/schema/screens/screens';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
@@ -81,7 +84,7 @@ export function PropDialog({
     kind === 'text' && !textStyle.font.trim()
       ? '글꼴을 입력해야 저장할 수 있습니다.'
       : kind === 'text' && !isLyricTextColor(textStyle.color)
-        ? '#RRGGBB 형식으로 입력'
+        ? COLOR_CODE_REASON
         : prop
           ? propReason(prop)
           : '이미지를 골라야 저장할 수 있습니다.';

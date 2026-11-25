@@ -1,5 +1,8 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {isLyricTextColor} from '@core/schema/slides/textStyle';
+import {
+  COLOR_CODE_REASON,
+  isLyricTextColor,
+} from '@core/schema/slides/textStyle';
 import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {Slider} from '@renderer/ui/choices/Slider';
@@ -72,7 +75,7 @@ export function ColorProperty({
         validate={text =>
           (allowNone && text === '') || isLyricTextColor(text)
             ? undefined
-            : '#RRGGBB 형식으로 입력'
+            : COLOR_CODE_REASON
         }
         commit={text => commit(text.toUpperCase())}
         onResolved={text => {

@@ -17,6 +17,7 @@ import {Popover} from '../popups/Popover';
 import {labelInk} from './labelInk';
 import menuStyles from '../menus/Menu.module.css';
 import styles from './LabelColorPopover.module.css';
+import {COLOR_CODE_REASON} from '@core/schema/slides/textStyle';
 
 function ColorPopover({
   anchor,
@@ -166,7 +167,7 @@ function ColorPopover({
               readOnly={disabled}
               onChange={setHex}
               invalid={hex !== '' && (!isLabelColor(hex) || hex === 'none')}
-              invalidReason="#RRGGBB 형식으로 입력"
+              invalidReason={COLOR_CODE_REASON}
               onBlur={applyHex}
               onKeyDown={event => {
                 if (event.key === 'Enter' && !isComposing(event)) {

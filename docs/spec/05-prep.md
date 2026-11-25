@@ -325,10 +325,10 @@ none and eight preset swatches, a separator, a saturation/brightness area (about
 tooltips keep their shared label scope and roving arrows. Picking a preset
 applies and closes. Pointer movement previews across open catalog views; release
 saves once. Arrows move by 1%, Shift by 10%; key release saves once. The hex
-field accepts Enter or blur and reports "#RRGGBB 형식으로 입력" for an invalid
-value. Esc or an outside click closes and retains applied changes. Chips, bands,
-swatches and captions paint the stored hex; band text uses WCAG relative
-luminance to choose dark or white ink. Macros keep their eight colors.
+field accepts Enter or blur and reports "#RRGGBB 형식으로 입력하십시오." for an
+invalid value. Esc or an outside click closes and retains applied changes.
+Chips, bands, swatches and captions paint the stored hex; band text uses WCAG
+relative luminance to choose dark or white ink. Macros keep their eight colors.
 
 On open, focus the dialog surface with no name selected or rename tooltip. Tab
 enters the first name field. 새 이름표 still focuses and selects the new row's

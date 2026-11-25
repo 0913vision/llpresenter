@@ -72,7 +72,7 @@ Use the menu surface, radius, shadow and padding in the popover layer. Below
 none and the eight presets, place a separator, a 216 by 120px saturation and
 brightness area with a round handle, a 12px hue bar with a handle and one row
 with a small hex field and a 20px color sample. There are no headings or apply
-button. Hex validation uses "#RRGGBB 형식으로 입력". Presets apply and close.
+button. Hex validation uses "#RRGGBB 형식으로 입력하십시오." Presets apply and close.
 Dragging previews across open catalog views and saves once on release. Arrows
 move 1%, Shift 10%; hex saves on Enter or blur. Esc and outside clicks close
 and keep applied changes. Stored hex colors paint every label surface; WCAG
