@@ -1,15 +1,18 @@
 import {useEffect, useEffectEvent, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {APP_PROBLEM_LIMITS, type AppProblem} from '@core/schema/app/appProblem';
-import {noticeTime, warningNotice} from '@renderer/ui/popups/notices';
+import {noticeTime} from '@renderer/ui/popups/notices';
 import type {NoticeTarget} from './useOutputNotices';
 import {
   WAITING_SAVES_KEY,
   BACKUP_FAILED_KEY,
   backupFailedCard,
   controlReloadedCard,
+  graphicsRecoveredCard,
   launchFailedCard,
   macroDroppedCard,
+  ndiCard,
+  protectionWriteCard,
   skippedFilesCard,
   waitingSavesCard,
 } from './problemNotices';
@@ -51,42 +54,14 @@ export function useProblemNotices(
       if (stopped) return;
       switch (problem.kind) {
         case 'ndi-runtime-missing':
-          show(
-            warningNotice(
-              'ndi-runtime-missing',
-              'NDI Runtime을 찾을 수 없습니다.',
-              ['캡처용 창을 사용할 수 있습니다.'],
-            ),
-          );
-          return;
         case 'ndi-gpu-fallback':
-          show(
-            warningNotice(
-              'ndi-gpu-fallback',
-              '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다.',
-            ),
-          );
-          return;
         case 'ndi-failed':
-          show(
-            warningNotice('ndi-failed', 'NDI 출력 실패', [
-              '캡처용 창으로 표시 중',
-            ]),
-          );
+          show(ndiCard(problem.kind));
           return;
         case 'protection-write': {
           const key = problemGroup(problem);
-          if (!problem.failed) close(key);
-          else {
-            show(
-              warningNotice(
-                key,
-                problem.target === 'record'
-                  ? '진행 복구 기록 저장 실패'
-                  : '이전 판 저장 실패',
-              ),
-            );
-          }
+          if (problem.failed) show(protectionWriteCard(key, problem.target));
+          else close(key);
           return;
         }
         case 'backup-recovered':
@@ -116,13 +91,7 @@ export function useProblemNotices(
           show(controlReloadedCard(noticeTime()));
           return;
         case 'graphics-recovered':
-          show({
-            key: 'graphics-recovered',
-            kind: 'info',
-            icon: 'refresh',
-            title: '화면을 다시 그렸습니다.',
-            time: noticeTime(),
-          });
+          show(graphicsRecoveredCard(noticeTime()));
           return;
         case 'backup-failed':
           show(backupFailedCard(problem, noticeTime()));
