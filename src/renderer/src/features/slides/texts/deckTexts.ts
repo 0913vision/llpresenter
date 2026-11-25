@@ -1,9 +1,4 @@
-import {
-  filledText,
-  ownText,
-  withOwnText,
-  changeSlides,
-} from '@core/slides';
+import {filledText, ownText, withOwnText, changeSlides} from '@core/slides';
 import type {ShowTile} from '@core/schema/services/showService';
 import type {ThemeFile} from '@core/schema/screens/theme';
 import type {SlideDeck} from '../slideDeck';
