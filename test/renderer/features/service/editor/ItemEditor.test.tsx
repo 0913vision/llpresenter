@@ -83,6 +83,20 @@ it('saves what is typed into a slide of the item', async () => {
   await waitFor(() => expect(slides()[0]?.texts['제목']).toBe('모임 안내'));
 });
 
+it('leaves a one-row box on Shift+Enter as on Enter, typing no space into it', async () => {
+  const {slides} = open({
+    id: ITEM,
+    kind: 'notice',
+    name: '광고',
+    slides: [slideOf(1, 'notice', {texts: {제목: '모임', 내용: '주일 오후'}})],
+  });
+  const title = screen.getAllByRole('textbox', {name: '제목'})[0];
+  if (title === undefined) throw new Error('Missing field');
+  await userEvent.type(title, ' 안내{Shift>}{Enter}{/Shift}');
+  await waitFor(() => expect(slides()[0]?.texts['제목']).toBe('모임 안내'));
+  expect(document.activeElement).not.toBe(title);
+});
+
 it('renames an item of its own name, and not a song', async () => {
   const {item} = open({
     id: ITEM,

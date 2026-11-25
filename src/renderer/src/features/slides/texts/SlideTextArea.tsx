@@ -78,16 +78,20 @@ export function SlideTextArea({
     );
   };
   const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
-    if (isComposing(event) || hasModifier(event)) return;
-    if (
-      (event.key === 'Enter' && !many) ||
-      (event.key === 'Escape' && !inList)
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-      focusSlides();
-      return;
-    }
+    if (isComposing(event)) return;
+    // NOTE(0913vision): A one-row box holds no line break, so Shift+Enter
+    // leaves it as Enter does instead of typing a space.
+    const enter =
+      event.key === 'Enter' &&
+      !many &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !event.metaKey;
+    const escape = event.key === 'Escape' && !inList && !hasModifier(event);
+    if (!enter && !escape) return;
+    event.preventDefault();
+    event.stopPropagation();
+    focusSlides();
   };
   return (
     <textarea
