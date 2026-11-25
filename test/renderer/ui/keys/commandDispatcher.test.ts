@@ -4,6 +4,7 @@ import {
   dispatchShortcut,
   probeCommand,
   useCommandShortcuts,
+  isInputMethodKey,
 } from '@renderer/ui/keys/commandDispatcher';
 import {onShortcutCommit} from '@renderer/ui/fields/commitDraft';
 
@@ -176,5 +177,24 @@ describe('probeCommand', () => {
     });
     blocked.unmount();
     expect(probeCommand('edit.duplicate', place)).toEqual({found: false});
+  });
+});
+
+describe('isInputMethodKey', () => {
+  it('leaves a key to the input method while Korean is being composed', () => {
+    expect(
+      isInputMethodKey(
+        new KeyboardEvent('keydown', {key: 'ㅎ', isComposing: true}),
+      ),
+    ).toBe(true);
+    expect(
+      isInputMethodKey(new KeyboardEvent('keydown', {key: 'Process'})),
+    ).toBe(true);
+  });
+
+  it('takes a plain key as a key', () => {
+    expect(isInputMethodKey(new KeyboardEvent('keydown', {key: 'F5'}))).toBe(
+      false,
+    );
   });
 });
