@@ -106,6 +106,8 @@ const {presentTransition} =
   await import('@main/outputs/presenter/presenterPart');
 const {PRESENTER_STALL_MS} =
   await import('@main/outputs/presenter/presenterFrames');
+const {subscribeNativeMirror} =
+  await import('@main/outputs/previews/nativeMirror');
 
 const screen: OutputScreen = {
   id: 'main',
@@ -381,6 +383,129 @@ describe('a full screen output drawn by a presenter', () => {
       'output presenter window was moved or hidden; put back',
       {screen: 'main', was},
     );
+    handle.destroy();
+  });
+});
+
+describe('when a full screen presenter can not go on', () => {
+  it('falls back when the presenter does not start in time', () => {
+    vi.useFakeTimers();
+    const {handle, fallbacks} = setup();
+    handle.showFullScreen(monitor, true);
+    spawned();
+    vi.advanceTimersByTime(4999);
+    expect(fallbacks).toHaveLength(0);
+    vi.advanceTimersByTime(1);
+    expect(fallbacks[0]?.calls).toContain('showFullScreen');
+    handle.destroy();
+  });
+
+  it('falls back when a shown presenter gets no picture in time, and stays when one comes', () => {
+    vi.useFakeTimers();
+    const silent = setup();
+    silent.handle.showFullScreen(monitor, true);
+    spawned().emitter.emit('message', {type: 'ready'});
+    vi.advanceTimersByTime(5000);
+    expect(silent.fallbacks[0]?.calls).toContain('showFullScreen');
+    silent.handle.destroy();
+
+    const painting = setup();
+    painting.handle.showFullScreen(monitor, true);
+    const child = spawned();
+    child.emitter.emit('message', {type: 'ready'});
+    mocks.windows.at(-1)?.contents.emit('paint', {texture: texture()}, {});
+    child.emitter.emit('message', {type: 'copied', id: 1});
+    vi.advanceTimersByTime(5000);
+    expect(painting.fallbacks).toHaveLength(0);
+    painting.handle.destroy();
+  });
+
+  it('falls back when the presenter process exits', () => {
+    const {handle, fallbacks} = setup();
+    handle.showFullScreen(monitor, true);
+    spawned().emitter.emit('exit', 3);
+    expect(fallbacks[0]?.calls).toContain('showFullScreen');
+    handle.destroy();
+  });
+
+  it('releases a frame painted after it was closed', () => {
+    const {handle} = setup();
+    handle.showFullScreen(monitor, true);
+    spawned();
+    const contents = mocks.windows[0]?.contents;
+    handle.destroy();
+    const late = texture();
+    contents?.emit('paint', {texture: late}, {});
+    expect(late.release).toHaveBeenCalledOnce();
+  });
+});
+
+describe('a full screen presenter on and off the top, and its preview', () => {
+  it('tells the presenter to stay on top or not, and to hide', () => {
+    const {handle} = setup();
+    handle.showFullScreen(monitor, true);
+    const child = spawned();
+    handle.setAlwaysOnTop(false);
+    handle.hide();
+    expect(child.posted.slice(-2)).toEqual([
+      {type: 'top', topmost: false},
+      {type: 'hide'},
+    ]);
+    handle.destroy();
+  });
+
+  it('mirrors the shown presenter to the preview until it hides', () => {
+    const frames: Array<Uint8Array | null> = [];
+    const available: boolean[] = [];
+    const unsubscribe = subscribeNativeMirror(
+      'main',
+      frame => frames.push(frame),
+      shown => available.push(shown),
+    );
+    const {handle, log} = setup();
+    handle.showFullScreen(monitor, true);
+    const child = spawned();
+    child.emitter.emit('message', {type: 'shown'});
+    expect(available.at(-1)).toBe(true);
+    expect(child.posted.at(-1)).toEqual({type: 'mirror', enabled: true});
+
+    const frame = new Uint8Array(640 * 360 * 4);
+    child.emitter.emit('message', {type: 'mirror-frame', frame});
+    expect(frames.at(-1)).toBe(frame);
+    child.emitter.emit('message', {
+      type: 'mirror-frame',
+      frame: new Uint8Array(4),
+    });
+    expect(child.posted.at(-1)).toEqual({type: 'mirror-ack'});
+
+    handle.hide();
+    expect(available.at(-1)).toBe(false);
+    expect(frames.at(-1)).toBeNull();
+
+    child.emitter.emit('message', {type: 'shown'});
+    child.emitter.emit('message', {type: 'mirror-error', message: 'no copy'});
+    expect(log.warn).toHaveBeenCalledWith(
+      'presenter preview unavailable',
+      'no copy',
+    );
+    unsubscribe();
+    handle.destroy();
+  });
+
+  it('logs each transition the presenter ran', () => {
+    const {handle, log} = setup();
+    handle.showFullScreen(monitor, true);
+    spawned().emitter.emit('message', {
+      type: 'transitioned',
+      kind: 'wipe',
+      frames: 60,
+    });
+    expect(log.info).toHaveBeenCalledWith('output presenter transition', {
+      screen: 'main',
+      type: 'transitioned',
+      kind: 'wipe',
+      frames: 60,
+    });
     handle.destroy();
   });
 });
