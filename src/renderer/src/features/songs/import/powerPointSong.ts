@@ -33,8 +33,9 @@ interface Reports {
 function missingBackgrounds(
   failure: PowerPointBackgrounds['failure'],
 ): readonly [title: string, meta: string] {
-  if (failure === undefined)
+  if (failure === undefined) {
     return ['배경을 모두 가져오지 못했습니다.', 'PowerPoint'];
+  }
   const {title, meta} = powerPointFailureCard(failure, 'backgrounds');
   return [title, meta];
 }

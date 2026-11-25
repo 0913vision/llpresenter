@@ -234,6 +234,9 @@ describe('PowerPoint import', () => {
       expect(await handler(powerpointEndpoints.images.channel)()).toEqual({
         ok: false,
         message,
+        ...(failure === 'unavailable' || failure === 'unresponsive'
+          ? {failure}
+          : {}),
       });
       expect(await readdir(electron.tempDir)).toEqual(['original.pptx']);
     },
@@ -327,6 +330,7 @@ describe('PowerPoint import', () => {
       expect(await handler(powerpointEndpoints[kind].channel)()).toEqual({
         ok: false,
         message: '이 파일을 가져오려면 PowerPoint가 설치되어 있어야 합니다.',
+        ...(kind === 'images' ? {failure: 'unavailable'} : {}),
       });
       expect(jobs.run).not.toHaveBeenCalled();
       expect(await readdir(electron.tempDir)).toEqual(['old.ppt']);
