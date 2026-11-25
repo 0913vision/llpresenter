@@ -142,6 +142,11 @@ export class BibleLookupSession {
           this.warnedFiles.add(problem.file);
           this.options.log.warn('skipped a Bible translation', problem);
         },
+        onFetchProblem: problem =>
+          this.options.log.warn(
+            'could not fetch a Bible chapter from the web',
+            problem,
+          ),
       });
       if (this.disposed) {
         loaded.clear();

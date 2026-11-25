@@ -37,13 +37,26 @@ describe('live Bible chapters', () => {
   it('handles HTTP, network and missing verse failures', async () => {
     const fetch = vi
       .fn()
-      .mockResolvedValueOnce({ok: false})
+      .mockResolvedValueOnce({ok: false, status: 503})
       .mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValueOnce({ok: true, text: async () => '<html></html>'});
     vi.stubGlobal('fetch', fetch);
-    expect(await fetchLiveChapter(43, 15)).toBeNull();
-    expect(await fetchLiveChapter(43, 15)).toBeNull();
-    expect(await fetchLiveChapter(43, 15)).toBeNull();
+    expect(await fetchLiveChapter(43, 15)).toEqual({
+      ok: false,
+      reason: 'HTTP 503',
+    });
+    expect(await fetchLiveChapter(43, 15)).toEqual({
+      ok: false,
+      reason: 'Error: offline',
+    });
+    expect(await fetchLiveChapter(43, 15)).toEqual({
+      ok: false,
+      reason: 'the page has no verses',
+    });
+    expect(await fetchLiveChapter(99, 1)).toEqual({
+      ok: false,
+      reason: 'no such book or chapter',
+    });
     expect(fetch.mock.calls[0]?.[0]).toContain('book=jhn&chap=15');
   });
   it('retries failures and caches successful chapters only for the session', async () => {
@@ -52,8 +65,14 @@ describe('live Bible chapters', () => {
       .mockRejectedValueOnce(new Error('offline'))
       .mockResolvedValue({ok: true, text: async () => html});
     vi.stubGlobal('fetch', fetch);
-    const library = new BibleChapterLibrary([], () => {});
+    const onFetchProblem = vi.fn();
+    const library = new BibleChapterLibrary([], () => {}, {onFetchProblem});
     expect(await library.chapter(LIVE_BIBLE_ID, 43, 15)).toBeNull();
+    expect(onFetchProblem).toHaveBeenCalledWith({
+      book: 43,
+      chapter: 15,
+      reason: 'Error: offline',
+    });
     expect(await library.chapter(LIVE_BIBLE_ID, 43, 15)).toEqual([
       'alphabetagamma&delta',
       '',

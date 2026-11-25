@@ -20,6 +20,15 @@ export interface BibleChapterLibraryOptions {
   readonly cache?: BibleChapterCache;
   readonly translations: readonly Translation[];
   readonly onProblem: (problem: FileError) => void;
+  /** A chapter of the web Bible that could not be had, and why. */
+  readonly onFetchProblem?: ((problem: LiveFetchProblem) => void) | undefined;
+}
+
+/** A chapter of the web Bible that could not be had, and why. */
+export interface LiveFetchProblem {
+  readonly book: number;
+  readonly chapter: number;
+  readonly reason: string;
 }
 
 function fileProblem(file: string, error: unknown): FileError {
@@ -37,6 +46,8 @@ export class BibleChapterLibrary {
   private closed = false;
   private readonly cache: BibleChapterCache;
   private readonly folder: string | undefined;
+  private readonly onFetchProblem:
+    ((problem: LiveFetchProblem) => void) | undefined;
 
   constructor(
     files: readonly BibleChapterFile[],
@@ -44,10 +55,13 @@ export class BibleChapterLibrary {
     options: {
       readonly cache?: BibleChapterCache | undefined;
       readonly folder?: string | undefined;
+      readonly onFetchProblem?:
+        ((problem: LiveFetchProblem) => void) | undefined;
     } = {},
   ) {
     this.cache = options.cache ?? new BibleChapterCache();
     this.folder = options.folder;
+    this.onFetchProblem = options.onFetchProblem;
     for (const file of files) this.files.set(file.header.id, file);
   }
 
@@ -99,8 +113,13 @@ export class BibleChapterLibrary {
       if (this.closed) return null;
       const cached = await this.cachedLiveChapter(book, chapter);
       if (cached) return cached;
-      const verses = await fetchLiveChapter(book, chapter);
-      if (!verses || this.isClosed()) return null;
+      const fetched = await fetchLiveChapter(book, chapter);
+      if (!fetched.ok) {
+        this.onFetchProblem?.({book, chapter, reason: fetched.reason});
+        return null;
+      }
+      if (this.isClosed()) return null;
+      const {verses} = fetched;
       this.cache.store({
         translation,
         book,
@@ -161,6 +180,7 @@ export async function loadBibleChapterLibrary({
   cache,
   translations,
   onProblem,
+  onFetchProblem,
 }: BibleChapterLibraryOptions): Promise<BibleChapterLibrary> {
   const files: BibleChapterFile[] = [];
   const ids = new Set<string>();
@@ -189,5 +209,9 @@ export async function loadBibleChapterLibrary({
       report(fileProblem(file, error));
     }
   }
-  return new BibleChapterLibrary(files, report, {cache, folder});
+  return new BibleChapterLibrary(files, report, {
+    cache,
+    folder,
+    onFetchProblem,
+  });
 }

@@ -80,15 +80,20 @@ export function parseLiveChapter(html: string): readonly string[] | null {
   return verses;
 }
 
+/** One chapter from the web: its verses, or why it could not be had. */
+export type LiveChapterFetch =
+  | {readonly ok: true; readonly verses: readonly string[]}
+  | {readonly ok: false; readonly reason: string};
+
 /**
  * Downloads one chapter from the Korean Bible Society site and returns its
- * verse texts. It is `null` for a book or chapter that does not exist, a failed
- * or slow request (10 seconds), or a page that cannot be read.
+ * verse texts, or why not: a book or chapter that does not exist, a failed or
+ * slow request (10 seconds), or a page that cannot be read.
  */
 export async function fetchLiveChapter(
   book: number,
   chapter: number,
-): Promise<readonly string[] | null> {
+): Promise<LiveChapterFetch> {
   const metadata = BIBLE_BOOKS.find(item => item.id === book);
   if (
     !metadata ||
@@ -96,7 +101,7 @@ export async function fetchLiveChapter(
     chapter < 1 ||
     chapter > metadata.chapters
   ) {
-    return null;
+    return {ok: false, reason: 'no such book or chapter'};
   }
   const codes: Record<number, string> = {
     26: 'ezk',
@@ -112,9 +117,18 @@ export async function fetchLiveChapter(
       `https://www.bskorea.or.kr/bible/korbibReadpage.php?version=GAE&book=${codes[book] ?? metadata.englishShort}&chap=${chapter}`,
       {signal: AbortSignal.timeout(10000)},
     );
-    if (!response.ok) return null;
-    return parseLiveChapter(await response.text());
-  } catch {
-    return null;
+    if (!response.ok) return {ok: false, reason: `HTTP ${response.status}`};
+    const verses = parseLiveChapter(await response.text());
+    return verses === null
+      ? {ok: false, reason: 'the page has no verses'}
+      : {ok: true, verses};
+  } catch (error) {
+    return {
+      ok: false,
+      reason:
+        error instanceof Error
+          ? `${error.name}: ${error.message}`
+          : String(error),
+    };
   }
 }
