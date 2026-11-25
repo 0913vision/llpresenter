@@ -26,6 +26,34 @@ function position(element: HTMLElement): Point {
   return {x, y};
 }
 
+/**
+ * Where a row that is still gliding shows now: its recorded place moved by
+ * the glide's current offset, so a new glide starts from what is on screen.
+ */
+function shownPosition(element: HTMLElement, recorded: Point): Point {
+  const transform = getComputedStyle(element).transform;
+  if (transform === 'none' || typeof DOMMatrixReadOnly === 'undefined') {
+    return recorded;
+  }
+  const matrix = new DOMMatrixReadOnly(transform);
+  return {x: recorded.x + matrix.m41, y: recorded.y + matrix.m42};
+}
+
+/** Glides a row from where it was to where it is; nothing for less than a pixel. */
+function glide(
+  element: HTMLElement,
+  from: Point,
+  to: Point,
+): Animation | undefined {
+  const x = from.x - to.x;
+  const y = from.y - to.y;
+  if (Math.abs(x) < 1 && Math.abs(y) < 1) return undefined;
+  return element.animate(
+    [{transform: `translate(${x}px, ${y}px)`}, {transform: 'translate(0, 0)'}],
+    {duration: 250, easing: 'cubic-bezier(0, 0, 0, 1)'},
+  );
+}
+
 /** Glide surviving rows between their old and new positions after a structural edit. */
 export function useReflow(
   root: RefObject<HTMLElement | null>,
@@ -55,22 +83,18 @@ export function useReflow(
       const id = element.getAttribute(options.attribute);
       if (id === null) continue;
       const active = animations.current.get(element);
-      let old = before?.positions.get(id);
-      if (changed && old && active?.playState === 'running') {
-        const transform = getComputedStyle(element).transform;
-        if (transform !== 'none' && typeof DOMMatrixReadOnly !== 'undefined') {
-          const matrix = new DOMMatrixReadOnly(transform);
-          old = {x: old.x + matrix.m41, y: old.y + matrix.m42};
-        }
-      }
+      const gliding = active?.playState === 'running';
+      const recorded = before?.positions.get(id);
+      const old =
+        changed && recorded && gliding
+          ? shownPosition(element, recorded)
+          : recorded;
       if (changed || scopeChanged || reduced) active?.cancel();
       const next = position(element);
-      positions.set(
-        id,
-        !changed && active?.playState === 'running'
-          ? (before?.positions.get(id) ?? next)
-          : next,
-      );
+      // NOTE(0913vision): A row still gliding without a new edit keeps the
+      // place it glides to; a glide cancelled above no longer runs.
+      const stillGliding = active?.playState === 'running';
+      positions.set(id, !changed && stillGliding ? (recorded ?? next) : next);
       if (
         !changed ||
         reduced ||
@@ -79,19 +103,8 @@ export function useReflow(
       ) {
         continue;
       }
-      const x = old.x - next.x,
-        y = old.y - next.y;
-      if (Math.abs(x) < 1 && Math.abs(y) < 1) continue;
-      animations.current.set(
-        element,
-        element.animate(
-          [
-            {transform: `translate(${x}px, ${y}px)`},
-            {transform: 'translate(0, 0)'},
-          ],
-          {duration: 250, easing: 'cubic-bezier(0, 0, 0, 1)'},
-        ),
-      );
+      const animation = glide(element, old, next);
+      if (animation) animations.current.set(element, animation);
     }
     previous.current = {key, scope: options.scope, positions};
   });
