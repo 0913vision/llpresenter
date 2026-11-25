@@ -11,13 +11,9 @@ import type {LiveStore} from '../live/store';
 import type {Logger} from '../base/log';
 import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
 import type {RendererState} from './health/rendererRecovery';
-import {
-  planPlacement,
-  fitAspectBounds,
-  OUTPUT_WINDOW_SIZE,
-  CAPTURE_WINDOW_SIZE,
-  type Placement,
-} from './placement';
+import {planPlacement, OUTPUT_WINDOW_SIZE, type Placement} from './placement';
+import {placementWithoutMonitors} from './fallbackPlacement';
+import {monitorMatchDetail} from './monitors/monitorMatchLog';
 import type {OutputScreen, ScreenSource} from './screens';
 import type {IdentifiedOutput} from './monitors/monitorNumbers';
 import type {FrameReadyReport} from '@core/schema/app/ipcPayloads';
@@ -400,33 +396,7 @@ export class OutputManager {
     this.lastOutputs = this.options.store.state.outputs;
     const turnOff: string[] = [];
     for (const screen of screens) {
-      const bounds =
-        screen.method === 'capture'
-          ? fitAspectBounds(area, screen.resolution ?? CAPTURE_WINDOW_SIZE)
-          : fitAspectBounds(area, OUTPUT_WINDOW_SIZE);
-      const unassigned = screen.display === null;
-      const planned: Placement =
-        screen.method === 'fullscreen' &&
-        !unassigned &&
-        screen.onDisconnect === 'off'
-          ? {kind: 'off'}
-          : screen.method === 'capture'
-            ? {
-                kind: 'capture',
-                bounds,
-                ...(screen.alwaysOnTop === true ? {alwaysOnTop: true} : {}),
-              }
-            : {
-                kind: 'window',
-                bounds,
-                reason:
-                  screen.method === 'fullscreen' && !unassigned
-                    ? 'monitorMissing'
-                    : 'method',
-                ...(screen.method === 'window' && screen.alwaysOnTop === true
-                  ? {alwaysOnTop: true}
-                  : {}),
-              };
+      const planned = placementWithoutMonitors(screen, area);
       try {
         if (planned.kind !== 'off') this.windowFor(screen).preload(planned);
       } catch (error) {
@@ -505,35 +475,11 @@ export class OutputManager {
       ) {
         continue;
       }
-      const monitor = surroundings?.assigned.get(screen.id);
-      const match = diagnostics?.get(screen.id);
-      const detail =
-        monitor === undefined
-          ? {
-              screen: screen.id,
-              monitor: 'unmatched',
-              reason:
-                screen.method !== 'fullscreen' || screen.display === null
-                  ? 'not applicable'
-                  : match && 'reason' in match
-                    ? match.reason
-                    : 'no candidate',
-            }
-          : {
-              screen: screen.id,
-              monitor: monitor.id,
-              rule:
-                monitor.id === surroundings?.controlMonitor.id
-                  ? 'control conflict'
-                  : match && 'rule' in match
-                    ? match.rule
-                    : 'unknown',
-              ...(monitor.id === surroundings?.controlMonitor.id &&
-              match &&
-              'rule' in match
-                ? {matchedBy: match.rule}
-                : {}),
-            };
+      const detail = monitorMatchDetail(screen, {
+        monitor: surroundings?.assigned.get(screen.id),
+        controlMonitorId: surroundings?.controlMonitor.id,
+        match: diagnostics?.get(screen.id),
+      });
       this.options.log.info('output monitor match', detail);
       this.loggedMatches.add(screen.id);
     }
