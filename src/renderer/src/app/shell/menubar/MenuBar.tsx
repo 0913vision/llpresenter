@@ -324,48 +324,19 @@ function showPreferenceRow(
  * The 30px menu bar, which doubles as the window title bar. The center shows
  * the name of the open service.
  */
-export function MenuBar({
-  title,
-  warnings = noWarnings,
-  onShowWarning = ignoreWarning,
-  onProblem = logProblem,
-  onImportText,
-  onNewSong,
-  clipboardAvailable,
-  onWorkspace,
-  onMedia,
-}: {
-  readonly title: string;
-  /** The screens whose warning still holds, for the 출력 menu. */
-  readonly warnings?: readonly WarningScreen[] | undefined;
-  readonly onShowWarning?: ((screenId: string) => void) | undefined;
-  readonly onProblem?: ((notice: Notice) => void) | undefined;
-  /** Mounts P5's file and clipboard entry flow when its host is available. */
-  readonly onImportText?: ImportText | undefined;
-  readonly onNewSong?: (() => void) | undefined;
-  readonly clipboardAvailable?: (() => Promise<boolean>) | undefined;
-  readonly onWorkspace?: ((workspace: Workspace) => void) | undefined;
-  readonly onMedia?: (() => void) | undefined;
-}): JSX.Element {
+/**
+ * Which menu of the bar is open, and how each one opens: by click, by key, by
+ * hovering over the bar while another is open, or by ← and → from the open
+ * one. Opening 파일 checks the clipboard for 클립보드에서 가져오기. A menu
+ * opened by key takes the focus; one opened by hover leaves it.
+ *
+ * @returns The control of each menu, by its name.
+ */
+function useOpenMenu(
+  outsideFocus: () => Element | null,
+  checkClipboard: () => void,
+): (name: MenuName) => MenuControl {
   const [active, setActive] = useState<ActiveMenu | null>(null);
-  const outsideFocus = useOutsideFocus();
-  const preferences = usePreferenceEdits(onProblem);
-  const continuousRow = showPreferenceRow(
-    preferences,
-    show => show.atLastSlide === 'nextItem',
-    show => ({
-      ...show,
-      atLastSlide: show?.atLastSlide === 'nextItem' ? 'stop' : 'nextItem',
-    }),
-  );
-  const continuousGridRow = showPreferenceRow(
-    preferences,
-    show => show.continuousGrid,
-    show => ({...show, continuousGrid: !show?.continuousGrid}),
-  );
-  const fullScreen = useFullScreen();
-  const {status: clipboard, check: checkClipboard} =
-    useClipboardAvailability(clipboardAvailable);
   const bar = useMenuBarNavigation<MenuName>(MENU_NAMES);
   const keys: MenuBarKeys = {
     bar,
@@ -408,7 +379,7 @@ export function MenuBar({
   }, [openName, bar, checkClipboard]);
   const outside = outsideFocus();
   const returnTo = outside instanceof HTMLElement ? outside : undefined;
-  const controlFor = (name: MenuName): MenuControl => ({
+  return name => ({
     keys,
     returnTo,
     anchor: active?.name === name ? active.anchor : null,
@@ -437,6 +408,50 @@ export function MenuBar({
     close: () =>
       setActive(current => (current?.name === name ? null : current)),
   });
+}
+
+export function MenuBar({
+  title,
+  warnings = noWarnings,
+  onShowWarning = ignoreWarning,
+  onProblem = logProblem,
+  onImportText,
+  onNewSong,
+  clipboardAvailable,
+  onWorkspace,
+  onMedia,
+}: {
+  readonly title: string;
+  /** The screens whose warning still holds, for the 출력 menu. */
+  readonly warnings?: readonly WarningScreen[] | undefined;
+  readonly onShowWarning?: ((screenId: string) => void) | undefined;
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+  /** Mounts P5's file and clipboard entry flow when its host is available. */
+  readonly onImportText?: ImportText | undefined;
+  readonly onNewSong?: (() => void) | undefined;
+  readonly clipboardAvailable?: (() => Promise<boolean>) | undefined;
+  readonly onWorkspace?: ((workspace: Workspace) => void) | undefined;
+  readonly onMedia?: (() => void) | undefined;
+}): JSX.Element {
+  const outsideFocus = useOutsideFocus();
+  const preferences = usePreferenceEdits(onProblem);
+  const continuousRow = showPreferenceRow(
+    preferences,
+    show => show.atLastSlide === 'nextItem',
+    show => ({
+      ...show,
+      atLastSlide: show?.atLastSlide === 'nextItem' ? 'stop' : 'nextItem',
+    }),
+  );
+  const continuousGridRow = showPreferenceRow(
+    preferences,
+    show => show.continuousGrid,
+    show => ({...show, continuousGrid: !show?.continuousGrid}),
+  );
+  const fullScreen = useFullScreen();
+  const {status: clipboard, check: checkClipboard} =
+    useClipboardAvailability(clipboardAvailable);
+  const controlFor = useOpenMenu(outsideFocus, checkClipboard);
   return (
     <div className={styles.bar} data-window-menu-bar>
       <span className={styles.wordmark}>LoveLight</span>
