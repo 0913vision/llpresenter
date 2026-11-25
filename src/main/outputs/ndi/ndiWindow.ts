@@ -65,12 +65,17 @@ export function createNdiWindow(
   return {win, reload: () => startLoading(win, page)};
 }
 
+/** What stopping a sender uses of its process. */
+export type StoppableSender = Pick<UtilityProcess, 'kill' | 'postMessage'> & {
+  once(event: 'exit', listener: () => void): unknown;
+};
+
 /**
  * Asks a sender process to stop, or ends it at once when `now`; one that has
  * not exited after `timeoutMs` is ended. `exited` runs once it is gone.
  */
 export function stopSender(
-  sender: UtilityProcess,
+  sender: StoppableSender,
   {
     timeoutMs,
     now = false,
