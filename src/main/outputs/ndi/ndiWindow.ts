@@ -1,4 +1,7 @@
-import {NDI_DEFAULT_FPS} from '@core/schema/screens/screens';
+import {
+  NDI_DEFAULT_FPS,
+  NDI_DEFAULT_SOURCE_NAME,
+} from '@core/schema/screens/screens';
 import {BrowserWindow, type UtilityProcess} from 'electron';
 import type {Logger} from '../../base/log';
 import {
@@ -7,8 +10,15 @@ import {
   startLoading,
 } from '../../base/renderers/page';
 import type {OutputScreen} from '../screens';
-import type {OutputWindowEvents} from '../outputWindow';
+import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
+import {ndiSettingsChange} from './ndiSettings';
 import {NDI_FRAME_HEIGHT, NDI_FRAME_WIDTH} from './textureQueue';
+
+/** The hidden window an NDI output draws in, and the call that loads its page again. */
+export interface NdiWindow {
+  readonly win: BrowserWindow;
+  readonly reload: () => Promise<void>;
+}
 
 /**
  * The hidden window an NDI output draws in: one NDI frame large, without a
@@ -26,7 +36,7 @@ export function createNdiWindow(
     readonly sharedTexture: boolean;
     readonly onLoadError: (error: unknown) => void;
   },
-): {readonly win: BrowserWindow; readonly reload: () => Promise<void>} {
+): NdiWindow {
   const win = new BrowserWindow({
     show: false,
     skipTaskbar: true,
@@ -96,4 +106,80 @@ export function stopSender(
     clearTimeout(killTimer);
     sender.kill();
   }
+}
+
+/**
+ * The environment a sender process starts with: the screen's frame rate and
+ * NDI source name.
+ */
+export function ndiSenderEnv(screen: OutputScreen): NodeJS.ProcessEnv {
+  return {
+    ...process.env,
+    LLP_NDI_FPS: String(screen.ndi?.fps ?? NDI_DEFAULT_FPS),
+    LLP_NDI_DEFAULT_SOURCE_NAME: NDI_DEFAULT_SOURCE_NAME,
+    LLP_NDI_SOURCE_NAME: screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME,
+  };
+}
+
+/**
+ * Follows new screen settings in the window: a new frame rate sets how often
+ * the page draws.
+ *
+ * @returns Whether a running sender must restart for them.
+ */
+export function applyNdiSettings(
+  win: BrowserWindow,
+  current: OutputScreen,
+  next: OutputScreen,
+): boolean {
+  const change = ndiSettingsChange(current, next);
+  if (change.frameRate !== undefined) {
+    win.webContents.setFrameRate(change.frameRate);
+  }
+  return change.restart;
+}
+
+/** What one NDI sender does when its output is configured, shown or hidden. */
+export interface NdiSender {
+  readonly configure: (screen: OutputScreen) => void;
+  /** Starts sending, when the output shows; nothing while it sends. */
+  readonly begin: () => void;
+  /** Stops sending, when the output hides. */
+  readonly stop: () => void;
+  /** Draws the page again for the next frame. */
+  readonly requestFrame: () => void;
+  /** Stops for good and closes the window. */
+  readonly destroy: () => void;
+}
+
+/**
+ * The window handle of an NDI output. Its window never shows, so placing it
+ * does nothing; showing it as a capture starts the sender, and hiding it
+ * stops the sender.
+ */
+export function ndiOutputHandle(
+  {win, reload}: NdiWindow,
+  sender: NdiSender,
+): OutputWindowHandle {
+  return {
+    previewContents: () => (win.isDestroyed() ? null : win.webContents),
+    configure: sender.configure,
+    prepare: () => undefined,
+    requestFrame: sender.requestFrame,
+    contentSize: () => ({width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT}),
+    setAlwaysOnTop: () => undefined,
+    showFullScreen: () => undefined,
+    showWindowed: () => undefined,
+    showCapture: sender.begin,
+    prepareForMonitorRemoval: () => undefined,
+    bringToFront: () => undefined,
+    bounds: () => null,
+    hide: sender.stop,
+    reload,
+    crashRenderer: () => win.webContents.forcefullyCrashRenderer(),
+    ping: async () => {
+      await win.webContents.executeJavaScript('0');
+    },
+    destroy: sender.destroy,
+  };
 }

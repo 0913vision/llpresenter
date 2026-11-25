@@ -1,8 +1,4 @@
-import {
-  NDI_DEFAULT_HARDWARE_ACCELERATION,
-  NDI_DEFAULT_FPS,
-  NDI_DEFAULT_SOURCE_NAME,
-} from '@core/schema/screens/screens';
+import {NDI_DEFAULT_HARDWARE_ACCELERATION} from '@core/schema/screens/screens';
 import {
   utilityProcess,
   type UtilityProcess,
@@ -11,12 +7,17 @@ import {
 } from 'electron';
 import {join} from 'node:path';
 import type {OutputScreen} from '../screens';
-import {ndiSettingsChange} from './ndiSettings';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import type {Logger} from '../../base/log';
 import {unionDirty} from './rect';
 import {createGpuOutput} from './gpuOutput';
-import {createNdiWindow, stopSender} from './ndiWindow';
+import {
+  applyNdiSettings,
+  createNdiWindow,
+  ndiOutputHandle,
+  ndiSenderEnv,
+  stopSender,
+} from './ndiWindow';
 import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
 import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 
@@ -114,16 +115,30 @@ export function createNdiOutput(
   };
 }
 
+/** A message of the NDI utility process. */
+interface SenderMessage {
+  readonly type: string;
+  readonly message?: string;
+}
+
+/**
+ * Sends one screen's page to NDI as bitmaps: an offscreen window paints, and
+ * a utility process sends each changed area. A paint that comes while a frame
+ * is on its way joins the next one. A GPU output that falls back hands its
+ * pixels in instead. A sender that stops answering, fails or exits is a
+ * failure of the screen.
+ */
 function createBitmapOutput(
   screen: OutputScreen,
   events: OutputWindowEvents,
   options: {log: Logger; onFailure: (id: string, missing: boolean) => void},
 ): BitmapSender {
   const {log, onFailure} = options;
-  const {win, reload} = createNdiWindow(screen, events, {
+  const ndiWindow = createNdiWindow(screen, events, {
     sharedTexture: false,
     onLoadError: error => log.error('could not load NDI output', error),
   });
+  const {win} = ndiWindow;
   let current = screen;
   let child: UtilityProcess | null = null;
   let ready = false;
@@ -166,6 +181,18 @@ function createBitmapOutput(
       },
     });
   };
+  /** A painted area goes now, or joins the area that waits. */
+  const queuePaint = (dirty: Rectangle, image: NativeImage): void => {
+    if (!inFlight) {
+      sendFrame(dirty, image);
+      return;
+    }
+    const previous = pending?.dirty;
+    pending =
+      previous === undefined
+        ? {dirty, image}
+        : {image, dirty: unionDirty(previous, dirty)};
+  };
   win.webContents.on('paint', (_event, dirty, image) => {
     if (
       child === null ||
@@ -181,16 +208,7 @@ function createBitmapOutput(
     if (size.width !== NDI_FRAME_WIDTH || size.height !== NDI_FRAME_HEIGHT) {
       return;
     }
-    if (!inFlight) {
-      sendFrame(dirty, image);
-      return;
-    }
-    const previous = pending?.dirty;
-    if (previous === undefined) {
-      pending = {dirty, image};
-      return;
-    }
-    pending = {image, dirty: unionDirty(previous, dirty)};
+    queuePaint(dirty, image);
   });
   const stop = (exited = false): void => {
     if (watchdog !== null) clearTimeout(watchdog);
@@ -235,53 +253,59 @@ function createBitmapOutput(
       NDI_SEND_TIMEOUT_MS,
     );
   };
-  const begin = (): void => {
-    if (closed || child !== null) return;
-    const worker = utilityProcess.fork(join(__dirname, 'ndi/utility.cjs'), [], {
-      serviceName: 'NDI output',
-      env: {
-        ...process.env,
-        LLP_NDI_FPS: String(current.ndi?.fps ?? NDI_DEFAULT_FPS),
-        LLP_NDI_DEFAULT_SOURCE_NAME: NDI_DEFAULT_SOURCE_NAME,
-        LLP_NDI_SOURCE_NAME: current.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME,
-      },
-    });
-    child = worker;
-    worker.on('message', (message: {type: string; message?: string}) => {
-      if (child !== worker) return;
-      if (message.type === 'native-loaded') {
+  /** A frame went out: the next one waiting goes. */
+  const sent = (worker: UtilityProcess): void => {
+    if (heartbeatWatchdog === null) monitorHeartbeat(worker);
+    if (watchdog !== null) clearTimeout(watchdog);
+    watchdog = null;
+    inFlight = false;
+    const done = gpuSent;
+    gpuSent = null;
+    done?.();
+    if (gpuInput) sendGpu();
+    else if (pending !== null) {
+      const {dirty, image} = pending;
+      pending = null;
+      sendFrame(dirty, image);
+    }
+  };
+  const onMessage = (worker: UtilityProcess, message: SenderMessage): void => {
+    switch (message.type) {
+      case 'native-loaded':
         log.info('NDI native module loaded');
-      }
-      if (message.type === 'ready') {
+        return;
+      case 'ready':
         ready = true;
         win.webContents.invalidate();
         sendGpu();
-      }
-      if (message.type === 'sent') {
-        if (heartbeatWatchdog === null) monitorHeartbeat(worker);
-        if (watchdog !== null) clearTimeout(watchdog);
-        watchdog = null;
-        inFlight = false;
-        const done = gpuSent;
-        gpuSent = null;
-        done?.();
-        if (gpuInput) sendGpu();
-        else if (pending !== null) {
-          const {dirty, image} = pending;
-          pending = null;
-          sendFrame(dirty, image);
-        }
-      }
-      if (message.type === 'heartbeat' && heartbeatWatchdog !== null) {
-        monitorHeartbeat(worker);
-      }
-      if (message.type === 'error') {
+        return;
+      case 'sent':
+        sent(worker);
+        return;
+      case 'heartbeat':
+        if (heartbeatWatchdog !== null) monitorHeartbeat(worker);
+        return;
+      case 'error':
         fail(
           worker,
           message.message?.includes('NDI_RUNTIME_MISSING') === true,
           message.message,
         );
-      }
+        return;
+      default:
+        // NOTE(0913vision): utility.cjs sends no other message.
+        return;
+    }
+  };
+  const begin = (): void => {
+    if (closed || child !== null) return;
+    const worker = utilityProcess.fork(join(__dirname, 'ndi/utility.cjs'), [], {
+      serviceName: 'NDI output',
+      env: ndiSenderEnv(current),
+    });
+    child = worker;
+    worker.on('message', (message: SenderMessage) => {
+      if (child === worker) onMessage(worker, message);
     });
     worker.on('exit', code => {
       if (child !== worker) return;
@@ -291,7 +315,24 @@ function createBitmapOutput(
     });
   };
   return {
-    previewContents: () => (win.isDestroyed() ? null : win.webContents),
+    ...ndiOutputHandle(ndiWindow, {
+      configure: next => {
+        const restart = applyNdiSettings(win, current, next);
+        current = next;
+        if (restart && child !== null) {
+          stop();
+          begin();
+        }
+      },
+      begin,
+      stop: () => stop(),
+      requestFrame: () => win.webContents.invalidate(),
+      destroy: () => {
+        closed = true;
+        stop();
+        if (!win.isDestroyed()) win.destroy();
+      },
+    }),
     setGpuInput: enabled => {
       gpuInput = enabled;
       pending = null;
@@ -304,38 +345,6 @@ function createBitmapOutput(
       if (data.byteLength !== NDI_FRAME_WIDTH * NDI_FRAME_HEIGHT * 4) return;
       pendingGpu = {data, sent};
       sendGpu();
-    },
-    configure: next => {
-      const change = ndiSettingsChange(current, next);
-      if (change.frameRate !== undefined) {
-        win.webContents.setFrameRate(change.frameRate);
-      }
-      current = next;
-      if (change.restart && child !== null) {
-        stop();
-        begin();
-      }
-    },
-    prepare: () => undefined,
-    requestFrame: () => win.webContents.invalidate(),
-    contentSize: () => ({width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT}),
-    setAlwaysOnTop: () => undefined,
-    showFullScreen: () => undefined,
-    showWindowed: () => undefined,
-    showCapture: () => begin(),
-    prepareForMonitorRemoval: () => undefined,
-    bringToFront: () => undefined,
-    bounds: () => null,
-    hide: stop,
-    reload,
-    crashRenderer: () => win.webContents.forcefullyCrashRenderer(),
-    ping: async () => {
-      await win.webContents.executeJavaScript('0');
-    },
-    destroy: () => {
-      closed = true;
-      stop();
-      if (!win.isDestroyed()) win.destroy();
     },
   };
 }
