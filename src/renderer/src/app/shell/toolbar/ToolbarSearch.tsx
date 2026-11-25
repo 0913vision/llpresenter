@@ -18,7 +18,7 @@ import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import type {Notice} from '@renderer/ui/popups/notices';
-import {TruncatedText} from '@renderer/ui/text/TruncatedText';
+import {MatchedText} from '@renderer/ui/text/MatchedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
 import {showSearchResults} from './searchResults';
@@ -94,12 +94,14 @@ function useCloseOnOutsidePointer(
 
 function ResultRow({
   match,
+  query,
   id,
   selected,
   onPoint,
   onChoose,
 }: {
   readonly match: LibrarySearchMatch;
+  readonly query: string;
   readonly id: string;
   readonly selected: boolean;
   readonly onPoint: () => void;
@@ -120,8 +122,14 @@ function ResultRow({
     >
       <Icon name="song" size={SONG_ICON_SIZE} />
       <span className={styles.lines}>
-        <TruncatedText text={match.title} />
-        {lyrics ? <TruncatedText text={lyrics} className={styles.sub} /> : null}
+        <MatchedText text={match.title} query={query} className={styles.line} />
+        {lyrics ? (
+          <MatchedText
+            text={lyrics}
+            query={query}
+            className={`${styles.line} ${styles.sub}`}
+          />
+        ) : null}
       </span>
       <span className={styles.meta}>슬라이드 {match.slideCount}개</span>
     </button>
@@ -300,6 +308,7 @@ export function ToolbarSearch({
                 <ResultRow
                   key={match.songId}
                   match={match}
+                  query={search.query}
                   id={optionIdOf(listId, match)}
                   selected={match.songId === pointedId}
                   onPoint={() => setPointedId(match.songId)}

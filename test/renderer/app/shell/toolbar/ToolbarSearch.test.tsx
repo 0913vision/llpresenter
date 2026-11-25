@@ -719,7 +719,11 @@ describe('Enter with no result chosen', () => {
       query: '창작',
       limit: LIBRARY_SEARCH_LIMITS.max,
     });
-    expect(within(results).getByText('창작한 후렴 줄')).toBeTruthy();
+    const lyricRow = within(results).getByRole('option', {name: /아침길/});
+    expect(lyricRow.textContent).toContain('창작한 후렴 줄');
+    expect(lyricRow.querySelector('mark')?.textContent).toBe('창작');
+    const titleRow = within(results).getByRole('option', {name: /새벽빛/});
+    expect(titleRow.textContent).not.toContain('제목');
 
     results.focus();
     await userEvent.keyboard('{Enter}');

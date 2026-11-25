@@ -36,6 +36,13 @@
   min-width: 0;
 }
 
+.title,
+.sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .title {
   font: var(--type-body-strong);
 }

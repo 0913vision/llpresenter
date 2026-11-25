@@ -2,6 +2,7 @@ import {useEffect, useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/songs/librarySearch';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Icon} from '@renderer/ui/Icon';
+import {MatchedText} from '@renderer/ui/text/MatchedText';
 import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import {ROW_POINTER_CLASS} from '@renderer/ui/lists/rowPointer';
 import {classNames} from '@renderer/ui/classNames';
@@ -129,10 +130,18 @@ export function SearchResultsPanel({
             >
               <Icon name="song" size={SONG_ICON_SIZE} />
               <span className={styles.lines}>
-                <span className={styles.title}>{match.title}</span>
-                <span className={styles.sub}>
-                  {match.match.kind === 'lyrics' ? match.match.line : '제목'}
-                </span>
+                <MatchedText
+                  text={match.title}
+                  query={shown.query}
+                  className={styles.title}
+                />
+                {match.match.kind === 'lyrics' ? (
+                  <MatchedText
+                    text={match.match.line}
+                    query={shown.query}
+                    className={styles.sub}
+                  />
+                ) : null}
               </span>
               <span className={styles.meta}>슬라이드 {match.slideCount}개</span>
             </div>
