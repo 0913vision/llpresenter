@@ -2,7 +2,7 @@ import {
   NOTHING_TO_REDO,
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
-import {probeCommand, runCommandAt} from '@renderer/ui/keys/commandDispatcher';
+import {probeCommand, runCommandAt} from '@renderer/ui/keys/commandProbe';
 import {
   menuAvailability,
   type MenuEntry,
