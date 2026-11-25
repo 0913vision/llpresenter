@@ -34,9 +34,16 @@ export function insertNewItem(
     readonly edit?: boolean;
   },
 ): void {
+  // NOTE(0913vision): A new 구역 opens its name for typing as soon as its row
+  // shows, so the rename is asked before the row comes; one that never comes
+  // takes the request back.
   if (item.kind === 'header') useHeaderRename.getState().request(item.id);
   const done = insertItem(item, before).then(result => {
-    if (!result.ok && result.error.reason !== 'write-failed') return result;
+    if (!result.ok && result.error.reason !== 'write-failed') {
+      const rename = useHeaderRename.getState();
+      if (rename.requested === item.id) rename.clear();
+      return result;
+    }
     if (hasSlides(item) && 'passage' in item) {
       rememberBiblePassage({
         ref: item.passage.ref,
