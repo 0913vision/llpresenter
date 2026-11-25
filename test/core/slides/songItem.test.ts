@@ -128,4 +128,21 @@ describe('songItemBody', () => {
 
     expect(songItemBody(slides, '빛의 길')).toEqual([...lyrics, sung]);
   });
+
+  it('takes out the own 전주 first and 후주 last of an item also after the song was renamed', () => {
+    const slides = [
+      {...lyricsSlide(1, '빛의 길'), label: '전주'},
+      ...lyrics,
+      {...lyricsSlide(5, '빛의 길'), label: '후주', next: '(후주)'},
+    ];
+
+    expect(songItemBody(slides, '빛의 새 길')).toEqual(lyrics);
+  });
+
+  it('keeps a lyric with the 이름표 전주 or 후주 away from the ends', () => {
+    const verse = {...lyricsSlide(4, '다른 가사'), label: '후주'};
+    const slides = [...lyrics.slice(0, 1), verse, ...lyrics.slice(1)];
+
+    expect(songItemBody(slides, '빛의 길')).toEqual(slides);
+  });
 });

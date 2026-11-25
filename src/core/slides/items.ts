@@ -99,6 +99,24 @@ function isTitleCopy(slide: Slide, title: string): boolean {
 }
 
 /**
+ * Whether a slide is the item's own 전주 or 후주 by its place: the 전주 first
+ * or the 후주 last. Its text may be an older title of a song renamed since
+ * the item was made (church, Nov 25).
+ */
+function isItemTitle(
+  slide: Slide,
+  index: number,
+  slides: readonly Slide[],
+): boolean {
+  return (
+    (index === 0 && slide.label === SONG_TITLE_LABELS.opening) ||
+    (index > 0 &&
+      index === slides.length - 1 &&
+      slide.label === SONG_TITLE_LABELS.closing)
+  );
+}
+
+/**
  * The slides of a song item as they go back to the song in the library
  * (USER Nov 25): every title slide stays out, so the song keeps its own title
  * and the 예배 순서 adds 전주 and 후주 again the next time.
@@ -107,7 +125,10 @@ export function songItemBody(
   slides: readonly Slide[],
   title: string,
 ): readonly Slide[] {
-  return slides.filter(slide => !isTitleCopy(slide, title));
+  return slides.filter(
+    (slide, index) =>
+      !isItemTitle(slide, index, slides) && !isTitleCopy(slide, title),
+  );
 }
 
 /** A song of the library, with slides of its own in this service. */
