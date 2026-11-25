@@ -136,6 +136,9 @@ export function DetailsPanel({
       : (outputSlideOf({itemId: slidesItem.id, index: count - 1})?.next ??
         null);
   const preview = {tiles, screen, nextAtEnd};
+  // NOTE(0913vision): The slide list shows one screen, the first, also while
+  // the preview above shows every screen.
+  const listView = screen.views[0] ?? {id: undefined, role: 'audience'};
   const edit = (index: number): void => {
     if (slidesItem !== undefined) onOpenItem(slidesItem.id, index);
     else if (library !== null) onOpenSong(library.songId, index);
@@ -182,7 +185,14 @@ export function DetailsPanel({
         onEdit={edit}
         labelAt={index => tiles[index]?.caption ?? undefined}
         colorAt={index => tiles[index]?.labelColor ?? 'none'}
-        picture={index => <PreviewPicture {...preview} index={index} />}
+        picture={index => (
+          <PreviewPicture
+            tiles={tiles}
+            index={index}
+            view={listView}
+            nextAtEnd={nextAtEnd}
+          />
+        )}
       />
     </SlideSidePanel>
   );

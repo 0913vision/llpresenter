@@ -32,7 +32,7 @@ export function SlideSidePanel({
             <SegmentedControl
               label="화면"
               options={screen.choices}
-              value={screen.id}
+              value={screen.value}
               onChange={screen.select}
             />
           </PanelActions>

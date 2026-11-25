@@ -2,6 +2,21 @@
   width: 100%;
 }
 
+.screens {
+  display: grid;
+  gap: var(--space-8);
+}
+
+.screen {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.name {
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
 .picture {
   position: relative;
   overflow: hidden;
