@@ -1,28 +1,22 @@
-import {THEME_CANVAS} from '@core/schema/screens/screens';
-import {BrowserWindow, screen as displays, type WebContents} from 'electron';
+import {screen as displays, type WebContents} from 'electron';
 import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {sameRect, type Rect, type Size} from '../../displays/rect';
 import type {Logger} from '../../base/log';
-import {
-  blockNavigation,
-  startLoading,
-  type PageRequest,
-} from '../../base/renderers/page';
-import {APP_PAGE} from '../../base/renderers/pagePreferences';
-import {type OutputWindowEvents, OUTPUT_BACKGROUND} from '../outputWindow';
+import type {OutputWindowEvents} from '../outputWindow';
 import type {OutputScreen} from '../screens';
+import type {PlaybackProblemBoard} from '../health/playbackProblems';
 import {
-  watchPlaybackProblems,
-  type PlaybackProblemBoard,
-} from '../health/playbackProblems';
-import {publishNativeMirror, setNativeMirror} from '../previews/nativeMirror';
-import {PRESENTER_STALL_MS, PresenterFrames} from './presenterFrames';
+  PRESENTER_STALL_MS,
+  PresenterFrames,
+  type PageTexture,
+} from './presenterFrames';
+import {PresenterMirror} from './presenterMirror';
+import {PresenterPage} from './presenterPage';
 import {PresenterProcess, type PresenterMessage} from './presenterProcess';
 
-const PING_SCRIPT = '0';
-const DEFAULT_SIZE: Size = THEME_CANVAS;
 const UTILITY_TIMEOUT_MS = 5000;
 const FIRST_TEXTURE_TIMEOUT_MS = 5000;
+const DEFAULT_REFRESH_HZ = 60;
 
 // NOTE(0913vision): Chromium paces every window by the primary display's
 // vblank on Windows. A full screen output on a monitor with another refresh
@@ -58,260 +52,283 @@ export interface PresenterPart {
   destroy(): void;
 }
 
+/** What a presenter part uses from outside. */
+export interface PresenterPartOptions {
+  readonly log: Logger;
+  readonly playbackProblems: PlaybackProblemBoard | undefined;
+  /** It cannot go on; the screen falls back to its output window. */
+  readonly fail: (reason: unknown) => void;
+}
+
 /**
  * The presenter of one screen: its page drawn offscreen, the frames on their
  * way, and the presenter process that shows them on the monitor. `fail` runs
- * once when it cannot go on, and the screen falls back to its output window.
+ * when it cannot go on, and the screen falls back to its output window.
  */
 export function createPresenterPart(
   screen: OutputScreen,
   events: OutputWindowEvents,
-  {
-    log,
-    playbackProblems,
-    fail,
-  }: {
-    log: Logger;
-    playbackProblems: PlaybackProblemBoard | undefined;
-    fail: (reason: unknown) => void;
-  },
+  options: PresenterPartOptions,
 ): PresenterPart {
-  let current = screen;
-  const win = new BrowserWindow({
-    show: false,
-    skipTaskbar: true,
-    width: (screen.resolution ?? DEFAULT_SIZE).width,
-    height: (screen.resolution ?? DEFAULT_SIZE).height,
-    useContentSize: true,
-    frame: false,
-    backgroundColor: OUTPUT_BACKGROUND,
-    webPreferences: {
-      ...APP_PAGE,
-      backgroundThrottling: false,
-      offscreen: {useSharedTexture: true},
-    },
-  });
-  const page: PageRequest = {
-    name: 'output',
-    query: {screen: screen.id, presenter: '1'},
-  };
-  blockNavigation(win);
-  win.on('page-title-updated', event => event.preventDefault());
-  win.webContents.on('render-process-gone', (_event, details) =>
-    events.onRendererGone(details),
-  );
-  const releaseProblems =
-    playbackProblems === undefined
-      ? undefined
-      : watchPlaybackProblems(playbackProblems, win.webContents, {
-          source: screen.id,
-          name: () => current.name,
-          retry: () => win.webContents.reload(),
-        });
-  let closed = false;
-  let ready = false;
-  let openKey = '';
-  let shown: Rect | null = null;
-  let onTop = true;
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  const stopTimer = (): void => {
-    if (timer !== null) clearTimeout(timer);
-    timer = null;
-  };
-  const failWith = (reason: unknown): void => {
-    if (closed) return;
-    fail(reason);
-  };
-  const post = (message: Record<string, unknown>): void => {
-    presenterProcess.post(message);
-  };
-  const mirrorPump = {
-    enable: (enabled: boolean): void => post({type: 'mirror', enabled}),
-    ack: (): void => post({type: 'mirror-ack'}),
-  };
-  // NOTE(0913vision): invalidate() can paint a bitmap without a texture in
-  // shared texture mode; restarting the painting gives a full texture frame.
-  const repaint = (): void => {
-    if (win.isDestroyed()) return;
-    win.webContents.stopPainting();
-    win.webContents.startPainting();
-  };
-  const frames = new PresenterFrames({
-    post: message => post({...message}),
-    failed: failWith,
-    stalled: () => {
-      log.warn('output presenter stopped taking frames', {
-        screen: current.id,
-        waitedMs: PRESENTER_STALL_MS,
-      });
-      failWith('presenter stalled');
-    },
-  });
-  // NOTE(0913vision): A still page paints once; its latest frame waits until
-  // the presenter is ready instead of being dropped.
-  win.webContents.on('paint', event => {
-    const texture = event.texture;
-    if (!texture) return;
-    if (closed) {
-      texture.release();
-      return;
-    }
-    if (shown !== null && timer !== null && ready) stopTimer();
-    frames.take(texture, presenterProcess.running && ready);
-  });
-  /** A shown screen whose presenter gets no picture in time falls back. */
-  const awaitFirstPicture = (): void => {
-    if (shown === null || timer !== null) return;
-    timer = setTimeout(
-      () => failWith('no shared texture paint'),
-      FIRST_TEXTURE_TIMEOUT_MS,
-    );
-  };
-  const mirrorFrame = (frame: unknown): void => {
-    if (frame instanceof Uint8Array && frame.length === 640 * 360 * 4) {
-      publishNativeMirror(current.id, frame);
-    } else mirrorPump.ack();
-  };
-  /** What the presenter process says about the window, frames and preview. */
-  const heard = (message: PresenterMessage): void => {
-    switch (message.type) {
-      case 'ready':
-        ready = true;
-        stopTimer();
-        if (!frames.sendWaiting()) repaint();
-        awaitFirstPicture();
-        break;
-      case 'copied':
-        frames.copied(message.id);
-        break;
-      case 'shown':
-        stopTimer();
-        if (shown !== null) setNativeMirror(current.id, mirrorPump);
-        break;
-      case 'mirror-frame':
-        mirrorFrame(message.frame);
-        break;
-      case 'mirror-error':
-        log.warn('presenter preview unavailable', message.message);
-        setNativeMirror(current.id, null);
-        break;
-      case 'reopened':
-        log.warn('output presenter window was gone; opened again', {
-          screen: current.id,
-        });
-        // NOTE(0913vision): The new window shows once it has a frame; the
-        // page paints one for it, and a window that never gets one falls
-        // back like a presenter that never paints.
-        if (frames.idle) repaint();
-        awaitFirstPicture();
-        break;
-      case 'replaced':
-        log.warn('output presenter window was moved or hidden; put back', {
-          screen: current.id,
-          was: message.was,
-        });
-        break;
-      case 'transitioned':
-        log.info('output presenter transition', {
-          screen: current.id,
-          ...message,
-        });
-        break;
-      case 'error':
-        failWith(message.message);
-        break;
-      default:
-        break;
-    }
-  };
-  const presenterProcess = new PresenterProcess({
-    message: heard,
-    failed: failWith,
-    exited: code => {
-      setNativeMirror(current.id, null);
-      failWith(`presenter exited ${code}`);
-    },
-  });
-  const start = (): void => {
-    if (presenterProcess.running || closed) return;
-    if (!presenterProcess.start()) return;
-    timer = setTimeout(
-      () => failWith('presenter startup timeout'),
-      UTILITY_TIMEOUT_MS,
-    );
-  };
-  const open = (bounds: Rect): void => {
-    const display = displays.getDisplayMatching(bounds);
-    const pixels = displays.dipToScreenRect(null, bounds);
-    const hz = Math.round(display.displayFrequency) || 60;
-    const key = `${JSON.stringify(pixels)}@${hz}`;
-    if (key === openKey) return;
-    openKey = key;
-    win.setContentSize(bounds.width, bounds.height);
-    win.webContents.setFrameRate(Math.min(240, Math.max(1, hz)));
-    start();
-    ready = false;
-    post({type: 'open', bounds: pixels, hz, topmost: onTop});
-    log.info('output presenter opened', {screen: current.id, ...pixels, hz});
-  };
-  const transitionTo = (effect: SlideTransition): void => {
-    post({
+  return new Presenter(screen, events, options);
+}
+
+/** One time limit at a time; when it runs out, the presenter cannot go on. */
+class Deadline {
+  private timer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(private readonly ranOut: (reason: string) => void) {}
+
+  get running(): boolean {
+    return this.timer !== null;
+  }
+
+  start(ms: number, reason: string): void {
+    this.stop();
+    this.timer = setTimeout(() => this.ranOut(reason), ms);
+  }
+
+  stop(): void {
+    if (this.timer !== null) clearTimeout(this.timer);
+    this.timer = null;
+  }
+}
+
+class Presenter implements PresenterPart {
+  /** The screen it presents, under which its transitions are found. */
+  private readonly screenId: string;
+  private current: OutputScreen;
+  private closed = false;
+  /** The presenter process has its window open on the monitor. */
+  private ready = false;
+  /** The monitor place and refresh the presenter was opened for. */
+  private openKey = '';
+  private shown: Rect | null = null;
+  private onTop = true;
+  private readonly page: PresenterPage;
+  private readonly process: PresenterProcess;
+  private readonly frames: PresenterFrames;
+  private readonly mirror: PresenterMirror;
+  private readonly deadline: Deadline;
+  private readonly transition = (effect: SlideTransition): void => {
+    this.post({
       type: 'transition',
       kind: effect.kind,
       dir: effect.dir ?? 'left',
       sec: effect.sec,
     });
   };
-  transitionTargets.set(screen.id, transitionTo);
-  void startLoading(win, page).catch((error: unknown) => failWith(error));
-  return {
-    previewContents: () => (win.isDestroyed() ? null : win.webContents),
-    prepare: bounds => open(bounds),
-    show: (bounds, top) => {
-      onTop = top;
-      if (shown === null || !sameRect(shown, bounds)) open(bounds);
-      shown = bounds;
-      post({type: 'show', topmost: top});
-      if (ready) awaitFirstPicture();
-    },
-    setOnTop: top => {
-      onTop = top;
-      post({type: 'top', topmost: top});
-    },
-    hide: () => {
-      shown = null;
-      setNativeMirror(current.id, null);
-      stopTimer();
-      post({type: 'hide'});
-    },
-    contentSize: () => {
-      const {width, height} = win.getContentBounds();
-      return {width, height};
-    },
-    bounds: () => shown,
-    configure: next => {
-      current = next;
-      win.setTitle(next.name);
-    },
-    reload: () => startLoading(win, page),
-    crashRenderer: () => {
-      if (!win.isDestroyed()) win.webContents.forcefullyCrashRenderer();
-    },
-    ping: async () => {
-      await win.webContents.executeJavaScript(PING_SCRIPT);
-    },
-    destroy: () => {
-      if (closed) return;
-      closed = true;
-      if (transitionTargets.get(screen.id) === transitionTo) {
-        transitionTargets.delete(screen.id);
-      }
-      setNativeMirror(current.id, null);
-      stopTimer();
-      releaseProblems?.();
-      frames.close();
-      presenterProcess.stop();
-      if (!win.isDestroyed()) win.destroy();
-    },
-  };
+
+  constructor(
+    screen: OutputScreen,
+    events: OutputWindowEvents,
+    private readonly options: PresenterPartOptions,
+  ) {
+    this.screenId = screen.id;
+    this.current = screen;
+    this.page = new PresenterPage(screen, {
+      events,
+      playbackProblems: options.playbackProblems,
+      name: () => this.current.name,
+    });
+    this.deadline = new Deadline(reason => this.failWith(reason));
+    this.mirror = new PresenterMirror(
+      () => this.current.id,
+      message => this.post(message),
+    );
+    this.frames = new PresenterFrames({
+      post: message => this.post({...message}),
+      failed: reason => this.failWith(reason),
+      stalled: () => {
+        options.log.warn('output presenter stopped taking frames', {
+          screen: this.current.id,
+          waitedMs: PRESENTER_STALL_MS,
+        });
+        this.failWith('presenter stalled');
+      },
+    });
+    this.process = new PresenterProcess({
+      message: message => this.heard(message),
+      failed: reason => this.failWith(reason),
+      exited: code => {
+        this.mirror.stop();
+        this.failWith(`presenter exited ${code}`);
+      },
+    });
+    this.page.onPaint(texture => this.painted(texture));
+    transitionTargets.set(this.screenId, this.transition);
+    this.page.load(error => this.failWith(error));
+  }
+
+  previewContents(): WebContents | null {
+    return this.page.contents();
+  }
+
+  prepare(bounds: Rect): void {
+    this.open(bounds);
+  }
+
+  show(bounds: Rect, onTop: boolean): void {
+    this.onTop = onTop;
+    if (this.shown === null || !sameRect(this.shown, bounds)) this.open(bounds);
+    this.shown = bounds;
+    this.post({type: 'show', topmost: onTop});
+    if (this.ready) this.awaitFirstPicture();
+  }
+
+  setOnTop(onTop: boolean): void {
+    this.onTop = onTop;
+    this.post({type: 'top', topmost: onTop});
+  }
+
+  hide(): void {
+    this.shown = null;
+    this.mirror.stop();
+    this.deadline.stop();
+    this.post({type: 'hide'});
+  }
+
+  contentSize(): Size {
+    return this.page.contentSize();
+  }
+
+  bounds(): Rect | null {
+    return this.shown;
+  }
+
+  configure(next: OutputScreen): void {
+    this.current = next;
+    this.page.setTitle(next.name);
+  }
+
+  reload(): Promise<void> {
+    return this.page.reload();
+  }
+
+  crashRenderer(): void {
+    this.page.crash();
+  }
+
+  ping(): Promise<void> {
+    return this.page.ping();
+  }
+
+  destroy(): void {
+    if (this.closed) return;
+    this.closed = true;
+    if (transitionTargets.get(this.screenId) === this.transition) {
+      transitionTargets.delete(this.screenId);
+    }
+    this.mirror.stop();
+    this.deadline.stop();
+    this.frames.close();
+    this.process.stop();
+    this.page.destroy();
+  }
+
+  private failWith(reason: unknown): void {
+    if (!this.closed) this.options.fail(reason);
+  }
+
+  private post(message: Record<string, unknown>): void {
+    this.process.post(message);
+  }
+
+  /**
+   * A frame of the page. A still page paints once, so its latest frame waits
+   * until the presenter is ready instead of being dropped.
+   */
+  private painted(texture: PageTexture): void {
+    if (this.closed) {
+      texture.release();
+      return;
+    }
+    if (this.shown !== null && this.ready) this.deadline.stop();
+    this.frames.take(texture, this.process.running && this.ready);
+  }
+
+  /** A shown screen whose presenter gets no picture in time falls back. */
+  private awaitFirstPicture(): void {
+    if (this.shown === null || this.deadline.running) return;
+    this.deadline.start(FIRST_TEXTURE_TIMEOUT_MS, 'no shared texture paint');
+  }
+
+  /** Opens the presenter on the monitor of `bounds`, at its refresh. */
+  private open(bounds: Rect): void {
+    const display = displays.getDisplayMatching(bounds);
+    const pixels = displays.dipToScreenRect(null, bounds);
+    const hz = Math.round(display.displayFrequency) || DEFAULT_REFRESH_HZ;
+    const key = `${JSON.stringify(pixels)}@${hz}`;
+    if (key === this.openKey) return;
+    this.openKey = key;
+    this.page.fit(bounds, hz);
+    this.start();
+    this.ready = false;
+    this.post({type: 'open', bounds: pixels, hz, topmost: this.onTop});
+    this.options.log.info('output presenter opened', {
+      screen: this.current.id,
+      ...pixels,
+      hz,
+    });
+  }
+
+  private start(): void {
+    if (this.process.running || this.closed) return;
+    if (!this.process.start()) return;
+    this.deadline.start(UTILITY_TIMEOUT_MS, 'presenter startup timeout');
+  }
+
+  /** What the presenter process says about the window, frames and preview. */
+  private heard(message: PresenterMessage): void {
+    const {log} = this.options;
+    switch (message.type) {
+      case 'ready':
+        this.ready = true;
+        this.deadline.stop();
+        if (!this.frames.sendWaiting()) this.page.repaint();
+        this.awaitFirstPicture();
+        break;
+      case 'copied':
+        this.frames.copied(message.id);
+        break;
+      case 'shown':
+        this.deadline.stop();
+        if (this.shown !== null) this.mirror.start();
+        break;
+      case 'mirror-frame':
+        this.mirror.frame(message.frame);
+        break;
+      case 'mirror-error':
+        log.warn('presenter preview unavailable', message.message);
+        this.mirror.stop();
+        break;
+      case 'reopened':
+        log.warn('output presenter window was gone; opened again', {
+          screen: this.current.id,
+        });
+        // NOTE(0913vision): The new window shows once it has a frame; the
+        // page paints one for it, and a window that never gets one falls
+        // back like a presenter that never paints.
+        if (this.frames.idle) this.page.repaint();
+        this.awaitFirstPicture();
+        break;
+      case 'replaced':
+        log.warn('output presenter window was moved or hidden; put back', {
+          screen: this.current.id,
+          was: message.was,
+        });
+        break;
+      case 'transitioned':
+        log.info('output presenter transition', {
+          screen: this.current.id,
+          ...message,
+        });
+        break;
+      case 'error':
+        this.failWith(message.message);
+        break;
+      default:
+        break;
+    }
+  }
 }
