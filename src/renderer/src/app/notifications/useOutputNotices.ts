@@ -2,8 +2,8 @@ import {followLatest} from '@core/common/followLatest';
 import {useEffect, useEffectEvent, useMemo} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {OutputStatuses} from '@core/schema/live/outputStatus';
-import type {NamedDocument} from '@core/schema/app/settingsDocuments';
-import {useApiSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
+import {useScreenSummaries} from '@renderer/platform/screens/ScreenSummaries';
+import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import {STARTER_SCREEN_IDS} from '@core/screens';
 import {
   dropOutputWarning,
@@ -24,15 +24,17 @@ const STARTER_NAMES: ReadonlyMap<string, ScreenNames> = new Map([
 ]);
 
 /**
- * The names the cards give the screens: each screen's own name from the screen
- * settings, so a screen the operator added or renamed gets its cards too; the
- * starter screens keep their names while the settings are not read yet.
+ * The names the cards give the screens: each screen's own name, as the
+ * toolbar shows it, so a screen the operator added or renamed gets its cards
+ * too; the starter screens keep their names while the screens are not read
+ * yet.
  */
 export function screenNamesOf(
-  document: NamedDocument<'screens'> | null,
+  screens: ReadonlyArray<Pick<ScreenSummary, 'id' | 'toolbarLabel'>>,
 ): ReadonlyMap<string, ScreenNames> {
-  const own = (document?.value.screens ?? []).map(
-    screen => [screen.id, {monitor: screen.name, window: screen.name}] as const,
+  const own = screens.map(
+    ({id, toolbarLabel}) =>
+      [id, {monitor: toolbarLabel, window: toolbarLabel}] as const,
   );
   return new Map([...STARTER_NAMES, ...own]);
 }
@@ -75,10 +77,10 @@ function keptAfterActions(
  * counts only when no push came before it.
  */
 export function useOutputNotices(
-  api: Pick<LlpApi, 'output' | 'settings'> | undefined,
+  api: Pick<LlpApi, 'output'> | undefined,
   target: NoticeTarget,
 ): void {
-  const screens = useApiSettingsDocument({api, name: 'screens', title: '화면'});
+  const screens = useScreenSummaries();
   const screenNames = useMemo(() => screenNamesOf(screens), [screens]);
   const namesNow = useEffectEvent(() => screenNames);
   const report = useEffectEvent(target.report);

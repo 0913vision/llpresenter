@@ -15,7 +15,6 @@ import {
 import {useOutputWarnings} from '@renderer/platform/screens/outputWarnings';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {FIXTURE_LOADED_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
-import {settingsDocument} from '@fixtures/core/settingsDocument';
 
 vi.mock('@renderer/app/notifications/outputNotices', async importOriginal => ({
   ...(await importOriginal<
@@ -196,30 +195,16 @@ describe('useOutputNotices', () => {
 });
 
 describe('screenNamesOf', () => {
-  it('names every screen of the settings by its own name, and the starter screens before they are read', () => {
-    expect(screenNamesOf(null).get(STAGE_SCREEN)).toEqual({
+  it('names every screen by its own name, and the starter screens before the screens are read', () => {
+    expect(screenNamesOf([]).get(STAGE_SCREEN)).toEqual({
       monitor: '무대 화면',
       window: '무대 화면',
     });
 
-    const document = settingsDocument('screens', {
-      screens: [
-        {
-          id: STAGE_SCREEN,
-          name: '강단 화면',
-          kind: 'stage',
-          method: 'fullscreen',
-        },
-        {
-          id: FIXTURE_LOADED_SCREEN,
-          name: '로비 화면',
-          kind: 'audience',
-          method: 'fullscreen',
-        },
-      ],
-    });
-    if (document.name !== 'screens') throw new Error('Expected screens');
-    const names = screenNamesOf(document);
+    const names = screenNamesOf([
+      {id: STAGE_SCREEN, toolbarLabel: '강단 화면'},
+      {id: FIXTURE_LOADED_SCREEN, toolbarLabel: '로비 화면'},
+    ]);
 
     expect(names.get(STAGE_SCREEN)?.monitor).toBe('강단 화면');
     expect(names.get(FIXTURE_LOADED_SCREEN)).toEqual({
