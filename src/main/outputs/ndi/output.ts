@@ -11,6 +11,7 @@ import {
 } from 'electron';
 import {join} from 'node:path';
 import type {OutputScreen} from '../screens';
+import {ndiSettingsChange} from './ndiSettings';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import type {Logger} from '../../base/log';
 import {unionDirty} from './rect';
@@ -305,20 +306,12 @@ function createBitmapOutput(
       sendGpu();
     },
     configure: next => {
-      const changed =
-        next.ndi?.sourceName !== current.ndi?.sourceName ||
-        (next.ndi?.fps ?? NDI_DEFAULT_FPS) !==
-          (current.ndi?.fps ?? NDI_DEFAULT_FPS);
-      if (
-        (next.ndi?.fps ?? NDI_DEFAULT_FPS) !==
-        (current.ndi?.fps ?? NDI_DEFAULT_FPS)
-      ) {
-        win.webContents.setFrameRate(
-          (next.ndi?.fps ?? NDI_DEFAULT_FPS) > 30 ? 60 : 30,
-        );
+      const change = ndiSettingsChange(current, next);
+      if (change.frameRate !== undefined) {
+        win.webContents.setFrameRate(change.frameRate);
       }
       current = next;
-      if (changed && child !== null) {
+      if (change.restart && child !== null) {
         stop();
         begin();
       }

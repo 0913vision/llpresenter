@@ -12,6 +12,7 @@ import {join} from 'node:path';
 import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 import type {Logger} from '../../base/log';
 import type {OutputScreen} from '../screens';
+import {ndiSettingsChange} from './ndiSettings';
 import type {BitmapSender} from './output';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import {
@@ -525,20 +526,12 @@ function gpuHandle(
     activateMirror,
     previewContents: () => (win.isDestroyed() ? null : win.webContents),
     configure: next => {
-      const changed =
-        next.ndi?.sourceName !== current.ndi?.sourceName ||
-        (next.ndi?.fps ?? NDI_DEFAULT_FPS) !==
-          (current.ndi?.fps ?? NDI_DEFAULT_FPS);
-      if (
-        (next.ndi?.fps ?? NDI_DEFAULT_FPS) !==
-        (current.ndi?.fps ?? NDI_DEFAULT_FPS)
-      ) {
-        win.webContents.setFrameRate(
-          (next.ndi?.fps ?? NDI_DEFAULT_FPS) > 30 ? 60 : 30,
-        );
+      const change = ndiSettingsChange(current, next);
+      if (change.frameRate !== undefined) {
+        win.webContents.setFrameRate(change.frameRate);
       }
       current = next;
-      if (changed && child) {
+      if (change.restart && child) {
         clear();
         begin();
       }
