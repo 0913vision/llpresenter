@@ -11,6 +11,7 @@ import {
   type ThemeListResult,
 } from '@core/theme';
 import {INVALID_CHANGE, themeProblems} from '../themeNames';
+import {ThemeDraftHistory, type ThemeStepDirection} from './themeDraftHistory';
 
 interface DraftOptions {
   readonly saved: Themes | null;
@@ -21,13 +22,6 @@ interface DraftOptions {
   ) => Promise<Result<boolean, ThemeListProblem>>;
   readonly report: (title: string) => void;
 }
-
-/** The most unsaved edits the working copy can step back through. */
-export const THEME_HISTORY_LIMIT = 100;
-
-type Step =
-  | {readonly kind: 'draft'; readonly value: ThemeFile | null}
-  | {readonly kind: 'saved'; readonly before: Themes; readonly after: Themes};
 
 /** The list with the working copy in place; a name is changed in the list. */
 function withDraft(list: Themes, draft: ThemeFile | null): Themes {
@@ -57,30 +51,11 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
   useLayoutEffect(() => {
     savedRef.current = saved;
   });
-  const past = useRef<Step[]>([]);
-  const future = useRef<Step[]>([]);
-  const group = useRef<{changed: boolean} | null>(null);
-  const stepping = useRef(false);
+  const [history] = useState(() => new ThemeDraftHistory());
 
-  const beginEditGroup = (): (() => void) => {
-    const current = {changed: false};
-    group.current = current;
-    return () => {
-      if (group.current === current) group.current = null;
-    };
-  };
   const keep = (next: ThemeFile | null): void => {
     draftRef.current = next;
     setDraft(next);
-  };
-  const remember = (step: Step): void => {
-    past.current = [...past.current, step].slice(-THEME_HISTORY_LIMIT);
-    future.current = [];
-  };
-  const forget = (): void => {
-    group.current = null;
-    past.current = [];
-    future.current = [];
   };
 
   const list = useMemo(
@@ -112,11 +87,7 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
       report(INVALID_CHANGE);
       return false;
     }
-    if (group.current?.changed !== true) {
-      remember({kind: 'draft', value: before});
-    }
-    if (group.current !== null) group.current.changed = true;
-    future.current = [];
+    history.edited(before);
     const original = themeIn(base, id);
     keep(
       original !== undefined &&
@@ -128,27 +99,25 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
   };
 
   const recordSaved = (before: Themes, after: Themes): void => {
-    remember({kind: 'saved', before, after});
+    history.saved(before, after);
     setHistoryVersion(value => value + 1);
   };
 
-  const step = (
-    from: typeof past,
-    to: typeof past,
-    direction: 'undo' | 'redo',
-  ): void => {
-    group.current = null;
-    const entry = from.current.at(-1);
-    if (reason !== undefined || stepping.current || entry === undefined) return;
+  /**
+   * Takes the next step that way: a draft step puts the copy back at once, a
+   * save step writes the theme list back as it was.
+   */
+  const step = (direction: ThemeStepDirection): void => {
+    const entry = history.next(direction);
+    if (reason !== undefined || history.busy || entry === undefined) return;
     if (entry.kind === 'draft') {
-      from.current.pop();
-      to.current.push({kind: 'draft', value: draftRef.current});
+      history.tookDraft(direction, draftRef.current);
       keep(entry.value);
       return;
     }
     const expected = direction === 'undo' ? entry.after : entry.before;
     const replacement = direction === 'undo' ? entry.before : entry.after;
-    stepping.current = true;
+    history.setWriting(true);
     setHistoryVersion(value => value + 1);
     write(
       value =>
@@ -162,14 +131,11 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
           report(themeProblems[result.error]);
           return;
         }
-        if (result.value && from.current.at(-1) === entry) {
-          from.current.pop();
-          to.current.push(entry);
-        }
+        if (result.value) history.tookSaved(direction, entry);
       })
       .catch(() => report('테마 변경 실패'))
       .finally(() => {
-        stepping.current = false;
+        history.setWriting(false);
         setHistoryVersion(value => value + 1);
       });
   };
@@ -184,7 +150,7 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
 
   const settled = (current: ThemeFile | null): void => {
     if (draftRef.current !== current) return;
-    forget();
+    history.forget();
     keep(null);
   };
 
@@ -228,16 +194,16 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
     dirtyThemeId,
     hasDraft: (): boolean => draftRef.current !== null,
     edit,
-    beginEditGroup,
+    beginEditGroup: (): (() => void) => history.beginGroup(),
     recordSaved,
     save,
     saveAs,
-    undo: (): void => step(past, future, 'undo'),
-    redo: (): void => step(future, past, 'redo'),
-    canUndo: (): boolean => !stepping.current && past.current.length > 0,
-    canRedo: (): boolean => !stepping.current && future.current.length > 0,
+    undo: (): void => step('undo'),
+    redo: (): void => step('redo'),
+    canUndo: (): boolean => history.can('undo'),
+    canRedo: (): boolean => history.can('redo'),
     discard: (): void => {
-      forget();
+      history.forget();
       keep(null);
     },
   };
