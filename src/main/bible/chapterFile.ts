@@ -56,33 +56,29 @@ export async function readBibleChapterFile(
   if (!(await lstat(file)).isFile()) {
     throw new Error('Expected a regular translation file');
   }
-  const handle = await open(file, 'r');
-  try {
-    const stat = await handle.stat();
-    const prefix = await readBibleBytes(handle, BIBLE_HEADER_PREFIX_BYTES, 0);
-    const headerBytes = prefix.readUInt32LE();
-    const dataStart = BIBLE_HEADER_PREFIX_BYTES + headerBytes;
-    if (
-      headerBytes === 0 ||
-      headerBytes > BIBLE_HEADER_MAX_BYTES ||
-      dataStart > stat.size
-    ) {
-      throw new Error('Invalid Bible header byte length');
-    }
-    const bytes = await readBibleBytes(
-      handle,
-      headerBytes,
-      BIBLE_HEADER_PREFIX_BYTES,
-    );
-    const header = parseBibleChunkHeader(
-      bytes,
-      stat.size - dataStart,
-      installedId,
-    );
-    return {file, header, dataStart};
-  } finally {
-    await handle.close();
+  await using handle = await open(file, 'r');
+  const stat = await handle.stat();
+  const prefix = await readBibleBytes(handle, BIBLE_HEADER_PREFIX_BYTES, 0);
+  const headerBytes = prefix.readUInt32LE();
+  const dataStart = BIBLE_HEADER_PREFIX_BYTES + headerBytes;
+  if (
+    headerBytes === 0 ||
+    headerBytes > BIBLE_HEADER_MAX_BYTES ||
+    dataStart > stat.size
+  ) {
+    throw new Error('Invalid Bible header byte length');
   }
+  const bytes = await readBibleBytes(
+    handle,
+    headerBytes,
+    BIBLE_HEADER_PREFIX_BYTES,
+  );
+  const header = parseBibleChunkHeader(
+    bytes,
+    stat.size - dataStart,
+    installedId,
+  );
+  return {file, header, dataStart};
 }
 
 /** Reads exactly the requested chapter with positioned, partial-read-safe IO. */
@@ -97,15 +93,11 @@ export async function readBibleChapter(
   if (!Number.isSafeInteger(chapter) || chapter < 1 || !entry) {
     throw new Error('Bible chapter is outside the translation index');
   }
-  const handle = await open(indexed.file, 'r');
-  try {
-    const bytes = await readBibleBytes(
-      handle,
-      entry.bytes,
-      indexed.dataStart + entry.offset,
-    );
-    return parseBibleChapter(bytes, entry);
-  } finally {
-    await handle.close();
-  }
+  await using handle = await open(indexed.file, 'r');
+  const bytes = await readBibleBytes(
+    handle,
+    entry.bytes,
+    indexed.dataStart + entry.offset,
+  );
+  return parseBibleChapter(bytes, entry);
 }

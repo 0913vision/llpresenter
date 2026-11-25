@@ -50,17 +50,11 @@ export async function sameImage(
   first: string,
   second: string,
 ): Promise<boolean> {
-  const source = await open(first, 'r');
+  await using source = await open(first, 'r');
   try {
-    const target = await open(second, 'r');
-    try {
-      return await compare(source, target);
-    } finally {
-      await target.close();
-    }
+    await using target = await open(second, 'r');
+    return await compare(source, target);
   } catch {
     return false;
-  } finally {
-    await source.close();
   }
 }

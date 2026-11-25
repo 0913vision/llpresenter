@@ -25,6 +25,12 @@ export interface CopyOptions {
   readonly temporary?: string;
 }
 
+/** Writes a copied file through to the disk, closing it before it is moved. */
+async function flushToDisk(file: string): Promise<void> {
+  await using handle = await open(file, 'r+');
+  await handle.sync();
+}
+
 /**
  * Copies a file through a temporary file in the target folder and then
  * renames it into place, so a cancelled or failed copy leaves nothing behind.
@@ -61,12 +67,7 @@ export async function copyWithProgress({
       createWriteStream(temporary, {flags: 'wx'}),
       {signal},
     );
-    const handle = await open(temporary, 'r+');
-    try {
-      await handle.sync();
-    } finally {
-      await handle.close();
-    }
+    await flushToDisk(temporary);
     await rename(temporary, to);
     return {ok: true, value: size};
   } catch (error: unknown) {

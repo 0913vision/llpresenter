@@ -62,12 +62,8 @@ async function readFileBytes(
   path: string,
 ): Promise<Result<Uint8Array, TextImportFailure>> {
   try {
-    const file = await open(path, 'r');
-    try {
-      return await readOpenedFile(file);
-    } finally {
-      await file.close();
-    }
+    await using file = await open(path, 'r');
+    return await readOpenedFile(file);
   } catch (error: unknown) {
     return failure(
       'read-failed',

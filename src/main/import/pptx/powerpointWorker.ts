@@ -50,31 +50,27 @@ function parseJob(value: unknown): PowerPointJob {
 }
 
 async function readBounded(path: string): Promise<Buffer> {
-  const file = await open(path, 'r');
-  try {
-    const info = await file.stat();
-    if (!info.isFile() || info.size > POWERPOINT_IMPORT_LIMITS.bytes) {
-      throw new Error('PowerPoint file exceeds its size limit');
-    }
-    const bytes = Buffer.alloc(info.size + 1);
-    let length = 0;
-    while (length < bytes.length) {
-      const {bytesRead} = await file.read(
-        bytes,
-        length,
-        Math.min(65536, bytes.length - length),
-        null,
-      );
-      if (bytesRead === 0) break;
-      length += bytesRead;
-    }
-    if (length !== info.size) {
-      throw new Error('PowerPoint file changed while reading');
-    }
-    return bytes.subarray(0, length);
-  } finally {
-    await file.close();
+  await using file = await open(path, 'r');
+  const info = await file.stat();
+  if (!info.isFile() || info.size > POWERPOINT_IMPORT_LIMITS.bytes) {
+    throw new Error('PowerPoint file exceeds its size limit');
   }
+  const bytes = Buffer.alloc(info.size + 1);
+  let length = 0;
+  while (length < bytes.length) {
+    const {bytesRead} = await file.read(
+      bytes,
+      length,
+      Math.min(65536, bytes.length - length),
+      null,
+    );
+    if (bytesRead === 0) break;
+    length += bytesRead;
+  }
+  if (length !== info.size) {
+    throw new Error('PowerPoint file changed while reading');
+  }
+  return bytes.subarray(0, length);
 }
 
 async function run(): Promise<void> {

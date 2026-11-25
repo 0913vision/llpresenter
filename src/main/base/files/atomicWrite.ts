@@ -59,13 +59,9 @@ async function writeAndFlush(
   file: string,
   content: string | Uint8Array,
 ): Promise<void> {
-  const handle = await open(file, 'wx');
-  try {
-    await handle.writeFile(content, 'utf8');
-    await handle.sync();
-  } finally {
-    await handle.close();
-  }
+  await using handle = await open(file, 'wx');
+  await handle.writeFile(content, 'utf8');
+  await handle.sync();
 }
 
 async function renameWithRetries(from: string, to: string): Promise<void> {

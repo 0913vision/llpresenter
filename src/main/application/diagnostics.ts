@@ -10,16 +10,12 @@ import type {Logger} from '../base/log';
 const LOG_TAIL_BYTES = 128 * 1024;
 
 async function logTail(file: string): Promise<string> {
-  const handle = await open(file, 'r');
-  try {
-    const {size} = await handle.stat();
-    const start = Math.max(0, size - LOG_TAIL_BYTES);
-    const buffer = Buffer.alloc(size - start);
-    await handle.read(buffer, 0, buffer.length, start);
-    return buffer.toString('utf8');
-  } finally {
-    await handle.close();
-  }
+  await using handle = await open(file, 'r');
+  const {size} = await handle.stat();
+  const start = Math.max(0, size - LOG_TAIL_BYTES);
+  const buffer = Buffer.alloc(size - start);
+  await handle.read(buffer, 0, buffer.length, start);
+  return buffer.toString('utf8');
 }
 
 function field(value: unknown, key: string): unknown {

@@ -49,16 +49,12 @@ const LEFT_MARKER_MESSAGES: Record<LeftMarker, string> = {
 };
 
 async function readMarker(file: string): Promise<string | null> {
-  const handle = await open(file, 'r');
-  try {
-    const buffer = Buffer.alloc(MAX_MARKER_BYTES + 1);
-    const {bytesRead} = await handle.read(buffer, 0, buffer.length, 0);
-    return bytesRead > MAX_MARKER_BYTES
-      ? null
-      : buffer.toString('utf8', 0, bytesRead);
-  } finally {
-    await handle.close();
-  }
+  await using handle = await open(file, 'r');
+  const buffer = Buffer.alloc(MAX_MARKER_BYTES + 1);
+  const {bytesRead} = await handle.read(buffer, 0, buffer.length, 0);
+  return bytesRead > MAX_MARKER_BYTES
+    ? null
+    : buffer.toString('utf8', 0, bytesRead);
 }
 
 async function leftMarker(file: string): Promise<LeftMarker | null> {
