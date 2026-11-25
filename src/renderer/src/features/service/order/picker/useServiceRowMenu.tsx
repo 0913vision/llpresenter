@@ -9,8 +9,7 @@ import {
 } from '@renderer/features/service/list/serviceEdits';
 import {useSourceActions} from '@renderer/features/service/list/useSourceActions';
 import {useSaveTemplate} from '@renderer/features/service/list/useSaveTemplate';
-import {SaveTemplatePrompt} from '@renderer/features/service/list/SaveTemplatePrompt';
-import {SaveTemplateDialog} from '@renderer/features/service/list/SaveTemplateDialog';
+import {TemplateSaveDialogs} from '@renderer/features/service/list/TemplateSaveDialogs';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {serviceRowMenuEntries} from './serviceRowMenu';
 import {useAlive} from '@renderer/ui/useAlive';
@@ -129,23 +128,7 @@ export function useServiceRowMenu(
         />
       ) : null}
       {sources.overlays}
-      {saver.naming === null ? null : (
-        <SaveTemplateDialog
-          name={saver.naming.name}
-          busy={saver.busy}
-          onSave={saver.saveNamed}
-          onCancel={saver.cancel}
-        />
-      )}
-      {saver.conflict ? (
-        <SaveTemplatePrompt
-          conflict={saver.conflict}
-          busy={saver.busy}
-          onSaveNew={saver.saveNew}
-          onOverwrite={saver.overwrite}
-          onCancel={saver.cancel}
-        />
-      ) : null}
+      <TemplateSaveDialogs saver={saver} />
     </>
   );
   return {

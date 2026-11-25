@@ -4,8 +4,7 @@ import {menuAvailability, type MenuItem} from '@renderer/ui/menus/menuModel';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {ImportItemsDialog} from './ImportItemsDialog';
 import {NewServiceDialog} from './NewServiceDialog';
-import {SaveTemplatePrompt} from './SaveTemplatePrompt';
-import {SaveTemplateDialog} from './SaveTemplateDialog';
+import {TemplateSaveDialogs} from './TemplateSaveDialogs';
 import {useSaveTemplate} from './useSaveTemplate';
 import {useShow} from '@renderer/session/show/showStore';
 
@@ -90,23 +89,7 @@ export function useServiceActions({
       ) : dialog === 'import' ? (
         <ImportItemsDialog onClose={close} onProblem={onProblem} />
       ) : null}
-      {saver.naming === null ? null : (
-        <SaveTemplateDialog
-          name={saver.naming.name}
-          busy={saver.busy}
-          onSave={saver.saveNamed}
-          onCancel={saver.cancel}
-        />
-      )}
-      {saver.conflict === null ? null : (
-        <SaveTemplatePrompt
-          conflict={saver.conflict}
-          busy={saver.busy}
-          onSaveNew={saver.saveNew}
-          onOverwrite={saver.overwrite}
-          onCancel={saver.cancel}
-        />
-      )}
+      <TemplateSaveDialogs saver={saver} />
     </>
   );
   return {entries, dialogs};
