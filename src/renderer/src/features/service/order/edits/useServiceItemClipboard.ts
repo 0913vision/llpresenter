@@ -15,7 +15,8 @@ import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {useServiceOrderEditing} from '@renderer/session/service/useServiceOrderEditing';
 import {useShow} from '@renderer/session/show/showStore';
 
-const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';
+/** Why 붙여넣기 has nothing to put in the 예배 순서. */
+export const EMPTY_CLIPBOARD = '복사한 예배 순서 항목이 없습니다.';
 const NO_ITEMS = '선택한 항목이 없습니다.';
 function noop(): void {
   return undefined;

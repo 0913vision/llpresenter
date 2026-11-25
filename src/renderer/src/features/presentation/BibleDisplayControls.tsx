@@ -10,6 +10,7 @@ import type {BibleSource} from '@renderer/session/show/bibleSource';
 import styles from './BiblePanel.module.css';
 import {warningNotice, type Notice} from '@renderer/ui/popups/notices';
 import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
+import {PASSAGE_UNAVAILABLE} from '@renderer/platform/problemReasons';
 
 /** Changes how the passage that is open shows, without changing defaults. */
 export function BibleDisplayControls({
@@ -71,7 +72,7 @@ export function BibleDisplayControls({
     );
   };
   const reason = !api
-    ? '구절을 불러올 수 없습니다.'
+    ? PASSAGE_UNAVAILABLE
     : busy
       ? '역본 불러오는 중'
       : document === null

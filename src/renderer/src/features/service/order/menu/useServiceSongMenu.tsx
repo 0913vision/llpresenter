@@ -21,6 +21,7 @@ import {
 } from '@renderer/features/songs/draft';
 import {focusSlides, openDeckAt} from '@renderer/features/slides/deckSelection';
 import {SONG_LOAD_FAILED} from '@renderer/features/songs/library/readLibrarySong';
+import {MISSING_SONG_TIP} from '@renderer/platform/problemReasons';
 
 interface SongMenuTarget {
   readonly id: string;
@@ -133,7 +134,7 @@ export function useServiceSongMenu(
   const reason = !api
     ? '곡을 불러올 수 없습니다.'
     : failure?.target === target && failure.revision === revision
-      ? '곡 파일을 찾을 수 없습니다.'
+      ? MISSING_SONG_TIP
       : !current
         ? '불러오는 중'
         : undefined;

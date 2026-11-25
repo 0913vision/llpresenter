@@ -1,5 +1,7 @@
 export {
   type DraftTargets,
+  EMPTY_MESSAGE_REASON,
+  LONG_MESSAGE_REASON,
   currentMessageTargets,
   prepareMessage,
   toggleMessageScreen,

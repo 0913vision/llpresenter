@@ -1,6 +1,7 @@
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {useState, type JSX} from 'react';
 import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
+import {EMPTY_MESSAGE_REASON, LONG_MESSAGE_REASON} from '@core/overlays';
 import {sendLive, useLive} from '@renderer/session/live';
 import {Button} from '@renderer/ui/buttons/Button';
 import {LiveBadge} from '@renderer/ui/tiles/StatusMarks';
@@ -12,9 +13,9 @@ import styles from './StageTab.module.css';
 
 function messageReason(text: string, available: boolean): string | undefined {
   if (!available) return '무대 화면 없음';
-  if (text.trim() === '') return '메시지를 적어야 보낼 수 있습니다.';
+  if (text.trim() === '') return EMPTY_MESSAGE_REASON;
   if (text.length > LIVE_STATE_LIMITS.textCharacters) {
-    return '메시지가 너무 깁니다.';
+    return LONG_MESSAGE_REASON;
   }
   return undefined;
 }

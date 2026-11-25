@@ -4,6 +4,7 @@ import type {BibleSource} from '@renderer/session/show/bibleSource';
 import {Button} from '@renderer/ui/buttons/Button';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import {usePassageSwap} from './usePassageSwap';
+import {PASSAGE_UNAVAILABLE} from '@renderer/platform/problemReasons';
 
 /** Extends the preview without changing the selected verse or live output. */
 export function BibleAdjacentButtons({
@@ -39,7 +40,7 @@ export function BibleAdjacentButtons({
         const noVerse =
           edge === direction || (direction === 'previous' && beginning);
         const reason = !api
-          ? '구절을 불러올 수 없습니다.'
+          ? PASSAGE_UNAVAILABLE
           : busy
             ? '구절 불러오는 중'
             : noVerse

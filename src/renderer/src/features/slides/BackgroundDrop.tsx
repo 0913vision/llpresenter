@@ -2,7 +2,10 @@ import {useEffect, useRef, type DragEvent, type ReactNode} from 'react';
 import {changeSlides, withBackground} from '@core/slides';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
 import {canAddMedia, mediaItem} from '@renderer/platform/documents/media';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {
+  MISSING_MEDIA_TIP,
+  NEWER_FILE_REASON,
+} from '@renderer/platform/problemReasons';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import {selectionOf} from './deckSelection';
 import type {SlideDeck} from './slideDeck';
@@ -49,7 +52,7 @@ export function BackgroundDrop({
     const id = readMediaDrag(event.dataTransfer);
     const media = id === undefined ? undefined : mediaItem(id);
     if (id === undefined || media === undefined || !canAddMedia(id)) {
-      problem('미디어 파일을 찾을 수 없습니다.');
+      problem(MISSING_MEDIA_TIP);
       return;
     }
     if (media.kind === 'audio') {

@@ -1,6 +1,10 @@
 import type {JSX} from 'react';
 import type {RowProblem, ServiceRow} from '@core/presentation';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {
+  MISSING_MEDIA_TIP,
+  MISSING_SONG_TIP,
+  NEWER_FILE_REASON,
+} from '@renderer/platform/problemReasons';
 import {ListInsertLine, ListRow} from '@renderer/ui/lists/ListRow';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {serviceRowIcon} from '../../serviceItemIcons';
@@ -11,8 +15,8 @@ import {useShow} from '@renderer/session/show/showStore';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
-  'missing-song': '곡 파일을 찾을 수 없습니다.',
-  'missing-media': '미디어 파일을 찾을 수 없습니다.',
+  'missing-song': MISSING_SONG_TIP,
+  'missing-media': MISSING_MEDIA_TIP,
   'unknown-kind': '아직 없는 기능',
   'newer-version': NEWER_FILE_REASON,
 };

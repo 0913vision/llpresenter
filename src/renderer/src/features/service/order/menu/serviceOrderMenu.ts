@@ -16,6 +16,7 @@ import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import type {ServiceRow} from '@core/presentation';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
 import {SONG_NOT_FOUND} from '@renderer/features/songs/library/readLibrarySong';
+import {EMPTY_CLIPBOARD} from '../edits/useServiceItemClipboard';
 
 /** What the 예배 순서 item menu can ask the list to do. */
 export interface ServiceOrderMenuInput {
@@ -206,9 +207,7 @@ export function serviceOrderMenuEntries(
       meta: fixedKeyText('paste'),
       ...menuAvailability(
         input.clipboard?.pasteReason ??
-          (input.clipboard === undefined
-            ? '복사한 예배 순서 항목이 없습니다.'
-            : undefined),
+          (input.clipboard === undefined ? EMPTY_CLIPBOARD : undefined),
       ),
       onSelect: input.clipboard?.paste,
     },

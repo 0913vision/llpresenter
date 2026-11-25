@@ -7,6 +7,11 @@ import {
   MAX_MESSAGE_CHARACTERS,
 } from './messageText';
 
+/** Why a message with no text cannot be sent, on any screen. */
+export const EMPTY_MESSAGE_REASON = '메시지를 적어야 보낼 수 있습니다.';
+/** Why a message longer than a screen holds cannot be sent. */
+export const LONG_MESSAGE_REASON = '메시지가 너무 깁니다.';
+
 /** The screens a message is sent to: every screen, or a list of screen ids. */
 export type DraftTargets = Exclude<MessageTemplate['targets'], undefined>;
 
@@ -53,7 +58,7 @@ export function prepareMessage({
   readonly screenCount: number;
 }) {
   if (template.text.length > MAX_MESSAGE_CHARACTERS) {
-    return {reason: '메시지가 너무 깁니다.', text: ''};
+    return {reason: LONG_MESSAGE_REASON, text: ''};
   }
   const blanks = messageBlankNames(template.text);
   if (blanks.some(name => (values.get(name) ?? '').trim() === '')) {
@@ -63,10 +68,10 @@ export function prepareMessage({
   try {
     text = fillMessageText(template, Object.fromEntries(values));
   } catch {
-    return {reason: '메시지가 너무 깁니다.', text: ''};
+    return {reason: LONG_MESSAGE_REASON, text: ''};
   }
   if (text.trim() === '') {
-    return {reason: '메시지를 적어야 보낼 수 있습니다.', text};
+    return {reason: EMPTY_MESSAGE_REASON, text};
   }
   const count = targets === 'all' ? screenCount : targets.length;
   if (count === 0) {

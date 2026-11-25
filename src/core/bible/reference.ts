@@ -28,6 +28,14 @@ export interface ReferenceProblem {
   readonly suggestions?: readonly BibleBook[];
 }
 
+/** Why a reference names nothing a translation has, by problem. */
+export const PASSAGE_REASONS = {
+  missingBook: '이 역본에 없는 책입니다.',
+  chapter: '이 역본에 없는 장입니다.',
+  verse: '이 역본에 없는 절입니다.',
+  reversed: '끝 절이 시작 절보다 앞입니다.',
+} as const;
+
 /**
  * A typed reference read into its parts; a null verse means the whole chapter.
  */
@@ -172,20 +180,20 @@ function planPassage(
   const reference = parsed.value;
   const {book, chapter, verse, endChapter} = reference;
   const content = translation.books.find(candidate => candidate.id === book.id);
-  if (!content) return error('missingBook', '이 역본에 없는 책입니다.');
+  if (!content) return error('missingBook', PASSAGE_REASONS.missingBook);
   const first = content.chapters[chapter - 1];
   const last = content.chapters[endChapter - 1];
-  if (!first || !last) return error('chapter', '이 역본에 없는 장입니다.');
+  if (!first || !last) return error('chapter', PASSAGE_REASONS.chapter);
   const startVerse = verse ?? 1;
   const endVerse = reference.endVerse ?? last.verses;
   if (startVerse > first.verses || endVerse > last.verses) {
-    return error('verse', '이 역본에 없는 절입니다.');
+    return error('verse', PASSAGE_REASONS.verse);
   }
   if (
     endChapter < chapter ||
     (endChapter === chapter && endVerse < startVerse)
   ) {
-    return error('reversed', '끝 절이 시작 절보다 앞입니다.');
+    return error('reversed', PASSAGE_REASONS.reversed);
   }
   let count = 0;
   const chapters: PlannedChapter[] = [];

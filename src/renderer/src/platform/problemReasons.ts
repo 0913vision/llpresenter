@@ -12,6 +12,10 @@ export const NOTHING_TO_UNDO = '되돌릴 편집이 없습니다.';
 export const NOTHING_TO_REDO = '다시 실행할 편집이 없습니다.';
 
 /** Why a 그래픽 cannot be shown: its media left the library. */
+/** Why a passage can't be read where the window has no connection to the app. */
+export const PASSAGE_UNAVAILABLE = '구절을 불러올 수 없습니다.';
+/** A song item whose song file is gone. */
+export const MISSING_SONG_TIP = '곡 파일을 찾을 수 없습니다.';
 export const MISSING_MEDIA_TIP = '미디어 파일을 찾을 수 없습니다.';
 
 /** 진행 sends what is on the screens; edits are run back in 준비. */

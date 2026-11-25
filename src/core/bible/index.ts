@@ -17,6 +17,7 @@ export {withLiveBible} from './liveTranslation';
 export {QUICK_BIBLE_TRANSITION} from './quickTransition';
 export {defaultTranslationOf, showsTranslationName} from './translationName';
 export {
+  PASSAGE_REASONS,
   type ReferenceProblem,
   type ResolvedPassage,
   parseReference,

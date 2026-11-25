@@ -1,6 +1,7 @@
 import {
   BIBLE_BOOKS,
   BIBLE_VERSE_COUNTS,
+  PASSAGE_REASONS,
   parseReference,
   resolvePassage,
   type ReferenceProblem,
@@ -81,13 +82,13 @@ export class BibleLibrary {
       if (chapter > book.chapters || endChapter > book.chapters) {
         return {
           ok: false,
-          error: {code: 'chapter', message: '이 역본에 없는 장입니다.'},
+          error: {code: 'chapter', message: PASSAGE_REASONS.chapter},
         };
       }
       if (endChapter < chapter) {
         return {
           ok: false,
-          error: {code: 'reversed', message: '끝 절이 시작 절보다 앞입니다.'},
+          error: {code: 'reversed', message: PASSAGE_REASONS.reversed},
         };
       }
       const chapters = Array.from({length: book.chapters}, () => ({
