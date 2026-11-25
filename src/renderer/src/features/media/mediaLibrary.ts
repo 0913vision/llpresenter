@@ -11,6 +11,7 @@ import {
 import type {MediaId} from '@core/schema/common/ids';
 import type {
   MediaDocument,
+  MediaEdit,
   MediaImportProgress,
   MediaImportRequest,
 } from '@core/schema/media/mediaEdit';
@@ -21,6 +22,16 @@ import {MediaDeleteHistory, type HistoryStep} from './mediaDeleteHistory';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {renameHistory} from '@renderer/platform/undo/renameHistory';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
+import {
+  createdId,
+  playlistRef,
+  playlistUpdate,
+  rejected,
+  written,
+  type MediaEditOutcome,
+  type PlaylistChange,
+  type Refusal,
+} from './mediaEdits';
 import type {PicturePlace} from '@core/schema/media/picturePlace';
 import {withPlace, type MediaProps} from './properties/mediaProps';
 import {
@@ -54,49 +65,6 @@ const ENDED = new Set<MediaImportProgress['phase']>([
   'failed',
   'cancelled',
 ]);
-
-// NOTE(0913vision): The preload rejects a failed call or a malformed reply;
-// it is reported like a refusal.
-function rejected(error: unknown): {
-  readonly ok: false;
-  readonly error: {readonly reason: 'invalid'; readonly message: string};
-} {
-  const message = error instanceof Error ? error.message : String(error);
-  return {ok: false, error: {reason: 'invalid', message}};
-}
-
-/** What a media edit answers, or the refusal a failed call is read as. */
-type MediaEditOutcome =
-  Awaited<ReturnType<LlpApi['media']['edit']>> | ReturnType<typeof rejected>;
-
-interface PlaylistChange {
-  readonly name?: string;
-  readonly items?: readonly MediaId[];
-}
-
-/** The playlist as a media edit names it: its kind and id. */
-function playlistRef(playlist: ChosenPlaylist) {
-  return playlist.kind === 'media'
-    ? ({kind: 'media', id: playlist.id} as const)
-    : ({kind: 'audio', id: playlist.id} as const);
-}
-
-function playlistUpdate(
-  {value}: MediaDocument,
-  playlist: ChosenPlaylist,
-  change: PlaylistChange,
-) {
-  if (playlist.kind === 'media') {
-    const found = value.playlists.find(({id}) => id === playlist.id);
-    return found === undefined
-      ? null
-      : ({kind: 'media', value: {...found, ...change}} as const);
-  }
-  const found = value.audioPlaylists.find(({id}) => id === playlist.id);
-  return found === undefined
-    ? null
-    : ({kind: 'audio', value: {...found, ...change}} as const);
-}
 
 /**
  * Follows main's media list, the copies in progress, and the files main can't
@@ -263,13 +231,14 @@ export class MediaLibrary {
    * @returns The new playlist's id, or null when it was refused.
    */
   async createPlaylist(kind: 'media' | 'audio'): Promise<string | null> {
-    const result = await this.api.media
-      .edit({type: 'media.playlist.create', kind})
-      .catch(rejected);
-    return this.createdId(result, {
-      log: 'Creating a playlist was refused',
-      notice: warningNotice('media-view:playlist', '재생목록 만들기 실패'),
-    });
+    const result = await this.send(
+      {type: 'media.playlist.create', kind},
+      {
+        log: 'Creating a playlist was refused',
+        notice: warningNotice('media-view:playlist', '재생목록 만들기 실패'),
+      },
+    );
+    return result === null ? null : createdId(result);
   }
 
   /**
@@ -279,13 +248,14 @@ export class MediaLibrary {
    * @returns The copy's id, or null when it was refused.
    */
   async duplicateMedia(mediaId: MediaId): Promise<string | null> {
-    const result = await this.api.media
-      .edit({type: 'media.duplicate', mediaId})
-      .catch(rejected);
-    return this.createdId(result, {
-      log: 'Copying the media was refused',
-      notice: warningNotice('media-view:duplicate', '미디어 복제 실패'),
-    });
+    const result = await this.send(
+      {type: 'media.duplicate', mediaId},
+      {
+        log: 'Copying the media was refused',
+        notice: warningNotice('media-view:duplicate', '미디어 복제 실패'),
+      },
+    );
+    return result === null ? null : createdId(result);
   }
 
   /**
@@ -294,19 +264,17 @@ export class MediaLibrary {
    * @returns The copy's id, or null when it was refused.
    */
   async duplicatePlaylist(playlist: ChosenPlaylist): Promise<string | null> {
-    const result = await this.api.media
-      .edit({
-        type: 'media.playlist.duplicate',
-        playlist: playlistRef(playlist),
-      })
-      .catch(rejected);
-    return this.createdId(result, {
-      log: 'Copying the playlist was refused',
-      notice: warningNotice(
-        'media-view:playlist-duplicate',
-        '재생목록 복제 실패',
-      ),
-    });
+    const result = await this.send(
+      {type: 'media.playlist.duplicate', playlist: playlistRef(playlist)},
+      {
+        log: 'Copying the playlist was refused',
+        notice: warningNotice(
+          'media-view:playlist-duplicate',
+          '재생목록 복제 실패',
+        ),
+      },
+    );
+    return result === null ? null : createdId(result);
   }
 
   /**
@@ -396,19 +364,21 @@ export class MediaLibrary {
   async deleteMedia(mediaId: MediaId, name: string): Promise<boolean> {
     if (this.deletes.busy) return false;
     this.deletes.begin();
-    const result = await this.api.media
-      .edit({type: 'media.delete', mediaId})
-      .catch(rejected);
-    this.deletes.end();
-    if (result.ok || result.error.reason === 'write-failed') {
-      this.recordDelete(result);
-      return true;
-    }
-    this.refused('Deleting media was refused', result.error.message);
-    this.onProblem(
-      warningNotice(`media-view:delete:${mediaId}`, '미디어 삭제 실패', [name]),
+    const result = await this.send(
+      {type: 'media.delete', mediaId},
+      {
+        log: 'Deleting media was refused',
+        notice: warningNotice(
+          `media-view:delete:${mediaId}`,
+          '미디어 삭제 실패',
+          [name],
+        ),
+      },
     );
-    return false;
+    this.deletes.end();
+    if (result === null) return false;
+    this.recordDelete(result);
+    return true;
   }
 
   private async historyDelete(step: HistoryStep): Promise<boolean> {
@@ -517,24 +487,21 @@ export class MediaLibrary {
   async deletePlaylist(playlist: ChosenPlaylist): Promise<boolean> {
     if (this.deletes.busy) return false;
     this.deletes.begin();
-    const result = await this.api.media
-      .edit({
-        type: 'media.playlist.delete',
-        playlist: playlistRef(playlist),
-      })
-      .catch(rejected);
-    this.deletes.end();
-    if (result.ok || result.error.reason === 'write-failed') {
-      this.recordDelete(result);
-      return true;
-    }
-    this.refused('Deleting a playlist was refused', result.error.message);
-    this.onProblem(
-      warningNotice('media-view:playlist-delete', '재생목록 삭제 실패', [
-        playlist.name,
-      ]),
+    const result = await this.send(
+      {type: 'media.playlist.delete', playlist: playlistRef(playlist)},
+      {
+        log: 'Deleting a playlist was refused',
+        notice: warningNotice(
+          'media-view:playlist-delete',
+          '재생목록 삭제 실패',
+          [playlist.name],
+        ),
+      },
     );
-    return false;
+    this.deletes.end();
+    if (result === null) return false;
+    this.recordDelete(result);
+    return true;
   }
 
   /**
@@ -557,20 +524,21 @@ export class MediaLibrary {
     const document = this.view.document;
     const item = document?.value.items.find(({id}) => id === mediaId);
     if (document === null || item === undefined) return;
-    const result = await this.api.media
-      .edit({
+    await this.send(
+      {
         type: 'media.properties.update',
         mediaId,
         changes: {props: edit(item.props)},
         baseRevision: document.revision,
-      })
-      .catch(rejected);
-    if (result.ok || result.error.reason === 'write-failed') return;
-    this.refused('Changing media properties was refused', result.error.message);
-    this.onProblem(
-      warningNotice(`media-view:props:${mediaId}`, '미디어 속성 저장 실패', [
-        item.name,
-      ]),
+      },
+      {
+        log: 'Changing media properties was refused',
+        notice: warningNotice(
+          `media-view:props:${mediaId}`,
+          '미디어 속성 저장 실패',
+          [item.name],
+        ),
+      },
     );
   }
 
@@ -593,22 +561,23 @@ export class MediaLibrary {
       return false;
     }
     if (trimmed === item.name) return true;
-    const result = await this.api.media
-      .edit({
+    const result = await this.send(
+      {
         type: 'media.properties.update',
         mediaId,
         changes: {name: trimmed},
         baseRevision: document.revision,
-      })
-      .catch(rejected);
-    if (result.ok || result.error.reason === 'write-failed') return true;
-    this.refused('Renaming media was refused', result.error.message);
-    this.onProblem(
-      warningNotice(`media-view:rename:${mediaId}`, '미디어 이름 바꾸기 실패', [
-        item.name,
-      ]),
+      },
+      {
+        log: 'Renaming media was refused',
+        notice: warningNotice(
+          `media-view:rename:${mediaId}`,
+          '미디어 이름 바꾸기 실패',
+          [item.name],
+        ),
+      },
     );
-    return false;
+    return result !== null;
   }
 
   /** 파일 위치 열기: main shows the file in Explorer, if it is in a media folder. */
@@ -618,13 +587,17 @@ export class MediaLibrary {
 
   /** 복사 멈추기. A job that already ended changes nothing. */
   async cancel(mediaId: MediaId, name: string): Promise<void> {
-    const result = await this.api.media
-      .edit({type: 'media.import.cancel', mediaId})
-      .catch(rejected);
-    if (result.ok || result.error.reason === 'not-found') return;
-    this.refused('Stopping a media copy was refused', result.error.message);
-    this.onProblem(
-      warningNotice(`media-view:cancel:${mediaId}`, '복사 멈추기 실패', [name]),
+    await this.send(
+      {type: 'media.import.cancel', mediaId},
+      {
+        log: 'Stopping a media copy was refused',
+        notice: warningNotice(
+          `media-view:cancel:${mediaId}`,
+          '복사 멈추기 실패',
+          [name],
+        ),
+      },
+      result => result.ok || result.error.reason === 'not-found',
     );
   }
 
@@ -636,13 +609,16 @@ export class MediaLibrary {
     if (this.relinking) return;
     this.relinking = true;
     try {
-      const result = await this.api.media
-        .edit({type: 'media.relink', mediaId})
-        .catch(rejected);
-      if (result.ok || result.error.reason === 'write-failed') return;
-      this.refused('Relinking media was refused', result.error.message);
-      this.onProblem(
-        warningNotice(`media-view:relink:${mediaId}`, '다시 연결 실패', [name]),
+      await this.send(
+        {type: 'media.relink', mediaId},
+        {
+          log: 'Relinking media was refused',
+          notice: warningNotice(
+            `media-view:relink:${mediaId}`,
+            '다시 연결 실패',
+            [name],
+          ),
+        },
       );
     } finally {
       this.relinking = false;
@@ -650,16 +626,21 @@ export class MediaLibrary {
   }
 
   /**
-   * The id a create or copy made, also when its file was not written; null
-   * when it was refused, which is logged and reported.
+   * Sends one media edit. One main did not take is logged and reported with
+   * its notice.
+   *
+   * @param accepted - Which answers count as taken: by default a write,
+   *   also when its file could not be saved.
+   * @returns Main's answer, or null when the edit was refused.
    */
-  private createdId(
-    result: MediaEditOutcome,
-    refusal: {readonly log: string; readonly notice: Notice},
-  ): string | null {
-    if (result.ok) return result.value?.id ?? null;
-    if (result.error.reason === 'write-failed') return result.error.applied.id;
-    this.refused(refusal.log, result.error.message);
+  private async send(
+    edit: MediaEdit,
+    refusal: Refusal,
+    accepted: (result: MediaEditOutcome) => boolean = written,
+  ): Promise<MediaEditOutcome | null> {
+    const result = await this.api.media.edit(edit).catch(rejected);
+    if (accepted(result)) return result;
+    if (!result.ok) this.refused(refusal.log, result.error.message);
     this.onProblem(refusal.notice);
     return null;
   }
