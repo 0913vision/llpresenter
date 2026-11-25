@@ -3,9 +3,9 @@ import type {SongDocument} from '@core/schema/services/contentDocuments';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songs/songImport';
 import {songSlidesOf} from '@core/schema/songs/song';
 import {
-  DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
   SONG_TITLE_LIMIT,
+  songTitleReason,
 } from '@core/songs';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
@@ -114,11 +114,6 @@ export function SongDraftDialogs(): JSX.Element | null {
     case 'taken':
       return <TakenDialog document={question.document} />;
     case 'saveAs': {
-      const taken = new Set(
-        library
-          .filter(entry => entry.id !== draft.song.id)
-          .map(entry => normalizeSongTitle(entry.title)),
-      );
       return (
         <RenameDialog
           title="다른 이름으로 저장"
@@ -127,10 +122,9 @@ export function SongDraftDialogs(): JSX.Element | null {
           rename={{
             maxLength: SONG_TITLE_LIMIT,
             commitsUnchanged: true,
-            validate: name =>
-              taken.has(normalizeSongTitle(name))
-                ? DUPLICATE_TITLE_REASON
-                : undefined,
+            // NOTE(0913vision): 다른 이름으로 저장 makes a new song, so the
+            // title of the song it comes from is taken too.
+            validate: name => songTitleReason(name, '', library),
             onCommit: saveSongAs,
             onClose: close,
           }}
