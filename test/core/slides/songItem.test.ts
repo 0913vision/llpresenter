@@ -64,6 +64,15 @@ describe('songItemSlides', () => {
     expect(ids).not.toContain(lyrics[0]?.id);
   });
 
+  it('keeps a hot key of the title on the opening title only', () => {
+    const keyed = {...song(), titleSlide: {...titleSlide, hotKey: 'KeyT'}};
+
+    const slides = songItemSlides(keyed, making, {closingTitle: true});
+
+    expect(slides[0]?.hotKey).toBe('KeyT');
+    expect(slides.at(-1)).not.toHaveProperty('hotKey');
+  });
+
   it('leaves out the closing title when the 환경설정 says so', () => {
     const slides = songItemSlides(song(), making, {closingTitle: false});
 

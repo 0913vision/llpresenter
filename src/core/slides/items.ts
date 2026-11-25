@@ -41,6 +41,11 @@ export interface SongItemOptions {
   readonly closingTitle: boolean;
 }
 
+/** A copy of `source` that keeps its hot key, if it has one. */
+function withHotKeyOf(source: Slide, copy: Slide): Slide {
+  return source.hotKey === undefined ? copy : {...copy, hotKey: source.hotKey};
+}
+
 /**
  * The slides a song has in the 예배 순서 (`team/song-title-design.md`): its
  * title with 이름표 전주, its other slides as they are, and, when the 환경설정
@@ -57,8 +62,11 @@ export function songItemSlides(
     song.titleSlide ??
     makeSlide(making, 'songTitle', {texts: {제목: song.title}});
   const transition = transitionFor(making, 'songTitle');
+  // NOTE(0913vision): A hot key of the title stays on the opening title, as
+  // on every other slide of the song; the closing copy has none, so the item
+  // never holds one key twice.
   const opening: Slide = {
-    ...copySlide(title),
+    ...withHotKeyOf(title, copySlide(title)),
     label: SONG_TITLE_LABELS.opening,
     transition,
   };
@@ -70,10 +78,7 @@ export function songItemSlides(
   };
   return [
     opening,
-    ...song.slides.map(slide => ({
-      ...copySlide(slide),
-      ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
-    })),
+    ...song.slides.map(slide => withHotKeyOf(slide, copySlide(slide))),
     ...(closingTitle ? [closing] : []),
   ];
 }
