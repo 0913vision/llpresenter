@@ -1,6 +1,7 @@
 import {BrowserWindow} from 'electron';
 import type {Logger} from '../../base/log';
 import {blockNavigation, loadPage} from '../../base/renderers/page';
+import {SANDBOXED_PAGE} from '../../base/renderers/pagePreferences';
 import {
   discardTestFrames,
   windowTestOptions,
@@ -36,9 +37,7 @@ export function openNumberWindow(
     hasShadow: false,
     backgroundColor: OUTPUT_BACKGROUND,
     webPreferences: {
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
+      ...SANDBOXED_PAGE,
       spellcheck: false,
       ...testOptions.webPreferences,
     },

@@ -73,7 +73,6 @@ vi.mock('electron', () => ({
   screen: {getDisplayMatching: electron.getDisplayMatching},
 }));
 vi.mock('@main/base/renderers/page', () => ({
-  preloadPath: 'preload.js',
   loadPage: vi.fn(),
   startLoading: vi.fn(() => Promise.resolve()),
   blockNavigation: vi.fn(),

@@ -3,7 +3,8 @@ import {BrowserWindow, screen} from 'electron';
 import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import type {Logger} from '../base/log';
 import type {AppConfig} from '@core/schema/app/appConfig';
-import {blockNavigation, loadPage, preloadPath} from '../base/renderers/page';
+import {blockNavigation, loadPage} from '../base/renderers/page';
+import {APP_PAGE} from '../base/renderers/pagePreferences';
 import {reloadAfterCrash} from './crashReload';
 import {appIconPath} from '../base/renderers/appIcon';
 import {logConsoleErrors} from '../base/renderers/consoleErrors';
@@ -87,10 +88,7 @@ export function createPreferencesWindow({
     backgroundColor: '#0e0e0e',
     ...testOptions,
     webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
+      ...APP_PAGE,
       spellcheck: false,
       backgroundThrottling: true,
       ...webPreferences,

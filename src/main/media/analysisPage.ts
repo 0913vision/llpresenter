@@ -1,6 +1,7 @@
 import {BrowserWindow} from 'electron';
 import type {Logger} from '../base/log';
 import {blockNavigation, startLoading} from '../base/renderers/page';
+import {SANDBOXED_PAGE} from '../base/renderers/pagePreferences';
 import type {AnalysisPage} from './mediaAnalyser';
 
 function load(win: BrowserWindow, signal: AbortSignal): Promise<void> {
@@ -42,9 +43,7 @@ export async function openAnalysisPage(
     width: 320,
     height: 180,
     webPreferences: {
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
+      ...SANDBOXED_PAGE,
       backgroundThrottling: false,
       spellcheck: false,
     },

@@ -11,10 +11,10 @@ import {logWindowResponsiveness} from '../../base/renderers/responsiveness';
 import {
   blockNavigation,
   loadPage,
-  preloadPath,
   startLoading,
   type PageRequest,
 } from '../../base/renderers/page';
+import {APP_PAGE} from '../../base/renderers/pagePreferences';
 import {
   discardTestFrames,
   windowTestOptions,
@@ -76,10 +76,7 @@ function createBrowserWindow(
     resizable: screen.method !== 'capture',
     ...testOptions,
     webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
+      ...APP_PAGE,
       spellcheck: false,
       // NOTE(0913vision): An output keeps drawing at full rate even when
       // Windows reports it as covered or in the background.

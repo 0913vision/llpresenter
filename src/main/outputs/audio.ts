@@ -8,9 +8,9 @@ import {
   blockNavigation,
   loadPage,
   startLoading,
-  preloadPath,
   type PageRequest,
 } from '../base/renderers/page';
+import {APP_PAGE} from '../base/renderers/pagePreferences';
 import type {WindowMode} from '../base/renderers/windowMode';
 import {
   watchPlaybackProblems,
@@ -56,10 +56,7 @@ export function registerAudioOutput({
       focusable: false,
       skipTaskbar: true,
       webPreferences: {
-        preload: preloadPath,
-        sandbox: true,
-        contextIsolation: true,
-        nodeIntegration: false,
+        ...APP_PAGE,
         backgroundThrottling: false,
         autoplayPolicy: 'no-user-gesture-required',
       },
