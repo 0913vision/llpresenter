@@ -170,6 +170,13 @@ full bar is "Quality bar" in `docs/TECH.md`.
     the main process takes.
   - The row an event happened in: `optionValueAt`
     (`src/renderer/src/ui/lists/optionValue.ts`).
+  - The look of a list row or palette chip under the pointer, for a row drawn
+    without `ListRow`: `ROW_POINTER_CLASS`
+    (`src/renderer/src/ui/lists/rowPointer.ts`), never a hover rule of its own.
+  - Where a menu opened from the Menu key or Shift F10 goes: `keyMenuAnchor`
+    or `openMenuFromKey` (`src/renderer/src/ui/menus/contextMenu.ts`).
+  - Whether an element is inside a popover or a dialog: `isInPopoverOrDialog`
+    (`src/renderer/src/ui/popups/layers.ts`).
   - A part of the control window that may fail to draw: it sits in a `Panel`,
     whose `PanelBoundary` keeps the failure inside it; a part outside the panels
     gets its own `PanelBoundary`.
