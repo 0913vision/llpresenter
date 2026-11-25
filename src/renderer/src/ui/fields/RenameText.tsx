@@ -1,4 +1,5 @@
 import {useState, type JSX, type KeyboardEvent} from 'react';
+import {isComposing} from './ime';
 import {TextField} from './TextField';
 
 /** A name in a title bar, saved when its field is left. */
@@ -32,7 +33,7 @@ export function RenameText({
         setDraft(null);
       }}
       onKeyDown={event => {
-        if (event.key === 'Escape') setDraft(null);
+        if (event.key === 'Escape' && !isComposing(event)) setDraft(null);
         onKeyDown?.(event);
       }}
     />
