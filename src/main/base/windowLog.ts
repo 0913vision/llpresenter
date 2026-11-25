@@ -1,6 +1,7 @@
 import {outputEndpoints} from '@contracts/ipc/output';
 import {IpcHost} from './ipcHost';
 import type {Logger} from './log';
+import {pageForLog} from './renderers/pageUrl';
 
 /** A window's web contents id, which tells windows apart. */
 type WindowId = number;
@@ -80,7 +81,9 @@ export function registerWindowLog(log: Logger): () => void {
   const limiter = new WindowLogLimiter(log);
   const ipc = new IpcHost(log);
   ipc.message(outputEndpoints.log, ({level, message, detail}, {contents}) => {
-    if (limiter.admit(contents.id)) log[level](`window: ${message}`, detail);
+    if (limiter.admit(contents.id)) {
+      log[level](`window ${pageForLog(contents)}: ${message}`, detail);
+    }
   });
   return () => ipc.close();
 }

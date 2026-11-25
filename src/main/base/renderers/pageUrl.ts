@@ -21,3 +21,21 @@ export function contentsForLog(contents: LoggedContents): {
     return {id, url: null};
   }
 }
+
+/**
+ * The page a window shows, named by its file and query for a log line, such
+ * as `output?screen=…&ndi=1`, or `#7` by its id when its page is unknown.
+ */
+export function pageForLog(contents: LoggedContents): string {
+  const {id, url} = contentsForLog(contents);
+  if (url !== null) {
+    try {
+      const parsed = new URL(url);
+      const file = parsed.pathname.split('/').at(-1) ?? '';
+      return `${file.replace(/\.html$/u, '')}${parsed.search}`;
+    } catch {
+      // NOTE(0913vision): A page address that is not a URL names nothing.
+    }
+  }
+  return `#${id ?? '?'}`;
+}

@@ -27,7 +27,7 @@ describe('registerWindowLog', () => {
     expect(log.entries).toEqual([
       {
         level: 'error',
-        message: 'window: could not draw the lyrics layer',
+        message: 'window #1: could not draw the lyrics layer',
         detail: 'Error: layout failed',
       },
     ]);
@@ -67,7 +67,7 @@ describe('registerWindowLog', () => {
     write(WINDOW, WINDOW_LOG_LINES_PER_SECOND * 3);
     expect(log.entries).toHaveLength(WINDOW_LOG_LINES_PER_SECOND);
     write(OTHER_WINDOW, 1);
-    expect(log.entries.at(-1)?.message).toBe('window: line 0');
+    expect(log.entries.at(-1)?.message).toBe('window #8: line 0');
     stop();
   });
 });
