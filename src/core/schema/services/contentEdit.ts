@@ -53,13 +53,6 @@ const songEditSchemas = [
 
 const serviceEditSchemas = [
   v.object({
-    type: v.literal('service.song.saveToLibrary'),
-    serviceId: serviceIdSchema,
-    itemId: serviceItemIdSchema,
-    baseRevision: revisionSchema,
-    songRevision: revisionSchema,
-  }),
-  v.object({
     type: v.literal('service.song.reloadFromLibrary'),
     serviceId: serviceIdSchema,
     itemId: serviceItemIdSchema,

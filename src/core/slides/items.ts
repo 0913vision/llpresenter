@@ -4,7 +4,11 @@ import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {ServiceItemOf, SlidesItem} from '@core/schema/services/service';
 import type {Slide} from '@core/schema/slides/slide';
 import type {Song} from '@core/schema/songs/song';
-import {SONG_TITLE_LABELS} from '@core/schema/songs/songTitle';
+import {
+  isTitleSlide,
+  isTitleText,
+  SONG_TITLE_LABELS,
+} from '@core/schema/songs/songTitle';
 import {withText} from './edits';
 import {LITURGY_SLIDES} from './liturgySlides';
 import {copySlide, makeSlide, transitionFor, type SlideMaking} from './make';
@@ -79,6 +83,31 @@ export function songItemSlides(
     ...song.slides.map(slide => withHotKeyOf(slide, copySlide(slide))),
     ...(closingTitle ? [closing] : []),
   ];
+}
+
+/** Whether a slide of a song item is a title: a title slide, or a 전주 or 후주 copy of a title that shows as a picture or as 가사. */
+function isTitleCopy(slide: Slide, title: string): boolean {
+  if (isTitleSlide(slide)) return true;
+  if (
+    slide.label !== SONG_TITLE_LABELS.opening &&
+    slide.label !== SONG_TITLE_LABELS.closing
+  ) {
+    return false;
+  }
+  const texts = Object.values(slide.texts).filter(text => text.trim() !== '');
+  return texts.length === 0 || isTitleText(slide.texts['가사'] ?? '', title);
+}
+
+/**
+ * The slides of a song item as they go back to the song in the library
+ * (USER Nov 25): every title slide stays out, so the song keeps its own title
+ * and the 예배 순서 adds 전주 and 후주 again the next time.
+ */
+export function songItemBody(
+  slides: readonly Slide[],
+  title: string,
+): readonly Slide[] {
+  return slides.filter(slide => !isTitleCopy(slide, title));
 }
 
 /** A song of the library, with slides of its own in this service. */

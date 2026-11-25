@@ -8,10 +8,14 @@ import {isItemOfKind, type ServiceItemOf} from '@core/schema/services/service';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
-import {usageMeta} from '@renderer/ui/text/usageText';
 import {createServiceId} from '@core/schema/common/ids';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useShow} from '@renderer/session/show/showStore';
+import {openInPrep} from '@renderer/session/prepTarget';
+import {
+  openSongDraftWithItem,
+  requestLeaveSong,
+} from '@renderer/features/songs/songDraft';
 
 interface SongMenuTarget {
   readonly id: string;
@@ -26,7 +30,6 @@ interface SongMenuData {
   readonly document: SongDocument;
   readonly readOnly: boolean;
   readonly serviceRevision: Revision;
-  readonly usedBy: number;
 }
 
 async function readSongMenu(
@@ -47,28 +50,42 @@ async function readSongMenu(
   }
   const document = await api.songs.get(item.song);
   if (document?.song.id !== item.song) return null;
-  const usedBy =
-    (await api.songs.list()).find(entry => entry.id === item.song)?.usedBy
-      .length ?? 0;
   return {
     target,
     revision,
     item,
     document,
     serviceRevision: service.revision,
-    usedBy,
     readOnly: service.access === 'readOnly',
   };
 }
+/**
+ * Opens the song of a song item in the song editor with the item's slides,
+ * its title slides left out, to be saved over the library song there (USER
+ * Nov 25). The item and the song are read again first, so the editor gets
+ * the last edits.
+ */
+async function openItemInSongEditor(
+  api: LlpApi,
+  data: SongMenuData,
+  onProblem: (notice: Notice) => void,
+): Promise<void> {
+  const latest = await readSongMenu(api, data.target, data.revision);
+  if (latest === null) {
+    onProblem(warningNotice('song-transfer', '곡 열기 실패'));
+    return;
+  }
+  requestLeaveSong(() => {
+    openSongDraftWithItem(latest.document, latest.item.slides);
+    openInPrep({kind: 'song'});
+  });
+}
+
 /** Reads only the clicked item's song; leaving the menu invalidates its reads. */
 export function useServiceSongMenu(
   target: SongMenuTarget | null,
   onProblem: (notice: Notice) => void,
-  options: {
-    readonly beforeSave?: (() => Promise<number | null>) | undefined;
-  } = {},
 ) {
-  const {beforeSave} = options;
   const api = target?.api ?? window.llp;
   const revision = useShow(view => view.revision);
   const [data, setData] = useState<SongMenuData | null>(null);
@@ -76,10 +93,7 @@ export function useServiceSongMenu(
     target: SongMenuTarget;
     revision: number | null;
   } | null>(null);
-  const [question, setQuestion] = useState<{
-    data: SongMenuData;
-    save: boolean;
-  } | null>(null);
+  const [question, setQuestion] = useState<SongMenuData | null>(null);
   const writing = useRef(false);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
@@ -115,32 +129,23 @@ export function useServiceSongMenu(
         : undefined;
   const transfer = async (): Promise<void> => {
     if (question === null || api === undefined || writing.current) return;
-    const captured = question.data;
+    const captured = question;
     const serviceId = captured.target.serviceId;
     if (serviceId === null) return;
     writing.current = true;
     setBusy(true);
     try {
-      const serviceRevision =
-        question.save && beforeSave !== undefined
-          ? await beforeSave()
-          : captured.serviceRevision;
-      if (serviceRevision === null) return;
       await pendingWritesOf(api).run({
         write: async () => {
           const result = await api.content.edit({
-            type: question.save
-              ? 'service.song.saveToLibrary'
-              : 'service.song.reloadFromLibrary',
+            type: 'service.song.reloadFromLibrary',
             serviceId: createServiceId(serviceId),
             itemId: captured.item.id,
-            baseRevision: serviceRevision,
+            baseRevision: captured.serviceRevision,
             songRevision: captured.document.revision,
           });
           if (!result.ok) {
-            onProblem(
-              warningNotice('song-transfer', '곡 저장 또는 불러오기 실패'),
-            );
+            onProblem(warningNotice('song-transfer', '곡 불러오기 실패'));
           } else setQuestion(null);
           return result.ok || result.error.reason === 'write-failed';
         },
@@ -157,29 +162,25 @@ export function useServiceSongMenu(
     reason,
     locked: current?.readOnly === true || busy,
     save: () => {
-      if (current !== null) setQuestion({data: current, save: true});
+      if (current === null || api === undefined) return;
+      openItemInSongEditor(api, current, onProblem).catch((error: unknown) =>
+        logFailure(api, 'Could not open the song item in the editor', error),
+      );
     },
     reload: () => {
-      if (current !== null) setQuestion({data: current, save: false});
+      if (current !== null) setQuestion(current);
     },
     dialog:
       question === null ? null : (
         <AlertDialog
           icon="song"
-          title={
-            question.save
-              ? `‘${question.data.document.song.title}’ 곡을 덮어쓸까요?`
-              : '라이브러리에서 다시 불러올까요?'
-          }
-          meta={
-            question.save ? usageMeta(question.data.usedBy, '예배') : undefined
-          }
+          title="라이브러리에서 다시 불러올까요?"
           onCancel={() => {
             if (!busy) setQuestion(null);
           }}
           actions={[
             {
-              label: question.save ? '덮어쓰기' : '다시 불러오기',
+              label: '다시 불러오기',
               primary: true,
               disabled: busy,
               onSelect: () => {

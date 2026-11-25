@@ -427,8 +427,9 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 
 - A song item in a 예배 순서 holds its own copy of the 슬라이드 and names the
   라이브러리 song it came from. Editing either never changes the other;
-  라이브러리에 저장… and 라이브러리에서 다시 불러오기 copy between them and ask
-  first (05).
+  라이브러리에 저장… opens the song in the song editor with the item's 슬라이드,
+  every title 슬라이드 left out, and saves only from there; 라이브러리에서 다시
+  불러오기 asks first (05).
 - A 슬라이드 holds its 이름표 by name. The app looks up its color in the
   app-wide 이름표 list. A name that isn't in the list draws with no color. A hot
   key belongs to its 슬라이드, independent of its name or color.

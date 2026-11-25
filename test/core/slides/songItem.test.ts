@@ -6,6 +6,7 @@ import {
   CLOSING_TITLE_NEXT,
   SONG_TITLE_LABELS,
   songItem,
+  songItemBody,
   songItemSlides,
 } from '@core/slides';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
@@ -97,5 +98,34 @@ describe('songItem', () => {
       name: '빛의 길',
       song: '00000000-0000-4000-8000-000000000100',
     });
+  });
+});
+
+describe('songItemBody', () => {
+  it('takes the 전주 and 후주 titles and a title in the middle out, and keeps the lyrics', () => {
+    const middle = slideOf(9, 'songTitle', {texts: {제목: '다른 곡'}});
+    const slides = songItemSlides(song(), making, {closingTitle: true});
+    const withMiddle = [...slides.slice(0, 2), middle, ...slides.slice(2)];
+
+    expect(
+      songItemBody(withMiddle, '빛의 길').map(slide => slide.texts),
+    ).toEqual(lyrics.map(slide => slide.texts));
+  });
+
+  it('takes out the 전주 and 후주 copies of a picture title and of a title in 가사, and keeps a lyric that sings the title', () => {
+    const picture = slideOf(1, 'lyrics', {
+      texts: {},
+      background: {kind: 'color', color: '#112233'},
+    });
+    const sung = lyricsSlide(4, '빛의 길');
+    const slides = [
+      {...picture, label: '전주'},
+      ...lyrics,
+      {...lyricsSlide(5, '빛의 길'), label: '후주'},
+      sung,
+      {...picture, id: slideOf(6, 'lyrics').id, label: '후주'},
+    ];
+
+    expect(songItemBody(slides, '빛의 길')).toEqual([...lyrics, sung]);
   });
 });

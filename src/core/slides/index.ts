@@ -41,6 +41,7 @@ export {
   sermonItem,
   CLOSING_TITLE_NEXT,
   songItem,
+  songItemBody,
   songItemSlides,
   type SongItemOptions,
   standbyItem,

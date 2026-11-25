@@ -135,8 +135,12 @@ the compact 예배 순서, or the library; its right column shows the selected
   없습니다". Verses that stay keep their 슬라이드 and settings.
 - **사도신경 and 주기도문** have 새 번역 and 옛 번역, which put the text of that
   version in and keep an opening 타이틀.
-- **곡** has 라이브러리에 저장… and 라이브러리에서 다시 불러오기. Both ask
-  first.
+- **곡** has 라이브러리에 저장… and 라이브러리에서 다시 불러오기. 라이브러리에
+  저장… opens the song in the song editor with the item's slides: the song's own
+  title slide first, then the item's slides without any title slide (전주, 후주,
+  or one in the middle). Nothing is saved until 저장 there, which asks before it
+  overwrites the song; 실행 취소 shows the song as the library has it.
+  라이브러리에서 다시 불러오기 asks first.
 
 ### Selection
 

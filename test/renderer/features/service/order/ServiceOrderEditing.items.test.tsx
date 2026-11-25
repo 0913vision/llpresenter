@@ -10,6 +10,13 @@ import {
   transfer,
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
 import {useShow} from '@renderer/session/show/showStore';
+import {usePrepTarget} from '@renderer/session/prepTarget';
+import {
+  closeSongDraft,
+  replaySong,
+  useSongDraft,
+} from '@renderer/features/songs/songDraft';
+import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 
 describe('service panel editing', () => {
   it('drops a song without a row target immediately after the selected item', async () => {
@@ -85,6 +92,43 @@ describe('service panel editing', () => {
       dataTransfer: transfer(JSON.stringify({kind: 'song', songId})),
     });
     expect(api.content.edit).not.toHaveBeenCalled();
+  });
+
+  it('opens the song in the song editor with the item’s lyrics, its title slides left out, and writes nothing', async () => {
+    const opening = {
+      ...slideOf(5, 'songTitle', {texts: {제목: '첫 곡'}}),
+      label: '전주',
+    };
+    const verse = lyricsSlide(6, '항목에서 고친 가사');
+    const closing = {
+      ...slideOf(7, 'songTitle', {texts: {제목: '첫 곡'}}),
+      label: '후주',
+    };
+    const {api} = setup('prep', false, {
+      firstItem: {
+        id: firstId,
+        kind: 'song',
+        name: '첫 곡',
+        song: songId,
+        slides: [opening, verse, closing],
+      },
+    });
+    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
+    await userEvent.click(
+      await screen.findByRole('menuitem', {name: '라이브러리에 저장…'}),
+    );
+
+    await waitFor(() =>
+      expect(useSongDraft.getState().draft?.song.slides).toEqual([verse]),
+    );
+    expect(useSongDraft.getState().draft?.document?.song.id).toBe(songId);
+    expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
+    expect(api.content.edit).not.toHaveBeenCalled();
+    act(() => replaySong('undo'));
+    expect(useSongDraft.getState().draft?.song.slides).toEqual([
+      lyricsSlide(1, ''),
+    ]);
+    act(() => closeSongDraft());
   });
 
   it('disables both new rows when the song is missing', async () => {

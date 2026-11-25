@@ -1,17 +1,22 @@
 import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
-import {checkPart} from '@core/schema/common/fileFormat';
-import {songSchema, withSongSlides} from '@core/schema/songs/song';
 import {songItemSlides} from '@core/slides';
 import {closingSongTitleOf, slideMakingOf} from './slideMaking';
 import {isItemOfKind} from '@core/schema/services/service';
 import type {ContentCommandContext} from './contentCommands';
 
-type SongItemEdit = Extract<ContentEdit, {type: `service.song.${string}`}>;
+type SongItemReload = Extract<
+  ContentEdit,
+  {type: 'service.song.reloadFromLibrary'}
+>;
 
-/** Explicit library transfers never propagate to other service items. */
-export async function transferSongItem(
+/**
+ * 라이브러리에서 다시 불러오기: the item gets the song as a new item would,
+ * and no other item changes. A song item goes back to the library only
+ * through the song editor (USER Nov 25), never by this store directly.
+ */
+export async function reloadSongItem(
   context: ContentCommandContext,
-  edit: SongItemEdit,
+  edit: SongItemReload,
 ): Promise<EditResult> {
   await context.flushAutosave();
   const checked = context.checkEditable(context.services.get(edit.serviceId));
@@ -31,41 +36,25 @@ export async function transferSongItem(
   if (source.revision !== edit.songRevision) {
     return context.refuse('stale', 'The library song changed');
   }
-  if (edit.type === 'service.song.reloadFromLibrary') {
-    const full = context.savesFull([service.file]);
-    if (full !== null) return full;
-    const updated = context.services.replace(service, {
-      ...service.data,
-      order: service.data.order.map(row =>
-        row === item
-          ? {
-              ...item,
-              slides: songItemSlides(
-                source.data,
-                slideMakingOf(context.settings),
-                {closingTitle: closingSongTitleOf(context.settings)},
-              ),
-            }
-          : row,
-      ),
-    });
-    context.announceService(updated.data.id);
-    return context.answer({id: updated.data.id, revision: updated.revision}, [
-      await context.write(context.kinds.service, updated),
-    ]);
-  }
-  const writable = context.checkEditable(source);
-  if (!writable.ok) return writable.error;
-  const validated = checkPart(songSchema, {
-    ...withSongSlides(source.data, structuredClone(item.slides)),
-    updatedAt: context.now(),
-  });
-  if (!validated.ok) return context.refuse('invalid', validated.error.message);
-  const full = context.savesFull([source.file]);
+  const full = context.savesFull([service.file]);
   if (full !== null) return full;
-  const updated = context.songs.replace(source, validated.value);
-  context.announceSong(updated.data.id);
+  const updated = context.services.replace(service, {
+    ...service.data,
+    order: service.data.order.map(row =>
+      row === item
+        ? {
+            ...item,
+            slides: songItemSlides(
+              source.data,
+              slideMakingOf(context.settings),
+              {closingTitle: closingSongTitleOf(context.settings)},
+            ),
+          }
+        : row,
+    ),
+  });
+  context.announceService(updated.data.id);
   return context.answer({id: updated.data.id, revision: updated.revision}, [
-    await context.write(context.kinds.song, updated),
+    await context.write(context.kinds.service, updated),
   ]);
 }

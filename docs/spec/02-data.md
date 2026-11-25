@@ -130,8 +130,8 @@ shows that same title again, as a title slide or as a copy with 이름표 후주
 dropped, and every other slide stays where it is, another title and a last lyric
 that sings the title at the end too, so a title inside a medley stays a slide of
 the song. Every way a song is saved (곡 가져오기, 새 곡, 저장, 다른 이름으로
-저장, 라이브러리에 저장) keeps it the same way. The editor shows the title slide
-first among the others.
+저장) keeps it the same way. The editor shows the title slide first among the
+others.
 
 A song goes into the 예배 순서 with its title first, 이름표 전주, then its other
 slides, then, unless 환경설정 준비 > 끝 제목 is off, its title again, 이름표
@@ -225,8 +225,10 @@ and may have `overlays` (12).
 A kind only decides how 슬라이드 are made and which tools the editor offers
 (05). An item of a kind this version doesn't know is kept unchanged, shown with
 a warning icon, and can't be output. Editing a library song never changes an
-item: 라이브러리에 저장… and 라이브러리에서 다시 불러오기 copy between them and
-ask first.
+item: 라이브러리에 저장… opens the song in the song editor with the item's
+slides, every title slide left out and the song's own title kept, and nothing is
+saved until 저장 there; 라이브러리에서 다시 불러오기 asks first and gives the
+item the song as a new item gets it.
 
 ### Passages
 

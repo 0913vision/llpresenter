@@ -1,4 +1,4 @@
-import {serviceIdSchema, serviceItemIdSchema} from '@core/schema/common/ids';
+import {serviceIdSchema} from '@core/schema/common/ids';
 import {parseService} from '@core/schema/services/service';
 import {testId} from '@fixtures/core/schema/testHelpers';
 import {join} from 'node:path';
@@ -160,18 +160,17 @@ describe('ContentStore persistence and notifications', () => {
       return write(request);
     };
     const rename = store.apply({
-      type: 'service.song.saveToLibrary',
-      serviceId: SUNDAY,
-      itemId: testId(serviceItemIdSchema, itemId(1)),
-      baseRevision: 1,
-      songRevision: 1,
+      type: 'song.import',
+      draft: {title: '만복의 근원 하나님', slides: songFile().data.slides},
+      target: {kind: 'overwrite', songId: SONG, baseRevision: 1},
     });
     const deletion = store.apply({type: 'song.delete', songId: SONG});
     await Promise.resolve();
     expect(files.removed).toEqual([]);
     release();
 
-    await Promise.all([rename, deletion]);
+    const [renamed] = await Promise.all([rename, deletion]);
+    expect(renamed).toMatchObject({ok: true});
     await store.flush();
 
     expect(store.song(SONG)).toBeNull();

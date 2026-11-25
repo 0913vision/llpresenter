@@ -9,7 +9,13 @@ import type {ContentEdit, EditResult} from '@core/schema/services/contentEdit';
 import {createSongId, type MediaId, type SongId} from '@core/schema/common/ids';
 import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/songs/song';
 import type {TextImportDraft} from '@core/schema/songs/textImport';
-import {newSongSlides, songSlides, withSongTitle} from '@core/slides';
+import {
+  newSongSlides,
+  songItemBody,
+  songSlides,
+  withSongTitle,
+} from '@core/slides';
+import type {Slide} from '@core/schema/slides/slide';
 import {
   copyTitle,
   DUPLICATE_TITLE_REASON,
@@ -121,6 +127,25 @@ export function openSongDraft(
 ): void {
   show(document.song, document);
   if (options.focusTitle === true) focusTitle();
+}
+
+/**
+ * Opens a song of the library with the slides of one of its 예배 순서 items in
+ * place of its own, to be checked and saved over the song (USER Nov 25): the
+ * song keeps its own title slide, the item's title slides stay out. The change
+ * is one step, so 실행 취소 shows the song as the library has it.
+ */
+export function openSongDraftWithItem(
+  document: SongDocument,
+  itemSlides: readonly Slide[],
+): void {
+  show(document.song, document);
+  const titles = document.song.titleSlide === undefined ? 0 : 1;
+  const body = songItemBody(itemSlides, document.song.title);
+  editSong(song => ({
+    ...song,
+    slides: [...song.slides.slice(0, titles), ...body],
+  }));
 }
 
 function focusTitle(): void {

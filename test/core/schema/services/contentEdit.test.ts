@@ -91,7 +91,7 @@ describe('parseContentEdit', () => {
     [{type: 'song.delete', songId: SONG_ID}],
     [
       {
-        type: 'service.song.saveToLibrary',
+        type: 'service.song.reloadFromLibrary',
         serviceId: SERVICE_ID,
         itemId: ITEM_ID,
         baseRevision: 1,
@@ -173,7 +173,7 @@ describe('parseContentEdit', () => {
     [
       'a transfer without a song revision',
       {
-        type: 'service.song.saveToLibrary',
+        type: 'service.song.reloadFromLibrary',
         serviceId: SERVICE_ID,
         itemId: ITEM_ID,
         baseRevision: 1,

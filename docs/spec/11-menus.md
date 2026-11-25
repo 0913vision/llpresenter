@@ -387,9 +387,10 @@ An empty item clipboard, read-only destination or full destination disables
 | 3     | 삭제             | Deletes the service (not the open one).                | Now    |
 
 Song items also offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기. The
-former asks to overwrite the source song and shows its usage; the latter asks to
-replace only this item's slides. Both capture the service and song revisions. 곡
-편집… opens the item deck in the existing editor.
+former opens the source song in the song editor with the item's slides, its
+title slides left out (05); the latter asks to replace only this item's slides
+and captures the service and song revisions. 곡 편집… opens the item deck in the
+existing editor.
 
 ### 라이브러리 곡 오른쪽 클릭
 
