@@ -1,7 +1,13 @@
 import {describe, expect, it} from 'vitest';
+import * as v from 'valibot';
+import {translationIdSchema} from '@core/schema/common/ids';
+import {findBibleBooks} from '@core/bible';
 import {
   fieldReason,
+  fieldsOfReference,
+  fullReferenceCandidate,
   numberPlaceholder,
+  referenceSuggestions,
 } from '@renderer/features/bible/reference/referenceForm';
 
 describe('the hint in an empty number field', () => {
@@ -74,5 +80,75 @@ describe('the reason a passage field shows', () => {
     expect(
       fieldReason('end', {...base, fields: {...fields, end: '2'}, errors}),
     ).toBe(errors.end);
+  });
+});
+
+describe('the fields of a reference', () => {
+  it('splits a typed reference into the four fields, leaving 끝절 empty for one verse', () => {
+    expect(fieldsOfReference('요 3:16-18')).toEqual({
+      book: '요한복음',
+      chapter: '3',
+      start: '16',
+      end: '18',
+    });
+    expect(fieldsOfReference('요한복음 3:16')).toEqual({
+      book: '요한복음',
+      chapter: '3',
+      start: '16',
+      end: '',
+    });
+    expect(fieldsOfReference('시편 23')).toMatchObject({
+      book: '시편',
+      chapter: '23',
+      start: '',
+    });
+  });
+
+  it('opens empty for nothing or for text that is no reference', () => {
+    const empty = {book: '', chapter: '', start: '', end: ''};
+    expect(fieldsOfReference(undefined)).toEqual(empty);
+    expect(fieldsOfReference('없는책 1:1')).toEqual(empty);
+  });
+});
+
+describe('a whole reference typed in the 책 field', () => {
+  it('fills a whole chapter from its first to its last verse', () => {
+    const candidate = fullReferenceCandidate('시편 23');
+    expect(candidate?.next).toEqual({
+      book: '시편',
+      chapter: '23',
+      start: '1',
+      end: '6',
+    });
+    expect(candidate?.input).toBe('시편 23');
+  });
+
+  it('points at the part that is out of range, and takes no reference across chapters', () => {
+    expect(fullReferenceCandidate('요한복음 3:99')?.invalidPart).toBe('start');
+    expect(fullReferenceCandidate('요한복음 3:16-4:2')).toBeNull();
+    expect(fullReferenceCandidate('아무 글')).toBeNull();
+  });
+});
+
+describe('the suggestions under the 책 field', () => {
+  it('lists the books that match, then the recent passages without repeats', () => {
+    const translation = v.parse(translationIdSchema, 'gae');
+    const recents = [
+      {ref: '요한복음 3:16', translation},
+      {ref: '요한복음 3:16', translation},
+      {ref: '시편 23', translation},
+    ];
+
+    const suggestions = referenceSuggestions(
+      findBibleBooks('요한'),
+      recents,
+      translation,
+    );
+
+    expect(suggestions.map(item => [item.group, item.input])).toEqual([
+      ...findBibleBooks('요한').map(book => ['책', book.korean]),
+      ['최근', '요한복음 3:16'],
+      ['최근', '시편 23'],
+    ]);
   });
 });
