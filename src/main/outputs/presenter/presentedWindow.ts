@@ -258,7 +258,14 @@ function createPresenterPart(
   let openKey = '';
   let shown: Rect | null = null;
   let onTop = true;
-  let outstanding: OffscreenSharedTexture | null = null;
+  // NOTE(0913vision): At most one page frame is with the presenter at a time,
+  // under an id; it is freed when the presenter gives that id back as
+  // 'copied', also when it dropped the frame with a window that went away.
+  let frameId = 0;
+  let outstanding: {
+    readonly id: number;
+    readonly texture: OffscreenSharedTexture;
+  } | null = null;
   let waiting: OffscreenSharedTexture | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
   let stall: ReturnType<typeof setTimeout> | null = null;
@@ -304,11 +311,13 @@ function createPresenterPart(
       failWith('unsupported texture handle');
       return;
     }
-    outstanding = texture;
+    frameId += 1;
+    outstanding = {id: frameId, texture};
     post({
       type: 'frame',
       pid: process.pid,
       handle: handle.readBigUInt64LE(0).toString(16),
+      id: frameId,
     });
     stall ??= setTimeout(() => {
       stall = null;
@@ -319,9 +328,11 @@ function createPresenterPart(
       failWith('presenter stalled');
     }, PRESENTER_STALL_MS);
   };
-  const copied = (): void => {
+  /** The presenter is done with frame `id`; the next waiting one goes. */
+  const copied = (id: unknown): void => {
+    if (outstanding === null || outstanding.id !== id) return;
     stopStall();
-    outstanding?.release();
+    outstanding.texture.release();
     outstanding = null;
     const next = waiting;
     waiting = null;
@@ -377,21 +388,18 @@ function createPresenterPart(
         message?: string;
         frame?: unknown;
         was?: unknown;
+        id?: unknown;
       }) => {
         if (child !== worker) return;
         if (message.type === 'ready') {
           ready = true;
           stopTimer();
-          // NOTE(0913vision): A presenter (re)opened has dropped the frame it
-          // was taking; without this the page's later frames would wait for a
-          // copy that never comes.
-          stopStall();
-          outstanding?.release();
-          outstanding = null;
-          const held = waiting;
-          waiting = null;
-          if (held !== null) send(held);
-          else repaint();
+          if (outstanding === null) {
+            const held = waiting;
+            waiting = null;
+            if (held !== null) send(held);
+            else repaint();
+          }
           if (shown !== null) {
             timer = setTimeout(
               () => failWith('no shared texture paint'),
@@ -399,7 +407,7 @@ function createPresenterPart(
             );
           }
         }
-        if (message.type === 'copied') copied();
+        if (message.type === 'copied') copied(message.id);
         if (message.type === 'shown') {
           stopTimer();
           if (shown !== null) setNativeMirror(current.id, mirrorPump);
@@ -422,6 +430,16 @@ function createPresenterPart(
           log.warn('output presenter window was gone; opened again', {
             screen: current.id,
           });
+          // NOTE(0913vision): The new window shows once it has a frame; the
+          // page paints one for it, and a window that never gets one falls
+          // back like a presenter that never paints.
+          if (outstanding === null && waiting === null) repaint();
+          if (shown !== null && timer === null) {
+            timer = setTimeout(
+              () => failWith('no shared texture paint'),
+              FIRST_TEXTURE_TIMEOUT_MS,
+            );
+          }
         }
         if (message.type === 'replaced') {
           log.warn('output presenter window was moved or hidden; put back', {
@@ -517,7 +535,7 @@ function createPresenterPart(
       stopTimer();
       stopStall();
       releaseProblems?.();
-      outstanding?.release();
+      outstanding?.texture.release();
       waiting?.release();
       outstanding = null;
       waiting = null;

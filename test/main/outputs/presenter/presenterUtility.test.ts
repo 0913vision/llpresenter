@@ -14,14 +14,21 @@ it('mirrors changed presenter frames at most ten times per second', () => {
     pending = true;
     return true;
   });
+  let copying = false;
   const presenter = {
     visible: true,
     busy: false,
     frame: vi.fn(),
-    copied: () => false,
+    copied: () => {
+      const done = copying;
+      copying = false;
+      return done;
+    },
     takeEnded: () => null,
     keepPlaced: () => null,
-    submit: vi.fn(),
+    submit: vi.fn(() => {
+      copying = true;
+    }),
     startMirror: vi.fn(),
     stopMirror: vi.fn(),
     requestMirror,
@@ -91,7 +98,7 @@ it('mirrors changed presenter frames at most ten times per second', () => {
 function runUtility(presenter: object, onCreate: () => void = () => undefined) {
   const port = new EventEmitter();
   const postMessage =
-    vi.fn<(value: {type: string; message?: string}) => void>();
+    vi.fn<(value: {type: string; message?: string; id?: number}) => void>();
   Object.assign(port, {postMessage});
   const ticks: Array<() => void> = [];
   const source = readFileSync(
@@ -122,10 +129,14 @@ function runUtility(presenter: object, onCreate: () => void = () => undefined) {
       throw new Error(`Unexpected import ${name}`);
     },
   });
-  port.emit('message', {
-    data: {type: 'open', bounds: {x: 1920, y: 0, width: 1920, height: 1080}},
+  const message = (data: object): void => {
+    port.emit('message', {data});
+  };
+  message({
+    type: 'open',
+    bounds: {x: 1920, y: 0, width: 1920, height: 1080},
   });
-  return {postMessage, ticks};
+  return {postMessage, ticks, message};
 }
 
 it('opens its window again when it is gone, and gives up after three times a minute', () => {
@@ -149,7 +160,7 @@ it('opens its window again when it is gone, and gives up after three times a min
   expect(made).toBe(4);
   const types = postMessage.mock.calls.map(([value]) => value.type);
   expect(types.filter(type => type === 'reopened')).toHaveLength(3);
-  expect(types.filter(type => type === 'ready')).toHaveLength(4);
+  expect(types.filter(type => type === 'ready')).toHaveLength(1);
 
   ticks.shift()?.();
   const last = postMessage.mock.lastCall?.[0];
@@ -212,4 +223,39 @@ it('tells the main process when it put a moved or hidden window back', () => {
   );
   expect(replaced).toEqual([[{type: 'replaced', was}]]);
   expect(keepPlaced).toHaveBeenCalledTimes(2);
+});
+
+it('gives back the frame it was copying when its window goes away, and keeps one frame waiting while it copies', () => {
+  let lost = false;
+  const presenter = {
+    visible: true,
+    busy: false,
+    frame: vi.fn(),
+    copied: () => false,
+    takeEnded: () => null,
+    keepPlaced: () => (lost ? {lost: true} : null),
+    submit: vi.fn(),
+    close: vi.fn(),
+    startMirror: vi.fn(),
+    stopMirror: vi.fn(),
+  };
+  const {postMessage, ticks, message} = runUtility(presenter);
+  message({type: 'frame', pid: 1, handle: 'a', id: 1});
+  message({type: 'frame', pid: 1, handle: 'b', id: 2});
+  message({type: 'frame', pid: 1, handle: 'c', id: 3});
+  expect(presenter.submit).toHaveBeenCalledOnce();
+  expect(postMessage).toHaveBeenCalledWith({type: 'copied', id: 2});
+
+  lost = true;
+  ticks.shift()?.();
+
+  const copied = postMessage.mock.calls
+    .map(([value]) => value)
+    .filter(value => value.type === 'copied');
+  expect(copied).toEqual([
+    {type: 'copied', id: 2},
+    {type: 'copied', id: 1},
+    {type: 'copied', id: 3},
+  ]);
+  expect(postMessage).toHaveBeenLastCalledWith({type: 'reopened'});
 });

@@ -13,6 +13,14 @@ const REOPEN_WINDOW_MS = 60_000;
 let presenter = null;
 let opened = null;
 let reopenedAt = [];
+// NOTE(0913vision): Every page frame carries the id the main process gave it,
+// and every frame given in comes back as 'copied' with that id once the main
+// process may free it: copied into the picture, or dropped with a window that
+// went away. A frame that comes while one is copied waits; a newer one
+// replaces it. So a window opened again never gets two frames at once (church,
+// Nov 25: "a page frame is still being copied").
+let copyingId = null;
+let queuedFrame = null;
 let wantShown = false;
 let onTop = true;
 let timer = null;
@@ -81,6 +89,39 @@ function captureMirror() {
   }
 }
 
+/** Tells the main process it may free page frame `id`. */
+function release(id) {
+  post({type: 'copied', id});
+}
+
+function submitFrame(frame) {
+  presenter.submit(frame.pid, frame.handle);
+  copyingId = frame.id;
+  mirrorDirty = true;
+}
+
+/** Copies a page frame now, or keeps it waiting while another is copied. */
+function takeFrame(frame) {
+  if (presenter === null) {
+    release(frame.id);
+    return;
+  }
+  if (copyingId === null) {
+    submitFrame(frame);
+    return;
+  }
+  if (queuedFrame !== null) release(queuedFrame.id);
+  queuedFrame = frame;
+}
+
+/** Gives back the frames a closed presenter held. */
+function dropFrames() {
+  if (copyingId !== null) release(copyingId);
+  if (queuedFrame !== null) release(queuedFrame.id);
+  copyingId = null;
+  queuedFrame = null;
+}
+
 function tick() {
   timer = null;
   if (presenter === null) return;
@@ -90,8 +131,12 @@ function tick() {
     if (wasBusy || presenter.busy) mirrorDirty = true;
     captureMirror();
     if (presenter.copied()) {
-      post({type: 'copied'});
+      if (copyingId !== null) release(copyingId);
+      copyingId = null;
       show();
+      const next = queuedFrame;
+      queuedFrame = null;
+      if (next !== null) submitFrame(next);
     }
     const ended = presenter.takeEnded();
     if (ended !== null) post({type: 'transitioned', ...ended});
@@ -99,10 +144,9 @@ function tick() {
     if (placed?.lost === true) {
       // NOTE(0913vision): The window went away under the presenter (the 무대
       // window at the hourly 청중 TV dropout, church Nov 25). A new one opens
-      // at the same place; the main process sends its frame again on ready.
+      // at the same place, and the main process paints the page for it.
       reopen();
       post({type: 'reopened'});
-      post({type: 'ready'});
     } else if (placed !== null) {
       post({type: 'replaced', was: placed.was});
     }
@@ -116,6 +160,7 @@ function tick() {
 /** Opens the presenter window at `bounds`, the one before closed first. */
 function open(bounds) {
   close();
+  dropFrames();
   mirrorInFlight = false;
   mirrorPending = false;
   mirrorDue = 0;
@@ -163,9 +208,7 @@ process.parentPort.on('message', event => {
         break;
       }
       case 'frame':
-        if (presenter === null) break;
-        presenter.submit(message.pid, message.handle);
-        mirrorDirty = true;
+        takeFrame({pid: message.pid, handle: message.handle, id: message.id});
         break;
       case 'show':
         onTop = message.topmost !== false;
@@ -206,6 +249,8 @@ process.parentPort.on('message', event => {
     }
   } catch (error) {
     fail(error);
-    if (message.type === 'frame') post({type: 'copied'});
+    if (message.type === 'frame' && copyingId !== message.id) {
+      release(message.id);
+    }
   }
 });

@@ -300,9 +300,10 @@ const MODES = {cut: 0, wipe: 1, dissolve: 2, push: 3};
 const FIRST_FRAME_WAIT_MS = 200;
 // NOTE(0913vision): When a monitor comes or goes, Windows may move or hide the
 // windows on the other monitors as it lays the desktop out again; the 무대
-// output stayed dark after the 청중 TV dropped out (church, Nov 25). A shown
-// presenter looks at its window this often and puts it back.
-const PLACE_CHECK_MS = 500;
+// output stayed dark after the 청중 TV dropped out (church, Nov 25). The
+// presenter looks at its window this often, opens it again when it is gone and
+// puts a shown one back.
+const PLACE_CHECK_MS = 250;
 const DIRECTIONS = {left: 0, right: 1, up: 2, down: 3};
 
 let classRegistered = false;
