@@ -9,6 +9,9 @@ import {useThemeDraft} from './useThemeDraft';
 import {useAlive} from '@renderer/ui/useAlive';
 import type {NamedDocument} from '@core/schema/app/settingsDocuments';
 
+/** The title of the card of a theme change that could not be made. */
+export const THEME_CHANGE_FAILED = '테마 변경 실패';
+
 /** The saved themes, the draft of one of them, and the writes of both. */
 export function useThemeWrites(
   document: NamedDocument<'themes'> | null,
@@ -24,7 +27,7 @@ export function useThemeWrites(
 
   const reportError = (error: unknown): void => {
     logFailure(api, 'Could not edit a theme', error);
-    report('테마 변경 실패');
+    report(THEME_CHANGE_FAILED);
   };
 
   const editor = useRef<ThemesEditor | null>(null);

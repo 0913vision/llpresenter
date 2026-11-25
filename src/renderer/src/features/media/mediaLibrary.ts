@@ -24,18 +24,20 @@ import {renameHistory} from '@renderer/platform/undo/renameHistory';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import {
   createdId,
+  MEDIA_LOAD_FAILED,
+  type MediaEditOutcome,
+  type PlaylistChange,
   playlistRef,
   playlistUpdate,
+  type Refusal,
   rejected,
   UnsavedPlaylistName,
   written,
-  type MediaEditOutcome,
-  type PlaylistChange,
-  type Refusal,
 } from './mediaEdits';
 import type {PicturePlace} from '@core/schema/media/picturePlace';
 import {withPlace, type MediaProps} from './properties/mediaProps';
 import {
+  MEDIA_IMPORT_FAILED,
   mediaImportFailureNotice,
   requestMediaImport,
 } from './import/mediaImport';
@@ -165,9 +167,7 @@ export class MediaLibrary {
       (cause: unknown) => {
         console.error('Could not read the media list', cause);
         if (following) {
-          this.onProblem(
-            warningNotice('media-view:load', '미디어 불러오기 실패'),
-          );
+          this.onProblem(warningNotice('media-view:load', MEDIA_LOAD_FAILED));
           ready('document');
         }
       },
@@ -197,9 +197,7 @@ export class MediaLibrary {
       .map(file => this.api.media.pathForFile(file))
       .filter(path => path !== '');
     if (paths.length === 0) {
-      this.onProblem(
-        warningNotice('media-view:import', '미디어 가져오기 실패'),
-      );
+      this.onProblem(warningNotice('media-view:import', MEDIA_IMPORT_FAILED));
       return null;
     }
     return this.importSource({kind: 'files', paths}, playlist);

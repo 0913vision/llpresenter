@@ -9,6 +9,9 @@ import {
   warningNotice,
 } from '@renderer/ui/popups/notices';
 
+/** The title of the card of media that could not be brought in. */
+export const MEDIA_IMPORT_FAILED = '미디어 가져오기 실패';
+
 /** The warning for a failed import, or undefined for any other progress. */
 export function mediaImportFailureNotice(
   progress: MediaImportProgress,
@@ -18,7 +21,7 @@ export function mediaImportFailureNotice(
     key: `media-view:copy:${progress.mediaId}`,
     kind: 'warning',
     icon: 'warning',
-    title: '미디어 가져오기 실패',
+    title: MEDIA_IMPORT_FAILED,
     time: noticeTime(),
     meta: [progress.fileName, progress.message],
   };
@@ -48,6 +51,6 @@ export async function requestMediaImport({
     message: 'Media import was refused',
     detail: result.error.message,
   });
-  onProblem(warningNotice('media-view:import', '미디어 가져오기 실패'));
+  onProblem(warningNotice('media-view:import', MEDIA_IMPORT_FAILED));
   return null;
 }

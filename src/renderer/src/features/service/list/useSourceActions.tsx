@@ -30,6 +30,7 @@ import {
 import {useAlive} from '@renderer/ui/useAlive';
 import {useShow} from '@renderer/session/show/showStore';
 import type {ServiceSource} from './serviceSource';
+import {RENAME_FAILED} from '@renderer/session/service/serviceProblem';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 
@@ -46,7 +47,7 @@ type SourceActionsApi = Pick<
 >;
 
 const problemTitles = {
-  rename: '이름 바꾸기 실패',
+  rename: RENAME_FAILED,
   delete: '삭제 실패',
 } as const;
 

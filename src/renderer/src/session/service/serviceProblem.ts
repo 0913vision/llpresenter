@@ -2,6 +2,9 @@ import type {Result} from '@core/common/result';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {failureReasonLines} from '@renderer/platform/problemReasons';
 
+/** The title of the card of a 예배, 템플릿 or row that could not be renamed. */
+export const RENAME_FAILED = '이름 바꾸기 실패';
+
 interface Refusal {
   readonly reason: string;
   readonly message: string;

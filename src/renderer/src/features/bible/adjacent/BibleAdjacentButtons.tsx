@@ -4,7 +4,10 @@ import type {BibleSource} from '@renderer/session/show/bibleSource';
 import {Button} from '@renderer/ui/buttons/Button';
 import {lookupAdjacentPassage} from './lookupAdjacentPassage';
 import {usePassageSwap} from './usePassageSwap';
-import {PASSAGE_UNAVAILABLE} from '@renderer/platform/problemReasons';
+import {
+  PASSAGE_LOAD_FAILED,
+  PASSAGE_UNAVAILABLE,
+} from '@renderer/platform/problemReasons';
 
 /** Extends the preview without changing the selected verse or live output. */
 export function BibleAdjacentButtons({
@@ -27,7 +30,7 @@ export function BibleAdjacentButtons({
         }),
       {
         log: 'Could not add an adjacent Bible verse',
-        problem: '구절 불러오기 실패',
+        problem: PASSAGE_LOAD_FAILED,
       },
     );
     if (result === 'none') setEdge(direction);

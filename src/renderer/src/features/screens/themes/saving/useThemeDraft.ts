@@ -12,6 +12,7 @@ import {
 } from '@core/theme';
 import {INVALID_CHANGE, themeProblems} from '../themeNames';
 import {ThemeDraftHistory, type ThemeStepDirection} from './themeDraftHistory';
+import {THEME_CHANGE_FAILED} from './useThemeWrites';
 
 interface DraftOptions {
   readonly saved: Themes | null;
@@ -135,7 +136,7 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
       })
       .catch((cause: unknown) => {
         console.error(`Could not ${direction} a theme change`, cause);
-        report('테마 변경 실패');
+        report(THEME_CHANGE_FAILED);
       })
       .finally(() => {
         history.setWriting(false);

@@ -12,6 +12,8 @@ export const NOTHING_TO_UNDO = '되돌릴 편집이 없습니다.';
 export const NOTHING_TO_REDO = '다시 실행할 편집이 없습니다.';
 
 /** Why a 그래픽 cannot be shown: its media left the library. */
+/** The title of a passage that could not be read. */
+export const PASSAGE_LOAD_FAILED = '구절 불러오기 실패';
 /** Why a passage can't be read where the window has no connection to the app. */
 export const PASSAGE_UNAVAILABLE = '구절을 불러올 수 없습니다.';
 /** A song item whose song file is gone. */

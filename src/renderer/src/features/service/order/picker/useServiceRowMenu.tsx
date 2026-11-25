@@ -17,6 +17,7 @@ import {useAlive} from '@renderer/ui/useAlive';
 import {useShow} from '@renderer/session/show/showStore';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
+import {RENAME_FAILED} from '@renderer/session/service/serviceProblem';
 
 /**
  * Opens the context menu of a service row of the picker and runs its actions,
@@ -54,7 +55,7 @@ export function useServiceRowMenu(
       })
       .then(done => {
         if (alive.current && !done) {
-          onProblem(warningNotice('service-row:rename', '이름 바꾸기 실패'));
+          onProblem(warningNotice('service-row:rename', RENAME_FAILED));
         }
         return done;
       })

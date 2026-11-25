@@ -12,6 +12,7 @@ import {
 import type {RecentPassage} from '@core/schema/bible/bible';
 import type {TranslationId} from '@core/schema/common/ids';
 import type {BibleSuggestion} from './bibleSuggestion';
+import {PASSAGE_LOAD_FAILED} from '@renderer/platform/problemReasons';
 
 /** The numeric fields of a reference, in the order they are filled. */
 export const NUMBER_PARTS = ['chapter', 'start', 'end'] as const;
@@ -196,7 +197,7 @@ export function fieldReason(
   if (part === 'start' && lookup !== undefined) {
     return lookup.code === 'omitted'
       ? '이 역본에 없는 절'
-      : '구절 불러오기 실패';
+      : PASSAGE_LOAD_FAILED;
   }
   return fields[part] !== '' || blocked === part ? errors[part] : undefined;
 }

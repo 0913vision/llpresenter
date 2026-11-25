@@ -4,6 +4,9 @@ import type {MediaId} from '@core/schema/common/ids';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {ChosenPlaylist} from './mediaEntries';
 
+/** The title of the card of a media list that could not be read. */
+export const MEDIA_LOAD_FAILED = '미디어 불러오기 실패';
+
 // NOTE(0913vision): The preload rejects a failed call or a malformed reply;
 // it is reported like a refusal.
 export function rejected(error: unknown): {

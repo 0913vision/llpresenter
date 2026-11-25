@@ -3,6 +3,7 @@ import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {subscribeMediaDocument} from '@renderer/features/media/subscribeMediaDocument';
+import {MEDIA_LOAD_FAILED} from '@renderer/features/media/mediaEdits';
 
 /** Which tab reads the media, and how it tells that the read failed. */
 const READERS = {
@@ -19,7 +20,7 @@ const READERS = {
   macro: {
     key: 'macro:media',
     log: 'Could not load macro media',
-    title: '미디어 불러오기 실패',
+    title: MEDIA_LOAD_FAILED,
   },
 } as const;
 

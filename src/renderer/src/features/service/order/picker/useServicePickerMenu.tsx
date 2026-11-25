@@ -11,6 +11,7 @@ import {useServiceRowMenu} from './useServiceRowMenu';
 import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {useShow} from '@renderer/session/show/showStore';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
+import {RENAME_FAILED} from '@renderer/session/service/serviceProblem';
 
 const PICKER_WIDTH = 300;
 
@@ -105,7 +106,7 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
               const done = await renameService(api, renaming.id, name);
               if (done) setRenaming(null);
               else {
-                onProblem(warningNotice('service:rename', '이름 바꾸기 실패'));
+                onProblem(warningNotice('service:rename', RENAME_FAILED));
               }
               return done;
             },
