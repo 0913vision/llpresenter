@@ -51,3 +51,36 @@ describe('settings problem subscriptions', () => {
     await store.dispose();
   });
 });
+
+describe('settings problems added later', () => {
+  function problemOf(file: string) {
+    return {
+      file,
+      error: {
+        kind: 'json',
+        file: `/settings/${file}`,
+        field: '',
+        message: 'Broken JSON',
+      },
+    } as const;
+  }
+
+  it('tells each listener of a new problem once, and keeps the feed bounded', async () => {
+    const log = recordingLogger();
+    const store = new SettingsStore({documents: new Map(), problems: [], log});
+    const listener = vi.fn();
+    store.subscribeProblems(listener);
+    store.addProblems([problemOf('media.json'), problemOf('media.json')]);
+    expect(listener).toHaveBeenCalledOnce();
+    store.addProblems(
+      Array.from({length: 30}, (_, index) => problemOf(`f${index}.json`)),
+    );
+    expect(log.messages('warn')).toContain(
+      'too many app-wide settings problems',
+    );
+    const count = listener.mock.calls.length;
+    await store.dispose();
+    store.addProblems([problemOf('late.json')]);
+    expect(listener).toHaveBeenCalledTimes(count);
+  });
+});
