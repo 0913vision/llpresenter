@@ -1,14 +1,16 @@
 import {logFailure} from '@renderer/platform/logFailure';
 import {useEffect, useRef, useState} from 'react';
-import type {
-  SongDocument,
-  Revision,
-} from '@core/schema/services/contentDocuments';
+import type {SongDocument} from '@core/schema/services/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/services/service';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
-import {createServiceId} from '@core/schema/common/ids';
+import {songItemSlides} from '@core/slides';
+import {editItem} from '@renderer/session/service/openService';
+import {
+  slideMaking,
+  songItemOptions,
+} from '@renderer/platform/documents/themes';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useShow} from '@renderer/session/show/showStore';
 import {openInPrep} from '@renderer/session/prepTarget';
@@ -31,7 +33,6 @@ interface SongMenuData {
   readonly item: ServiceItemOf<'song'>;
   readonly document: SongDocument;
   readonly readOnly: boolean;
-  readonly serviceRevision: Revision;
 }
 
 async function readSongMenu(
@@ -57,7 +58,6 @@ async function readSongMenu(
     revision,
     item,
     document,
-    serviceRevision: service.revision,
     readOnly: service.access === 'readOnly',
   };
 }
@@ -136,31 +136,33 @@ export function useServiceSongMenu(
       : !current
         ? '불러오는 중'
         : undefined;
-  const transfer = async (): Promise<void> => {
+  /**
+   * 라이브러리에서 다시 불러오기: the item gets the song as a new item would.
+   * It is an edit of the 예배 순서 like any other, so 실행 취소 runs it back
+   * and the steps before it stay in reach (issues-1125 R-1125-1).
+   */
+  const reloadItem = async (): Promise<void> => {
     if (question === null || api === undefined || writing.current) return;
     const captured = question;
-    const serviceId = captured.target.serviceId;
-    if (serviceId === null) return;
     writing.current = true;
     setBusy(true);
     try {
-      await pendingWritesOf(api).run({
-        write: async () => {
-          const result = await api.content.edit({
-            type: 'service.song.reloadFromLibrary',
-            serviceId: createServiceId(serviceId),
-            itemId: captured.item.id,
-            baseRevision: captured.serviceRevision,
-            songRevision: captured.document.revision,
-          });
-          if (!result.ok) {
-            onProblem(warningNotice('song-transfer', '곡 불러오기 실패'));
-          } else setQuestion(null);
-          return result.ok || result.error.reason === 'write-failed';
-        },
-        refused: false,
-        sent: value => value,
-      });
+      const document = await api.songs.get(captured.item.song);
+      // NOTE(0913vision): The slides are made once, outside the change: the
+      // edit runs its change again on the newest order, and new slide ids
+      // each time would make the step look changed to 실행 취소.
+      const slides =
+        document === null
+          ? null
+          : songItemSlides(document.song, slideMaking(), songItemOptions());
+      const result =
+        slides === null
+          ? null
+          : await editItem(captured.item.id, item =>
+              isItemOfKind(item, 'song') ? {...item, slides} : null,
+            );
+      if (result?.ok === true) setQuestion(null);
+      else onProblem(warningNotice('song-transfer', '곡 불러오기 실패'));
     } finally {
       writing.current = false;
       setBusy(false);
@@ -193,7 +195,7 @@ export function useServiceSongMenu(
               primary: true,
               disabled: busy,
               onSelect: () => {
-                transfer().catch((error: unknown) =>
+                reloadItem().catch((error: unknown) =>
                   console.error('Could not transfer the song item', error),
                 );
               },

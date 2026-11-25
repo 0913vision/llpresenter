@@ -16,10 +16,3 @@ export function slideMakingOf(
       settings?.preferences().show.slideDefaults ?? defaultSlideTransitions,
   };
 }
-
-/** Whether a song added to the 예배 순서 also ends with its title (환경설정). */
-export function closingSongTitleOf(
-  settings: SettingsStore | null | undefined,
-): boolean {
-  return settings?.preferences().show.closingSongTitle ?? true;
-}

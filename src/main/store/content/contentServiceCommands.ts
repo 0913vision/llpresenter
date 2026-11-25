@@ -13,7 +13,6 @@ import {
 } from '@core/schema/services/service';
 import {limitReason} from '@core/common/limitReason';
 import {copiedItems, pickedItems} from './contentEdits';
-import {reloadSongItem} from './songItemCommands';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
 const SCHEMA_VERSION = 1;
@@ -28,8 +27,6 @@ class ServiceContentCommands {
   constructor(private readonly context: ContentCommandContext) {}
 
   readonly handlers: ServiceContentCommandsHandlers = {
-    'service.song.reloadFromLibrary': edit =>
-      reloadSongItem(this.context, edit),
     'service.create': edit => this.createService(edit),
     'service.update': edit =>
       this.updateService(edit.service, edit.baseRevision),

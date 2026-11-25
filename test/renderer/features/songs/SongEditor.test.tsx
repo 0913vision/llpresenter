@@ -91,9 +91,13 @@ it('renames the title slide with the song', async () => {
   act(openNewSong);
   fireEvent.change(title(), {target: {value: '아침 노래'}});
   expect(draft().song.slides[0]?.texts['제목']).toBe('아침 노래');
-  act(() => replaySong('undo'));
+  act(() => {
+    replaySong('undo');
+  });
   expect(draft().song.title).toBe('새 곡');
-  act(() => replaySong('redo'));
+  act(() => {
+    replaySong('redo');
+  });
   expect(draft().song.title).toBe('아침 노래');
 });
 

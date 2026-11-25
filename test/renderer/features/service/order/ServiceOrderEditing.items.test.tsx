@@ -1,4 +1,4 @@
-import {act, fireEvent, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {
@@ -11,6 +11,8 @@ import {
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
 import {useShow} from '@renderer/session/show/showStore';
 import {usePrepTarget} from '@renderer/session/prepTarget';
+import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
+import {isItemOfKind} from '@core/schema/services/service';
 import {
   closeSongDraft,
   replaySong,
@@ -124,11 +126,43 @@ describe('service panel editing', () => {
     expect(useSongDraft.getState().draft?.document?.song.id).toBe(songId);
     expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
     expect(api.content.edit).not.toHaveBeenCalled();
-    act(() => replaySong('undo'));
+    act(() => {
+      replaySong('undo');
+    });
     expect(useSongDraft.getState().draft?.song.slides).toEqual([
       lyricsSlide(1, ''),
     ]);
     act(() => closeSongDraft());
+  });
+
+  it('reloads an item from the library as an order edit that 실행 취소 runs back', async () => {
+    const {api} = setup('prep');
+    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
+    await userEvent.click(
+      await screen.findByRole('menuitem', {
+        name: '라이브러리에서 다시 불러오기',
+      }),
+    );
+    const dialog = await screen.findByRole('alertdialog');
+    await userEvent.click(
+      within(dialog).getByRole('button', {name: '다시 불러오기'}),
+    );
+
+    await waitFor(() => expect(api.content.edit).toHaveBeenCalledOnce());
+    const command = vi.mocked(api.content.edit).mock.calls[0]?.[0];
+    const item =
+      command?.type === 'service.update'
+        ? command.service.order.find(row => row.id === firstId)
+        : undefined;
+    const labels =
+      item !== undefined && isItemOfKind(item, 'song')
+        ? item.slides.map(slide => slide.label ?? '')
+        : [];
+    expect(labels).toEqual(['전주', '', '후주']);
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+
+    expect(await undoTimeline.replay('undo', vi.fn())).toBe(true);
+    await waitFor(() => expect(api.content.edit).toHaveBeenCalledTimes(2));
   });
 
   it('disables both new rows when the song is missing', async () => {

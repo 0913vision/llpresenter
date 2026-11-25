@@ -91,24 +91,6 @@ describe('parseContentEdit', () => {
     [{type: 'song.delete', songId: SONG_ID}],
     [
       {
-        type: 'service.song.reloadFromLibrary',
-        serviceId: SERVICE_ID,
-        itemId: ITEM_ID,
-        baseRevision: 1,
-        songRevision: 2,
-      },
-    ],
-    [
-      {
-        type: 'service.song.reloadFromLibrary',
-        serviceId: SERVICE_ID,
-        itemId: ITEM_ID,
-        baseRevision: 1,
-        songRevision: 2,
-      },
-    ],
-    [
-      {
         type: 'service.create',
         name: '수요 예배',
         date: '2026-11-04T19:30',
@@ -169,16 +151,6 @@ describe('parseContentEdit', () => {
       'a removed arrangement command',
       {type: 'song.arrangement.delete', songId: SONG_ID, name: 'Old'},
       'type',
-    ],
-    [
-      'a transfer without a song revision',
-      {
-        type: 'service.song.reloadFromLibrary',
-        serviceId: SERVICE_ID,
-        itemId: ITEM_ID,
-        baseRevision: 1,
-      },
-      'songRevision',
     ],
     [
       'an import with no items',

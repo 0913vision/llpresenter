@@ -252,7 +252,9 @@ it('puts a background behind the slides it was changed into meanwhile', async ()
   expect(own).toBeNull();
   expect(rest).toEqual([first, first]);
   expect(draft().slides[1]?.texts['가사']).toBe('고친 줄');
-  act(() => replaySong('undo'));
+  act(() => {
+    replaySong('undo');
+  });
   expect(draft().slides[1]?.texts['가사']).toBe('첫 줄\n둘째 줄');
   expect(backgrounds()).toEqual([first, first, first]);
 });
