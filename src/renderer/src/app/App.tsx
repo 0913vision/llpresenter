@@ -13,6 +13,7 @@ import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts'
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
 import {Labels} from '@renderer/features/labels/labels';
 import {usePrepActions} from './usePrepActions';
+import {useWorkspaceTabs} from './useWorkspaceTabs';
 import {useWorkspaceSwitch} from './useWorkspaceSwitch';
 import {
   useCallback,
@@ -154,6 +155,12 @@ function ControlApp({
   };
   const textImport = session.api?.textImport;
   const prepActions = usePrepActions(session);
+  const tabs = useWorkspaceTabs({
+    workspace: shownWorkspace,
+    switchTo: onWorkspace,
+    openSong: prepActions.openSong,
+    newSong: prepActions.newSong,
+  });
   useShortcutSettings(session.api);
   useWindowShortcuts([
     ...workspaceShortcuts({
@@ -221,8 +228,8 @@ function ControlApp({
           focusSearch={focusSearch}
           onSearchFocused={searchFocused}
           sizeClass={sizeClass}
-          workspace={shownWorkspace}
-          onWorkspace={onWorkspace}
+          workspace={tabs.tab}
+          onWorkspace={tabs.onTab}
           onProblem={session.report}
           onOpenPrepSong={prepActions.openSong}
         />

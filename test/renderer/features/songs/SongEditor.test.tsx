@@ -210,9 +210,8 @@ it('changes nothing in a song of a newer version', async () => {
   expect(title().readOnly).toBe(true);
 });
 
-it('goes back with its button', async () => {
+it('has no back button, since the 준비 tab of the toolbar leaves the song', async () => {
   await setup();
   act(() => openSongDraft(editorSong(1)));
-  await userEvent.click(screen.getByRole('button', {name: '‹ 라이브러리'}));
-  expect(back).toHaveBeenCalledOnce();
+  expect(screen.queryByRole('button', {name: /라이브러리/})).toBeNull();
 });

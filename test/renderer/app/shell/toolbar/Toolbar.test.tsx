@@ -129,13 +129,18 @@ describe('Toolbar', () => {
       <Toolbar sizeClass="normal" workspace="show" onWorkspace={onWorkspace} />,
     );
     const tabs = screen.getAllByRole('tab');
-    expect(tabs.map(tab => tab.getAttribute('aria-selected'))).toEqual([
-      'true',
-      'false',
-      'false',
+    expect(
+      tabs.map(tab => [tab.textContent, tab.getAttribute('aria-selected')]),
+    ).toEqual([
+      ['진행', 'true'],
+      ['준비', 'false'],
+      ['테마', 'false'],
+      ['라이브러리', 'false'],
     ]);
     await userEvent.click(screen.getByRole('tab', {name: '준비'}));
     expect(onWorkspace).toHaveBeenCalledWith('prep');
+    await userEvent.click(screen.getByRole('tab', {name: '라이브러리'}));
+    expect(onWorkspace).toHaveBeenCalledWith('library');
   });
 
   it('turns an output on through the live command channel', async () => {

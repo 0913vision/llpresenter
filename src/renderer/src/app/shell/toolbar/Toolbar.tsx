@@ -10,21 +10,22 @@ import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/popups/notices';
 import styles from './Toolbar.module.css';
 
-import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
+import type {WorkspaceTab} from '@renderer/app/useWorkspaceTabs';
 import type {SizeClass} from '@core/schema/app/appConfig';
 
-const workspaceTabs: ReadonlyArray<ToolbarTab<Workspace>> = [
+const workspaceTabs: ReadonlyArray<ToolbarTab<WorkspaceTab>> = [
   {value: 'show', icon: 'slides', label: '진행'},
   {value: 'prep', icon: 'edit', label: '준비'},
   {value: 'screens', icon: 'layers', label: '테마'},
+  {value: 'library', icon: 'song', label: '라이브러리'},
 ];
 
 const INLINE_OUTPUT_LIMIT = 3;
 
 export interface ToolbarProps {
   readonly sizeClass: SizeClass;
-  readonly workspace: Workspace;
-  readonly onWorkspace: (workspace: Workspace) => void;
+  readonly workspace: WorkspaceTab;
+  readonly onWorkspace: (workspace: WorkspaceTab) => void;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrepSong?: ((songId: SongId) => void) | undefined;
   readonly focusSearch?: boolean | undefined;
@@ -81,6 +82,8 @@ export function Toolbar({
   onSearchFocused,
 }: ToolbarProps): JSX.Element {
   const compact = sizeClass === 'narrow';
+  /** 라이브러리 is 준비 with a song open; search there works as in 준비. */
+  const frame = workspace === 'library' ? 'prep' : workspace;
   const barClass = compact ? `${styles.bar} ${styles.barCompact}` : styles.bar;
 
   return (
@@ -97,13 +100,12 @@ export function Toolbar({
       <ToolbarSearch
         focusSearch={focusSearch}
         onSearchFocused={onSearchFocused}
-        key={workspace}
-        addsToOrder={workspace === 'prep'}
+        key={frame}
+        addsToOrder={frame === 'prep'}
         enabled={
-          workspace === 'show' ||
-          (workspace === 'prep' && onOpenPrepSong !== undefined)
+          frame === 'show' || (frame === 'prep' && onOpenPrepSong !== undefined)
         }
-        onOpenPrepSong={workspace === 'prep' ? onOpenPrepSong : undefined}
+        onOpenPrepSong={frame === 'prep' ? onOpenPrepSong : undefined}
         onProblem={onProblem}
       />
       <ThemeMenu

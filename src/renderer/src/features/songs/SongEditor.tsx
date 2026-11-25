@@ -74,11 +74,11 @@ function save(): void {
   );
 }
 
-function SongHeader({
-  onBack,
-}: {
-  readonly onBack: () => void;
-}): JSX.Element | null {
+/**
+ * The head of the song editor: the unsaved mark, the title and the saves.
+ * The toolbar's 준비 tab leaves the song, so there is no back button.
+ */
+function SongHeader(): JSX.Element | null {
   const {draft, library, libraryStatus, pictures, saving, titleFocus} =
     useSongDraft();
   const frame = useRef<HTMLDivElement>(null);
@@ -99,7 +99,6 @@ function SongHeader({
   const usage = songUsage(library, libraryStatus, draft.song.id);
   return (
     <header className={styles.header}>
-      <Button onClick={onBack}>‹ 라이브러리</Button>
       {unsaved ? (
         <Tooltip text="저장하지 않은 변경">
           <span
@@ -220,7 +219,7 @@ export function useSongEditor({
         <SlideEditor
           deck={deck}
           tiles={tiles}
-          header={<SongHeader onBack={onBack} />}
+          header={<SongHeader />}
           extraMenu={() => [
             {
               kind: 'item',

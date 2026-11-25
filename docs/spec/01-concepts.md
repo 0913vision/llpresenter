@@ -331,7 +331,7 @@ The toolbar has the same buttons in the same places in every workspace.
 
 | Position | Button                                                           | Behavior                                                                                              |
 | -------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Left     | 진행, 준비, 테마                                                 | Switch workspaces.                                                                                    |
+| Left     | 진행, 준비, 테마, 라이브러리                                     | Switch workspaces. 라이브러리 is where library songs are edited (see below).                          |
 | Left     | 미디어 (Media)                                                   | Shows or hides one shared bottom 미디어 bin in 진행 and 준비 (04, 05); it does not switch workspaces. |
 | Center   | Search field "곡, 가사, 초성" (song, lyrics, initial consonants) | Searches the 라이브러리 (see 04 and 05).                                                              |
 | Right    | 테마 (shows the live 테마 name)                                  | Opens the 테마 menu. Choosing a 테마 applies it at once (see 12).                                     |
@@ -378,6 +378,15 @@ All three workspaces use the same three-column frame (left, center, right). The
   optional button is hidden by default (proposal; 03, 10; M2 check 1 rows 7 and
   8). The `ClearButton` README needs the same scope and button update.
 - The app always opens in the 진행 workspace (proposal).
+- 라이브러리 (user decision, November 25): the fourth toolbar tab is where
+  library songs are edited, in 준비's song layout (라이브러리 list, song editor,
+  슬라이드 속성). The tab is on while a song is open; its 실행 취소 is the
+  song's own and never reaches the 예배 순서. Choosing 라이브러리 opens the song
+  left open, else the song edited last, else the first library song, else a new
+  song. Choosing 준비 leaves the song as closing it does (asks about unsaved
+  changes) and shows the 예배 순서. The song editor has no back button; the tabs
+  move between them. A separate song window was turned down: it would block
+  running slides during a service.
 
 Source: `Main` decision "작업 공간 세 개", design system README (window sizes
 and layout), `ClearButton` README, `Dialog` README, product log (2026-10-24
