@@ -16,7 +16,7 @@ import type {WindowMode} from '../base/renderers/windowMode';
 import {createSettingsScreenSource} from './monitors/settingsScreens';
 import {createDefaultScreenSource} from './monitors/defaultScreens';
 import {createElectronWakeLock} from './electronWakeLock';
-import {presentTransition} from './presenter/presentedWindow';
+import {presentTransition} from './presenter/presenterPart';
 import {FrameRateTracker, type ScreenFrameRate} from './health/frameRates';
 import {OutputManager, type PreparedScreens} from './manager';
 import {MonitorNumbers} from './monitors/monitorNumbers';

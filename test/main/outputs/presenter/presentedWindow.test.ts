@@ -101,8 +101,10 @@ vi.mock('@main/outputs/window/electronWindow', () => ({
   OUTPUT_BACKGROUND: '#000000',
 }));
 
-const {createPresentedOutputWindow, presentTransition} =
+const {createPresentedOutputWindow} =
   await import('@main/outputs/presenter/presentedWindow');
+const {presentTransition} =
+  await import('@main/outputs/presenter/presenterPart');
 const {PRESENTER_STALL_MS} =
   await import('@main/outputs/presenter/presenterFrames');
 
