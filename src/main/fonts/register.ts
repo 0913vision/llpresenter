@@ -14,8 +14,11 @@ interface FontReader {
   getURL(): string;
 }
 
-function isRenderReader(sender: WebContents, control: FontReader): boolean {
-  if (BrowserWindow.fromWebContents(sender) === null) return false;
+/**
+ * Whether a page is one of the app's own that draws with the fonts: the
+ * output page, or 화면 설정 or 환경설정 of the control page.
+ */
+function isAppRenderPage(sender: WebContents, control: FontReader): boolean {
   try {
     const controlPage = new URL(control.getURL());
     const expected = new URL('output.html', controlPage);
@@ -53,12 +56,20 @@ export function registerFonts(
     changed: value => ipc.push(outputEndpoints.fontsChanged, value),
   });
   const check = ({contents, isMainFrame}: Caller): void => {
-    if (
-      isMainFrame &&
-      (contents === control.webContents ||
-        isRenderReader(contents, control.webContents))
-    ) {
-      return;
+    if (isMainFrame && contents === control.webContents) return;
+    const appPage =
+      isMainFrame && isAppRenderPage(contents, control.webContents);
+    if (appPage && BrowserWindow.fromWebContents(contents) !== null) return;
+    if (appPage) {
+      // NOTE(0913vision): The page of a window that was just closed can still
+      // ask while it goes: the 청중 output window does when its presenter
+      // comes back with the monitor (church Nov 23 and 26). It needs no
+      // answer.
+      log.info(
+        'Dropped a font catalog request of a closed window',
+        contentsForLog(contents),
+      );
+      throw new Error('Font catalog request of a closed window');
     }
     log.warn('Refused an invalid font catalog request', {
       ...contentsForLog(contents),

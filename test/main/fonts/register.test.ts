@@ -107,11 +107,44 @@ it('answers trusted main frames, rejects foreign output pages and frames, and re
     expect(() =>
       ask({sender: foreign, senderFrame: foreign.mainFrame}),
     ).toThrow('Invalid');
-    native.fromWebContents.mockReturnValue(null);
-    expect(() => ask({sender: output, senderFrame: output.mainFrame})).toThrow(
-      'Invalid',
-    );
     expect(native.read).toHaveBeenCalledOnce();
+  } finally {
+    stop();
+  }
+  expect(native.handlers.has(outputEndpoints.fonts.channel)).toBe(false);
+  expect(native.handlers.has(outputEndpoints.fontSnapshot.channel)).toBe(false);
+});
+
+it('drops quietly a request of an output page whose window was just closed', () => {
+  const control = {
+    webContents: {mainFrame: {}, getURL: () => 'file:///app/index.html'},
+  };
+  const log: Logger = {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    flush: async () => undefined,
+  };
+  const stop = registerFonts(control, log);
+  try {
+    const ask = native.handlers.get(outputEndpoints.fonts.channel);
+    if (ask === undefined) throw new Error('Missing fonts handler');
+    const closing = {
+      id: 8,
+      mainFrame: {},
+      isDestroyed: () => false,
+      getURL: () => 'file:///app/output.html?screen=main',
+    };
+    native.fromWebContents.mockReturnValue(null);
+    expect(() =>
+      ask({sender: closing, senderFrame: closing.mainFrame}),
+    ).toThrow('closed window');
+    expect(log.info).toHaveBeenCalledWith(
+      'Dropped a font catalog request of a closed window',
+      {id: 8, url: 'file:///app/output.html?screen=main'},
+    );
+    expect(log.warn).not.toHaveBeenCalled();
+    expect(native.read).not.toHaveBeenCalled();
   } finally {
     stop();
   }
