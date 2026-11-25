@@ -11,6 +11,7 @@ import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import type {Logger} from '../../base/log';
 import {unionDirty} from './rect';
 import {createGpuOutput} from './gpuOutput';
+import {forwardingHandle} from './forwardingHandle';
 import {
   applyNdiSettings,
   createNdiWindow,
@@ -74,7 +75,7 @@ export function createNdiOutput(
   };
   let delegate = create();
   return {
-    previewContents: () => delegate.previewContents?.() ?? null,
+    ...forwardingHandle(() => delegate),
     configure: next => {
       const changed =
         (current.ndi?.hardwareAcceleration ??
@@ -87,27 +88,15 @@ export function createNdiOutput(
         if (active) delegate.showCapture(capture);
       } else delegate.configure(next);
     },
-    prepare: (bounds, kind) => delegate.prepare(bounds, kind),
-    requestFrame: () => delegate.requestFrame(),
-    contentSize: () => delegate.contentSize(),
-    setAlwaysOnTop: value => delegate.setAlwaysOnTop(value),
-    showFullScreen: (bounds, top) => delegate.showFullScreen(bounds, top),
-    showWindowed: (bounds, top) => delegate.showWindowed(bounds, top),
     showCapture: (bounds, top) => {
       active = true;
       capture = bounds;
       delegate.showCapture(bounds, top);
     },
-    prepareForMonitorRemoval: () => delegate.prepareForMonitorRemoval(),
-    bringToFront: () => delegate.bringToFront(),
-    bounds: () => delegate.bounds(),
     hide: () => {
       active = false;
       delegate.hide();
     },
-    reload: () => delegate.reload(),
-    crashRenderer: () => delegate.crashRenderer(),
-    ping: () => delegate.ping(),
     destroy: () => {
       active = false;
       delegate.destroy();
