@@ -3,6 +3,7 @@ import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_RELEASE_DELAY_MS,
   MIN_SEEK_SECONDS,
+  backgroundAtEnd,
   startOffsetSeconds,
 } from '@renderer/rendering/media/backgroundTiming';
 import {
@@ -85,6 +86,36 @@ describe('startOffsetSeconds', () => {
     expect(startOffsetSeconds(media, Number.NaN, STARTED + 5000)).toBe(0);
     const justNow = STARTED + MIN_SEEK_SECONDS * 1000 - 1;
     expect(startOffsetSeconds(media, DURATION, justNow)).toBe(0);
+  });
+});
+
+describe('backgroundAtEnd', () => {
+  const STARTED = 1_000_000;
+
+  it('is at the end once a background that does not loop has played past its 끝', () => {
+    const media = {
+      ...WARM_LIGHT,
+      loop: false,
+      startedAt: STARTED,
+      properties: {
+        in: 2,
+        out: 12,
+        speed: 1,
+        fit: 'fill' as const,
+        volume: 100,
+        audio: false,
+      },
+    };
+    expect(backgroundAtEnd(media, 20, STARTED + 9_999)).toBe(false);
+    expect(backgroundAtEnd(media, 20, STARTED + 10_000)).toBe(true);
+  });
+
+  it('is never at the end for a loop, without a background, or without a length', () => {
+    const media = {...WARM_LIGHT, startedAt: STARTED};
+    expect(backgroundAtEnd(media, 20, STARTED + 60_000)).toBe(false);
+    expect(backgroundAtEnd(null, 20, STARTED + 60_000)).toBe(false);
+    const once = {...media, loop: false};
+    expect(backgroundAtEnd(once, Number.NaN, STARTED + 60_000)).toBe(false);
   });
 });
 
