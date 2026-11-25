@@ -1,7 +1,7 @@
 import type {OutputScreenStatus} from '@core/schema/live/outputStatus';
 import type {Logger} from '../../base/log';
 import type {OutputScreen} from '../screens';
-import type {BitmapSender} from './output';
+import type {BitmapSender} from './bitmapOutput';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import {createGpuSender} from './gpuSender';
 import {forwardingHandle} from './forwardingHandle';

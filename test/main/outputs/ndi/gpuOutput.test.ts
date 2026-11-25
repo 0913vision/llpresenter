@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createGpuOutput} from '@main/outputs/ndi/gpuOutput';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {fullScreenScreen} from '@fixtures/main/outputs/testing';
-import type {BitmapSender} from '@main/outputs/ndi/output';
+import type {BitmapSender} from '@main/outputs/ndi/bitmapOutput';
 
 const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');

@@ -1,12 +1,12 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {fullScreenScreen} from '@fixtures/main/outputs/testing';
+import {createBitmapOutput} from '@main/outputs/ndi/bitmapOutput';
 import {
-  createBitmapOutput,
-  createNdiOutput,
   NDI_SEND_TIMEOUT_MS,
   NDI_STOP_TIMEOUT_MS,
-} from '@main/outputs/ndi/output';
+} from '@main/outputs/ndi/bitmapSenderProcess';
+import {createNdiOutput} from '@main/outputs/ndi/output';
 
 const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
