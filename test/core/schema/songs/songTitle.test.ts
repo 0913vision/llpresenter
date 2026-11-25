@@ -33,6 +33,20 @@ describe('splitSongTitle', () => {
     expect(parts).toEqual({titleSlide: opening, slides: [verse]});
   });
 
+  it('keeps a title at the end that is not the song’s own, and the last slide of a song without an opening title', () => {
+    const verse = lyricsSlide(2, '첫 줄');
+    const other = slideOf(3, 'songTitle', {texts: {제목: '다른 곡'}});
+
+    expect(splitSongTitle([title(1), verse, other], '빛의 길').slides).toEqual([
+      verse,
+      other,
+    ]);
+    expect(splitSongTitle([verse, title(3)], '빛의 길')).toEqual({
+      titleSlide: undefined,
+      slides: [verse, title(3)],
+    });
+  });
+
   it('keeps a title in the middle where it is', () => {
     const middle = slideOf(3, 'songTitle', {texts: {제목: '다른 곡'}});
     const slides = [lyricsSlide(2, '첫 줄'), middle, lyricsSlide(4, '끝 줄')];

@@ -25,6 +25,16 @@ function hasNoText(slide: TitleLike): boolean {
   return Object.values(slide.texts).every(text => text.trim() === '');
 }
 
+function sameTexts(one: TitleLike, other: TitleLike): boolean {
+  const keys = new Set([
+    ...Object.keys(one.texts),
+    ...Object.keys(other.texts),
+  ]);
+  return [...keys].every(
+    key => (one.texts[key]?.trim() ?? '') === (other.texts[key]?.trim() ?? ''),
+  );
+}
+
 function sameText(text: string, title: string): boolean {
   const normal = (value: string) => value.trim().replace(/\s+/gu, ' ');
   return normal(title) !== '' && normal(text) === normal(title);
@@ -60,9 +70,9 @@ export interface SongParts<TSlide extends {readonly label?: string}> {
  * Splits the slides of the song `title` into its title slide and the rest
  * (USER Nov 25, `team/song-title-design.md`): the slide that opens the song
  * with its title is the song's title, without its label, because the 예배
- * 순서 gives the titles their 이름표; a title slide at the very end goes,
- * because the 예배 순서 adds the closing title; every other slide stays where
- * it is.
+ * 순서 gives the titles their 이름표; a last slide that shows that same title
+ * again goes, because the 예배 순서 adds the closing title; every other slide
+ * stays where it is, another title at the end too.
  */
 export function splitSongTitle<
   TSlide extends TitleLike & {readonly label?: string},
@@ -72,10 +82,14 @@ export function splitSongTitle<
   if (found === undefined) return {titleSlide: undefined, slides};
   const {label: _label, ...titleSlide} = found;
   const last = slides.length - 1;
+  const closing = slides[last];
+  const dropsClosing =
+    last > first &&
+    closing !== undefined &&
+    isTitleSlide(closing) &&
+    sameTexts(closing, found);
   const rest = slides.filter(
-    (slide, index) =>
-      index !== first &&
-      !(index === last && last > first && isTitleSlide(slide)),
+    (_slide, index) => index !== first && !(dropsClosing && index === last),
   );
   return {titleSlide, slides: rest};
 }
