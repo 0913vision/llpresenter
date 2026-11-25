@@ -24,6 +24,8 @@ export interface PowerPointBackgrounds {
   /** What each key of a slide stands for. */
   readonly found: ReadonlyMap<string, PowerPointBackground>;
   readonly release: () => void;
+  /** Why PowerPoint drew none: it is not installed, or it does not answer. */
+  readonly failure?: 'unavailable' | 'unresponsive' | undefined;
 }
 
 /** The first slide with each background. */
@@ -96,6 +98,7 @@ export async function exportPowerPointBackgrounds(
     onFound(found);
   };
   const shown: Array<Promise<void>> = [];
+  let failure: PowerPointBackgrounds['failure'];
   const stop = api.powerpoint.subscribeImageProgress(({picture}) => {
     if (picture !== undefined) shown.push(keep(picture.index, picture.path));
   });
@@ -107,13 +110,17 @@ export async function exportPowerPointBackgrounds(
           .slice(start, start + BATCH_SIZE)
           .map(entry => entry.index),
       });
+      if (files !== null && 'failure' in files) {
+        failure = files.failure;
+        break;
+      }
       for (const {index, path} of files ?? []) shown.push(keep(index, path));
     }
     await Promise.all(shown);
   } finally {
     stop();
   }
-  return {found, release};
+  return {found, release, failure};
 }
 
 /** The media files of pictures of an import, adding the new ones. */

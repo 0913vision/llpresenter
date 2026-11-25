@@ -55,6 +55,9 @@ const BUSY: PowerPointImageExportResult = {
   message: POWERPOINT_BUSY,
 };
 const NOTHING: PowerPointImageExportResult = {ok: true, value: null};
+/** Why PowerPoint could not draw: it is not installed, or it does not answer. */
+type PowerPointFailure = 'unavailable' | 'unresponsive';
+
 const UNREADABLE = 'PowerPoint 파일을 읽을 수 없습니다.';
 const NUMBER_DIGITS = 4;
 
@@ -129,20 +132,25 @@ export class PowerPointExports {
     };
     let folder: string | null = null;
     let closed = Promise.resolve();
+    let failure: PowerPointFailure | undefined;
     try {
       folder = await pictures.openFolder();
       const plain = await this.copyPictures(deck, folder, indices);
       for (const [index, path] of plain) onPicture(index, path);
       if (!isStopped()) {
         const rest = indices.filter(index => !files.has(index));
-        ({closed} = await this.drawBackgrounds(deck, folder, {
+        const drawn = await this.drawBackgrounds(deck, folder, {
           indices: rest,
           onPicture,
-        }));
+        });
+        closed = drawn.closed;
+        failure = drawn.failure;
       }
-      return isStopped() || files.size === 0
-        ? null
-        : [...files].map(([index, path]) => ({index, path}));
+      if (isStopped()) return null;
+      if (files.size === 0) {
+        return failure === undefined ? null : {failure};
+      }
+      return [...files].map(([index, path]) => ({index, path}));
     } catch (error) {
       log.warn('could not export PowerPoint backgrounds', error);
       return null;
@@ -288,15 +296,21 @@ export class PowerPointExports {
       indices,
       onPicture,
     }: {readonly indices: readonly number[]; readonly onPicture: OnPicture},
-  ): Promise<{readonly closed: Promise<void>}> {
+  ): Promise<{
+    readonly closed: Promise<void>;
+    readonly failure: PowerPointFailure | undefined;
+  }> {
     const {images, log} = this.options;
-    if (indices.length === 0) return {closed: Promise.resolve()};
+    if (indices.length === 0) {
+      return {closed: Promise.resolve(), failure: undefined};
+    }
     const copy = join(folder, `presentation${extname(deck.path)}`);
     await copyFile(deck.path, copy, fsConstants.COPYFILE_EXCL);
     const decorationSlides = indices.map(
       index => deck.source.slides[index]?.number ?? 0,
     );
     let closed = Promise.resolve();
+    let failure: PowerPointFailure | undefined;
     await new Promise<void>((resolve, reject) => {
       const onDone = (done: number): void => {
         const index = indices[done - 1];
@@ -309,10 +323,13 @@ export class PowerPointExports {
         .run(copy, folder, Object.assign(onDone, {decorationSlides}))
         .then(result => {
           if (result === 'ok') return;
+          if (result === 'unavailable' || result === 'unresponsive') {
+            failure = result;
+          }
           log.warn(`PowerPoint background export: ${result}`);
         });
       closed.then(resolve, reject);
     });
-    return {closed};
+    return {closed, failure};
   }
 }

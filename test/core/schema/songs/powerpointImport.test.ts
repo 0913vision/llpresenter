@@ -80,11 +80,18 @@ describe('the slide background requests', () => {
     expect(parsePowerPointBackgroundsRequest({indices}).ok).toBe(false);
   });
 
-  it('takes a picture file per slide, or null when none could be made', () => {
+  it('takes a picture file per slide, why PowerPoint drew none, or null', () => {
     expect(
       parsePowerPointBackgroundsResult([{index: 0, path: 'C:/bg/1.png'}]).ok,
     ).toBe(true);
     expect(parsePowerPointBackgroundsResult(null).ok).toBe(true);
+    expect(parsePowerPointBackgroundsResult({failure: 'unresponsive'}).ok).toBe(
+      true,
+    );
+    expect(parsePowerPointBackgroundsResult({failure: 'unavailable'}).ok).toBe(
+      true,
+    );
+    expect(parsePowerPointBackgroundsResult({failure: 'busy'}).ok).toBe(false);
     expect(parsePowerPointBackgroundsResult([]).ok).toBe(false);
     expect(parsePowerPointBackgroundsResult([{index: 0, path: ''}]).ok).toBe(
       false,
