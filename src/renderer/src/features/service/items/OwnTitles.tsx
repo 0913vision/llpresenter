@@ -10,8 +10,6 @@ import {
 } from '@renderer/ui/menus/contextMenu';
 import {editorTask} from '@renderer/platform/editorTask';
 import {ELEMENT_DRAG_MIME, ownTitleKey} from './newItems';
-import {classNames} from '@renderer/ui/classNames';
-import {ROW_POINTER_CLASS} from '@renderer/ui/lists/rowPointer';
 import styles from './PrepPalette.module.css';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
@@ -73,7 +71,7 @@ export function OwnTitles({
         <button
           key={section.id}
           type="button"
-          className={classNames(styles.chip, ROW_POINTER_CLASS)}
+          className={styles.chip}
           aria-disabled={disabled}
           draggable={!disabled}
           onDragStart={event => {
@@ -105,7 +103,7 @@ export function OwnTitles({
       ))}
       <button
         type="button"
-        className={classNames(styles.chip, ROW_POINTER_CLASS)}
+        className={styles.chip}
         disabled={!ready || sections.length >= 200}
         onClick={() => {
           setError('');

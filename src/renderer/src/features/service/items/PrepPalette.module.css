@@ -50,6 +50,13 @@
   cursor: grab;
 }
 
+/* NOTE(0913vision): A chip is a control like a button, so the pointer
+   lightens it as it does a button (Button), never darkens it as a row. */
+.chip:not(:disabled, [aria-disabled='true']):is(:hover, :active) {
+  background: var(--bg-control-hover);
+  transition: background-color var(--motion-hover);
+}
+
 .libraryHost:not([hidden]) {
   display: flex;
   flex: 1;

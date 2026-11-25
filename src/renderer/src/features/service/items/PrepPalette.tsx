@@ -51,7 +51,7 @@ export function PrepPalette({
     <button
       type="button"
       key={id}
-      className={classNames(icon ? styles.row : styles.chip, ROW_POINTER_CLASS)}
+      className={icon ? classNames(styles.row, ROW_POINTER_CLASS) : styles.chip}
       title={label}
       disabled={palette.disabled}
       draggable={!palette.disabled}
