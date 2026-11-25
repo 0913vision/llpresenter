@@ -121,68 +121,74 @@ export class MediaStore implements MediaLibrary {
       | MediaListEdit
       | Extract<MediaEdit, {type: 'media.undoDelete' | 'media.redoDelete'}>,
   ): Promise<MediaEditResult> {
-    return this.safely(() => {
-      if (
-        edit.type === 'media.undoDelete' ||
-        edit.type === 'media.redoDelete'
-      ) {
-        const undo = edit.type === 'media.undoDelete';
-        const from = undo ? this.deleteUndo : this.deleteRedo;
-        const to = undo ? this.deleteRedo : this.deleteUndo;
-        const step = from.at(-1);
-        const refusal = this.refusal(undefined);
-        if (refusal !== null) {
-          return Promise.resolve({ok: false, error: refusal});
-        }
-        if (!step) {
-          return Promise.resolve(
-            mediaRefusal('not-found', 'No media deletion to undo'),
-          );
-        }
-        const before = this.document.value;
-        const change = undo
-          ? undoMediaDeletion(before, step)
-          : redoMediaDeletion(before, step);
-        if (!change.ok) return Promise.resolve(change);
-        const revision = this.document.revision;
-        const result = this.commit(change.value, true);
-        if (this.document.revision !== revision) {
-          from.pop();
-          to.push(
-            undo
-              ? step
-              : (captureMediaDeletion(before, deletionEdit(step)) ?? step),
-          );
-        }
-        return result;
-      }
-      const refusal = this.refusal(
-        'baseRevision' in edit ? edit.baseRevision : undefined,
+    return this.safely(() =>
+      edit.type === 'media.undoDelete' || edit.type === 'media.redoDelete'
+        ? this.replayDeletion(edit.type === 'media.undoDelete')
+        : this.applyListEdit(edit),
+    );
+  }
+
+  /**
+   * Brings the latest deletion back (`undo`) or deletes it again, and moves
+   * it to the other history.
+   */
+  private replayDeletion(undo: boolean): Promise<MediaEditResult> {
+    const from = undo ? this.deleteUndo : this.deleteRedo;
+    const to = undo ? this.deleteRedo : this.deleteUndo;
+    const step = from.at(-1);
+    const refusal = this.refusal(undefined);
+    if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
+    if (!step) {
+      return Promise.resolve(
+        mediaRefusal('not-found', 'No media deletion to undo'),
       );
-      if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
-      const change = editMediaList(this.document.value, edit);
-      if (!change.ok) return Promise.resolve(change);
-      const before = this.document.value;
-      const revision = this.document.revision;
-      const deleting =
-        edit.type === 'media.delete' || edit.type === 'media.playlist.delete';
-      const file =
-        edit.type === 'media.delete' ? this.fileOf(edit.mediaId) : null;
-      const result = this.commit(change.value, deleting);
-      if (
-        edit.type === 'media.delete' &&
-        file !== null &&
-        this.document.revision !== revision
-      ) {
-        this.deletedFiles.set(edit.mediaId, file);
-      }
-      if (deleting && this.document.revision !== revision) {
-        const step = captureMediaDeletion(before, edit);
-        if (step) pushUndoStep(this.deleteUndo, step);
-        this.deleteRedo = [];
-      }
-      return result;
-    });
+    }
+    const before = this.document.value;
+    const change = undo
+      ? undoMediaDeletion(before, step)
+      : redoMediaDeletion(before, step);
+    if (!change.ok) return Promise.resolve(change);
+    const revision = this.document.revision;
+    const result = this.commit(change.value, true);
+    if (this.document.revision !== revision) {
+      from.pop();
+      to.push(
+        undo
+          ? step
+          : (captureMediaDeletion(before, deletionEdit(step)) ?? step),
+      );
+    }
+    return result;
+  }
+
+  /**
+   * Applies an edit of the list; a deletion keeps its step for 실행 취소 and
+   * the deleted item's file until quit.
+   */
+  private applyListEdit(edit: MediaListEdit): Promise<MediaEditResult> {
+    const refusal = this.refusal(
+      'baseRevision' in edit ? edit.baseRevision : undefined,
+    );
+    if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
+    const change = editMediaList(this.document.value, edit);
+    if (!change.ok) return Promise.resolve(change);
+    const before = this.document.value;
+    const revision = this.document.revision;
+    const deleting =
+      edit.type === 'media.delete' || edit.type === 'media.playlist.delete';
+    const file =
+      edit.type === 'media.delete' ? this.fileOf(edit.mediaId) : null;
+    const result = this.commit(change.value, deleting);
+    const applied = this.document.revision !== revision;
+    if (edit.type === 'media.delete' && file !== null && applied) {
+      this.deletedFiles.set(edit.mediaId, file);
+    }
+    if (deleting && applied) {
+      const step = captureMediaDeletion(before, edit);
+      if (step) pushUndoStep(this.deleteUndo, step);
+      this.deleteRedo = [];
+    }
+    return result;
   }
 
   /**
