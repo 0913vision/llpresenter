@@ -9,7 +9,7 @@ import {
   openSongDraft,
   requestLeaveSong,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {openDeckAt} from '@renderer/features/slides/deckSelection';
 import {openInPrep, usePrepTarget} from '@renderer/session/prepTarget';
 import {isLibrarySource} from '@renderer/session/show/showLibrary';

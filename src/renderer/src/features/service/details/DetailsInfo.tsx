@@ -6,7 +6,7 @@ import {isItemOfKind, type SlidesItem} from '@core/schema/services/service';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import type {Report} from '@renderer/session/service/serviceEdit';
 import {songUsage} from '@renderer/features/songs/library/songUsage';
-import {useSongDraft} from '@renderer/features/songs/songDraft';
+import {useSongDraft} from '@renderer/features/songs/draft';
 import {Button} from '@renderer/ui/buttons/Button';
 import {
   Properties,

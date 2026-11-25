@@ -11,7 +11,7 @@ import {
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useLabels} from '@renderer/features/labels/labels';
 import {openInPrep} from '@renderer/session/prepTarget';
-import {openImportedSong, requestLeaveSong, useSongDraft} from '../songDraft';
+import {openImportedSong, requestLeaveSong, useSongDraft} from '../draft';
 import {usePreferenceEdits} from '../../preferences/usePreferenceEdits';
 import {TextImportDialog} from './TextImportDialog';
 import {TextImportEncodingDialog} from './TextImportEncodingDialog';

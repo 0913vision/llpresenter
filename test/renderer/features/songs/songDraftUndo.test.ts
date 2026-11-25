@@ -6,7 +6,7 @@ import {
   closeSongDraft,
   openSongDraftWithItem,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {lyricsSlide} from '@fixtures/core/slides';
 

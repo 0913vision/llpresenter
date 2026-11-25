@@ -17,7 +17,7 @@ import {
   closeSongDraft,
   replaySong,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 
 describe('service panel editing', () => {

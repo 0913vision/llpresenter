@@ -30,13 +30,7 @@ import styles from '../slides/SlideEditorHeader.module.css';
 import {SlideInspector} from '../slides/inspector/SlideInspector';
 import {useDeckTiles, type SlideDeck} from '../slides/slideDeck';
 import {songUsage} from './library/songUsage';
-import {
-  ask,
-  editSong,
-  editSongTitle,
-  requestSave,
-  useSongDraft,
-} from './songDraft';
+import {ask, editSong, editSongTitle, requestSave, useSongDraft} from './draft';
 import {isUnsaved, songTitleProblem} from './songDraftModel';
 
 /** The slides of the library song that is open. */

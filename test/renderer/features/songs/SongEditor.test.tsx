@@ -14,7 +14,7 @@ import {
   requestLeaveSong,
   startSongDraftSync,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
 import {useThemes} from '@renderer/platform/documents/themes';

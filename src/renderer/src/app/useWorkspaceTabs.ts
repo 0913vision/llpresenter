@@ -1,9 +1,6 @@
 import {useEffect, useRef} from 'react';
 import type {SongId} from '@core/schema/common/ids';
-import {
-  requestLeaveSong,
-  useSongDraft,
-} from '@renderer/features/songs/songDraft';
+import {requestLeaveSong, useSongDraft} from '@renderer/features/songs/draft';
 import {
   closePrepEditor,
   openInPrep,

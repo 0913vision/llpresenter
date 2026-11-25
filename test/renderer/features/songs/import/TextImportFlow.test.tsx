@@ -19,7 +19,7 @@ import {
   editSongTitle,
   startSongDraftSync,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
 import {useThemes} from '@renderer/platform/documents/themes';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';

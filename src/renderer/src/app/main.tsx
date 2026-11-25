@@ -9,7 +9,7 @@ import {seedSlideSurfaceView} from '@renderer/features/slides/rows/SlideSurfaceV
 import {
   renameDraftLabel,
   startSongDraftSync,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {startMediaSync} from '@renderer/platform/documents/media';
 import {startThemesSync} from '@renderer/platform/documents/themes';
 import {

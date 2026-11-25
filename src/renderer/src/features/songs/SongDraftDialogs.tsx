@@ -21,7 +21,7 @@ import {
   saveSongAs,
   suggestedCopyTitle,
   useSongDraft,
-} from './songDraft';
+} from './draft';
 
 function unusedTitle(title: string, taken: ReadonlySet<string>): string | null {
   let number = 2;

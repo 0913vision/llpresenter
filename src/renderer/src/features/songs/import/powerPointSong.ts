@@ -13,7 +13,7 @@ import {
   replaceImportedPictures,
   requestLeaveSong,
   type ImportPictures,
-} from '../songDraft';
+} from '../draft';
 import {
   exportPowerPointBackgrounds,
   storePowerPointBackgrounds,

@@ -18,7 +18,7 @@ import {
   openSongDraftWithItem,
   requestLeaveSong,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {focusSlides, openDeckAt} from '@renderer/features/slides/deckSelection';
 
 interface SongMenuTarget {

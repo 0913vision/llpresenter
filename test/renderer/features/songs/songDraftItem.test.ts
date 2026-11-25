@@ -7,7 +7,7 @@ import {
   openSongDraftWithItem,
   replaySong,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {isUnsaved} from '@renderer/features/songs/songDraftModel';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 

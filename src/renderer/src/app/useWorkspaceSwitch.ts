@@ -1,6 +1,6 @@
 import {useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
-import {requestLeaveSong} from '@renderer/features/songs/songDraft';
+import {requestLeaveSong} from '@renderer/features/songs/draft';
 import {closePrepEditor, usePrepTarget} from '@renderer/session/prepTarget';
 import {WorkspaceSelections} from '@renderer/session/show/workspaceSelections';
 import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';

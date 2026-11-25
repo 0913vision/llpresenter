@@ -8,7 +8,7 @@ import {
   closeSongDraft,
   openSongDraft,
   useSongDraft,
-} from '@renderer/features/songs/songDraft';
+} from '@renderer/features/songs/draft';
 import {
   closePrepEditor,
   openInPrep,
