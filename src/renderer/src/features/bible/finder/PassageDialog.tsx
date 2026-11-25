@@ -19,6 +19,7 @@ import {KeyCombo} from '@renderer/ui/keys/KeyCap';
 import {layerContainer} from '@renderer/ui/popups/layers';
 import {useModal} from '@renderer/ui/popups/useModal';
 import {BibleReferenceForm} from '../reference/BibleReferenceForm';
+import {recentListTakes} from './passageDialogKeys';
 import {RecentPassages} from './RecentPassages';
 import {useShownTranslation} from './useShownTranslation';
 import styles from './PassageDialog.module.css';
@@ -28,29 +29,6 @@ function hasTypedReference(surface: HTMLElement | null): boolean {
   return Array.from(
     surface?.querySelectorAll<HTMLInputElement>('[data-reference-part]') ?? [],
   ).some(field => field.value !== '');
-}
-
-/**
- * Whether the key belongs to a text field of the dialog's own, such as the
- * 설교 제목: its arrows and Enter edit and move the caret there, and never
- * choose a recent passage.
- */
-function ownFieldTakes(event: KeyboardEvent<HTMLElement>): boolean {
-  return (
-    event.target instanceof HTMLInputElement &&
-    event.target.dataset.referencePart === undefined &&
-    event.key !== 'Escape'
-  );
-}
-
-/** Whether the open book list under the 책 field takes this key. */
-function bookListTakes(event: KeyboardEvent<HTMLElement>): boolean {
-  return (
-    event.target instanceof HTMLInputElement &&
-    event.target.dataset.referencePart === 'book' &&
-    event.target.getAttribute('aria-expanded') === 'true' &&
-    ['ArrowDown', 'ArrowUp', 'Enter', 'Tab'].includes(event.key)
-  );
 }
 
 function consume(event: KeyboardEvent<HTMLElement>): void {
@@ -226,33 +204,28 @@ export function PassageDialog({
     ) {
       return;
     }
-    if (preparation && event.key === 'Escape') {
-      consume(event);
-      close();
-      return;
-    }
-    if (
-      event.target instanceof HTMLTextAreaElement ||
-      bookListTakes(event) ||
-      ownFieldTakes(event)
-    ) {
-      return;
-    }
-    const typed = hasTypedReference(surface.current);
-    const highlighted = highlight >= 0 ? entries[highlight] : undefined;
     if (event.key === 'Escape') {
       consume(event);
-      if (typed) startOver();
+      if (preparation) close();
+      else if (hasTypedReference(surface.current)) startOver();
       else onClose();
-    } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      return;
+    }
+    // NOTE(0913vision): Typing anywhere ends a choice in the recent list.
+    if (highlight >= 0 && event.key.length === 1) setHighlight(-1);
+    if (!recentListTakes(event)) return;
+    const highlighted = highlight >= 0 ? entries[highlight] : undefined;
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       if (entries.length === 0) return;
       consume(event);
       moveHighlight(event.key === 'ArrowDown' ? 1 : -1);
-    } else if (event.key === 'Enter' && !typed && highlighted !== undefined) {
+    } else if (
+      event.key === 'Enter' &&
+      highlighted !== undefined &&
+      !hasTypedReference(surface.current)
+    ) {
       consume(event);
       pickRecent(highlighted);
-    } else if (highlight >= 0 && event.key.length === 1) {
-      setHighlight(-1);
     }
   };
   return createPortal(
