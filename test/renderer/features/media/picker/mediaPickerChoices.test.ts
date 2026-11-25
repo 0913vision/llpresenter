@@ -3,6 +3,8 @@ import {
   choiceLabel,
   isChosenChoice,
   pickerChoices,
+  pickerRowTop,
+  searchName,
 } from '@renderer/features/media/picker/mediaPickerChoices';
 
 function image(id: string, name: string) {
@@ -57,5 +59,29 @@ describe('the rows of the media picker', () => {
     expect(isChosenChoice(null, undefined, explicit)).toBe(true);
     expect(isChosenChoice(undefined, undefined, explicit)).toBe(false);
     expect(isChosenChoice(image('b', '바다'), 'b', specials)).toBe(true);
+  });
+});
+
+describe('searchName', () => {
+  it('compares names without case, outer spaces, or decomposed Hangul', () => {
+    expect(searchName('  Dawn Sky ')).toBe('dawn sky');
+    expect(searchName('각')).toBe(searchName('각'));
+  });
+});
+
+describe('pickerRowTop', () => {
+  const layout = {row: 28, gap: 9, specialCount: 2, groups: [{index: 2}]};
+
+  it('puts the special rows first, then the divider, then each group under its heading', () => {
+    expect(pickerRowTop(0, layout)).toBe(0);
+    expect(pickerRowTop(1, layout)).toBe(28);
+    expect(pickerRowTop(2, layout)).toBe(2 * 28 + 9 + 28);
+    expect(pickerRowTop(3, layout)).toBe(3 * 28 + 9 + 28);
+  });
+
+  it('counts only the rows when no divider is drawn and there are no groups', () => {
+    expect(
+      pickerRowTop(3, {row: 28, gap: 0, specialCount: 0, groups: []}),
+    ).toBe(3 * 28);
   });
 });
