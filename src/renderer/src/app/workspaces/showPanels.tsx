@@ -2,6 +2,11 @@ import {useState, type ReactNode} from 'react';
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import type {SongId} from '@core/schema/common/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {SearchResultsPanel} from '@renderer/app/shell/toolbar/SearchResultsPanel';
+import {
+  useShownSearch,
+  type ShownSearch,
+} from '@renderer/app/shell/toolbar/searchResults';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
 import {PreviewPanel} from '@renderer/features/presentation/preview/PreviewPanel';
 import {
@@ -61,6 +66,7 @@ function showPanelParts({
   bibleSelection,
   onOpenPrep,
   quickDocument,
+  shownSearch,
 }: {
   readonly title: string;
   readonly sizeClass: SizeClass;
@@ -70,6 +76,7 @@ function showPanelParts({
   readonly onOpenPrep:
     ((itemId: string, position?: number) => void) | undefined;
   readonly quickDocument: NamedDocument<'quick'> | null;
+  readonly shownSearch: ShownSearch | null;
 }): PanelParts {
   switch (title) {
     case '빠른 실행':
@@ -101,6 +108,16 @@ function showPanelParts({
     case '지우기':
       return {bare: <ClearRow compact={sizeClass === 'narrow'} />};
     case '슬라이드':
+      if (shownSearch !== null) {
+        return {
+          embedded: (
+            <SearchResultsPanel
+              shown={shownSearch}
+              onProblem={onProblem ?? logPanelProblem}
+            />
+          ),
+        };
+      }
       if (bibleOpen) {
         return {
           embedded: (
@@ -143,6 +160,7 @@ export function useShowPanels({
   const quickDocument = useSettingsDocument('quick', '빠른 실행', onProblem);
   const shownItemId = useShownItemId();
   const bibleOpen = useShow(view => active && isBibleSource(view, shownItemId));
+  const shownSearch = useShownSearch('show');
   return {
     columns: SHOW_COLUMNS,
     partsOf: title =>
@@ -163,6 +181,7 @@ export function useShowPanels({
             bibleSelection,
             onOpenPrep,
             quickDocument,
+            shownSearch,
           }),
   };
 }

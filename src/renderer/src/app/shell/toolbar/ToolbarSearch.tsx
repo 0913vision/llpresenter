@@ -21,6 +21,8 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import {TruncatedText} from '@renderer/ui/text/TruncatedText';
 import {useToolbarSearch} from './useToolbarSearch';
 import styles from './ToolbarSearch.module.css';
+import {showSearchResults} from './searchResults';
+import type {WorkspaceTab} from '@renderer/app/useWorkspaceTabs';
 import {useOrderAddReason} from '@renderer/session/service/orderReasons';
 import {
   insertLibrarySong,
@@ -126,9 +128,13 @@ function ResultRow({
   );
 }
 
-/** A toolbar search field and its bounded list; choosing only opens a source. */
+/**
+ * A toolbar search field and its bounded list; choosing only opens a source.
+ * Enter with no result chosen shows all results in the tab's center column.
+ */
 export function ToolbarSearch({
   enabled,
+  tab = 'show',
   addsToOrder,
   onProblem = logProblem,
   onOpenPrepSong,
@@ -136,6 +142,8 @@ export function ToolbarSearch({
   onSearchFocused,
 }: {
   readonly enabled: boolean;
+  /** The tab whose center column shows the full results. */
+  readonly tab?: WorkspaceTab | undefined;
   /** 준비 adds a result to the 예배 순서; 진행 only opens it. */
   readonly addsToOrder: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
@@ -198,7 +206,28 @@ export function ToolbarSearch({
   ]);
   const keys = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (isComposing(event)) return;
+    const first = search.matches[0];
+    const altOnly =
+      event.altKey && !event.ctrlKey && !event.shiftKey && !event.metaKey;
+    if (event.code === 'Enter' && altOnly && expanded && first) {
+      event.preventDefault();
+      choose(first);
+      return;
+    }
     if (hasModifier(event)) return;
+    if (event.code === 'Enter' && expanded && !selected) {
+      event.preventDefault();
+      setOpen(false);
+      showSearchResults({
+        query: search.query.trim(),
+        tab,
+        open: match => {
+          choose(match);
+        },
+        addsToOrder,
+      });
+      return;
+    }
     if (search.matches.length === 0) return;
     if (isResultKey(event.code)) {
       event.preventDefault();
@@ -284,7 +313,8 @@ export function ToolbarSearch({
               </div>
             ) : null}
             <div className={styles.footer}>
-              <span>Enter 키로 열기</span>
+              <span>Enter 검색 결과</span>
+              <span>Alt Enter 첫 곡 열기</span>
               {addsToOrder ? (
                 <span
                   {...addTooltip.targetProps}

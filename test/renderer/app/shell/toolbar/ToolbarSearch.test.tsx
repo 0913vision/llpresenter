@@ -5,8 +5,10 @@ import {
   cleanup,
   fireEvent,
   render,
+  renderHook,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -20,10 +22,17 @@ import {
 } from 'vitest';
 import {emptyLiveState} from '@core/schema/live/live';
 import {createSongId} from '@core/schema/common/ids';
-import type {
-  LibrarySearchMatch,
-  LibrarySearchResult,
+import {
+  LIBRARY_SEARCH_LIMITS,
+  type LibrarySearchMatch,
+  type LibrarySearchResult,
 } from '@core/schema/songs/librarySearch';
+import {SearchResultsPanel} from '@renderer/app/shell/toolbar/SearchResultsPanel';
+import {
+  closeSearchResults,
+  showSearchResults,
+  useShownSearch,
+} from '@renderer/app/shell/toolbar/searchResults';
 import type {ShowLibrarySong} from '@core/schema/songs/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
@@ -185,7 +194,7 @@ it.each(['section', 'end'])(
     const field = screen.getByRole('combobox', {name: '검색'});
     await userEvent.type(field, '노래');
     await screen.findByRole('option', {name: new RegExp(second.song.title)});
-    expect(screen.getByText('Enter 키로 열기')).toBeDefined();
+    expect(screen.getByText('Enter 검색 결과')).toBeDefined();
     expect(screen.getByText('Ctrl Enter 예배 순서에 추가')).toBeDefined();
     await userEvent.keyboard('{ArrowDown}');
     fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
@@ -245,7 +254,7 @@ it('only opens a result in 진행, where the 예배 순서 does not change', asy
   const field = screen.getByRole('combobox', {name: '검색'});
   await userEvent.type(field, '노래');
   await screen.findByRole('option', {name: new RegExp(second.song.title)});
-  expect(screen.getByText('Enter 키로 열기')).toBeDefined();
+  expect(screen.getByText('Enter 검색 결과')).toBeDefined();
   expect(screen.queryByText(/예배 순서에 추가/u)).toBe(null);
   await userEvent.keyboard('{ArrowDown}');
   fireEvent.keyDown(field, {key: 'Enter', code: 'Enter', ctrlKey: true});
@@ -643,7 +652,11 @@ it('cannot choose a stale match while a changed song is being searched', async (
   fireEvent.keyDown(field, {key: 'Enter', code: 'Enter'});
   expect(showSong).not.toHaveBeenCalled();
   await act(async () => finish?.({query: '새벽', matches: matches.slice(1)}));
-  expect(screen.getByRole('option', {name: /아침길/})).toBeDefined();
+  // NOTE(0913vision): Enter with no result chosen shows the full results.
+  expect(renderHook(() => useShownSearch('show')).result.current?.query).toBe(
+    '새벽',
+  );
+  act(() => closeSearchResults());
 });
 
 it('does not reuse an old result when the query returns before a fresh reply', async () => {
@@ -679,4 +692,74 @@ it('does not reuse an old result when the query returns before a fresh reply', a
   await act(async () => finishFirst?.({query: '다른', matches}));
   expect(screen.queryByRole('option', {name: /새벽빛/})).toBeNull();
   expect(screen.getByRole('option', {name: /아침길/})).toBeDefined();
+});
+
+describe('Enter with no result chosen', () => {
+  afterEach(() => {
+    act(() => closeSearchResults());
+  });
+
+  it('shows all results in the center column, each with the line it was found by, and opens one', async () => {
+    const {mount, search} = setup();
+    mount();
+    await userEvent.type(screen.getByRole('combobox', {name: '검색'}), '창작');
+    await screen.findByRole('option', {name: /아침길/});
+
+    await userEvent.keyboard('{Enter}');
+
+    const shown = renderHook(() => useShownSearch('show')).result.current;
+    expect(shown?.query).toBe('창작');
+    if (shown === null) throw new Error('No results shown');
+    render(<SearchResultsPanel shown={shown} onProblem={vi.fn()} />);
+    const results = await screen.findByRole('listbox', {name: '검색 결과'});
+    await waitFor(() =>
+      expect(within(results).getAllByRole('option')).toHaveLength(2),
+    );
+    expect(search).toHaveBeenLastCalledWith({
+      query: '창작',
+      limit: LIBRARY_SEARCH_LIMITS.max,
+    });
+    expect(within(results).getByText('창작한 후렴 줄')).toBeTruthy();
+
+    results.focus();
+    await userEvent.keyboard('{Enter}');
+
+    await waitFor(() =>
+      expect(useShow.getState().openItemId).toBe(librarySourceId(songId)),
+    );
+    expect(renderHook(() => useShownSearch('show')).result.current).toBeNull();
+  });
+
+  it('opens the first result at once with Alt Enter', async () => {
+    const {mount, showSong} = setup();
+    mount();
+    await userEvent.type(screen.getByRole('combobox', {name: '검색'}), '새벽');
+    await screen.findByRole('option', {name: /새벽빛/});
+
+    await userEvent.keyboard('{Alt>}{Enter}{/Alt}');
+
+    await waitFor(() => expect(showSong).toHaveBeenCalledWith({songId}));
+    expect(renderHook(() => useShownSearch('show')).result.current).toBeNull();
+  });
+
+  it('closes the results with Escape', async () => {
+    setup();
+    act(() =>
+      showSearchResults({
+        query: '새벽',
+        tab: 'show',
+        open: vi.fn(),
+        addsToOrder: false,
+      }),
+    );
+    const shown = renderHook(() => useShownSearch('show')).result.current;
+    if (shown === null) throw new Error('No results shown');
+    render(<SearchResultsPanel shown={shown} onProblem={vi.fn()} />);
+    const results = await screen.findByRole('listbox', {name: '검색 결과'});
+    results.focus();
+
+    await userEvent.keyboard('{Escape}');
+
+    expect(renderHook(() => useShownSearch('show')).result.current).toBeNull();
+  });
 });

@@ -1169,6 +1169,17 @@ this:
   isn't added to the 예배 순서. Clicking its 슬라이드 outputs them.
 - In 준비, choosing a result selects the song in the 라이브러리 and opens the
   song editor (see 05).
+- Keys in the field (user decision, November 25: "기본적으로 검색이니까 엔터치면
+  검색이 되어야하고"): the arrows choose a result in the list and Enter opens
+  it; Enter with no result chosen shows all results (up to 200) in the 검색 결과
+  panel, which takes the center column of the tab until closed, as the 성경
+  panel does in 진행; Alt Enter opens the first result at once; Ctrl Enter adds
+  the chosen result to the 예배 순서 in 준비. The list's footer says "Enter 검색
+  결과" and "Alt Enter 첫 곡 열기".
+- The 검색 결과 panel lists each song with the lyric line it was found by
+  ("제목" for a title match) and its slide count. The arrows choose, Enter or a
+  click opens the song as the field would, Ctrl Enter adds it to the 예배 순서
+  where the field does, and Escape or × closes the panel.
 
 ## Narrow windows (width 1280 to 1599)
 

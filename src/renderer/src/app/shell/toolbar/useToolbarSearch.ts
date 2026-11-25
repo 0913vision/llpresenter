@@ -10,7 +10,8 @@ import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
 /** The most matches the toolbar search shows at once. */
 export const TOOLBAR_SEARCH_LIMIT = 20;
 
-interface SearchReply {
+/** A search's answer: its query, the matches, and whether it failed or runs. */
+export interface SearchReply {
   readonly query: string;
   readonly matches: readonly LibrarySearchMatch[];
   readonly failed: boolean;
@@ -33,14 +34,19 @@ function problem(title: string, name?: string): Notice {
 // Windows Korean IME keeps each syllable in a composition, and the last one
 // stays open while the operator pauses, so waiting for confirmation would show
 // no list for a Korean query.
-/** Searches for the field's query, again whenever a song changes. */
-function useSearchReply({
+/**
+ * Searches the library for a query, again whenever a song changes: the
+ * toolbar's list asks for TOOLBAR_SEARCH_LIMIT matches, the 검색 결과 for all.
+ */
+export function useSearchReply({
   enabled,
   query,
+  limit,
   onProblem,
 }: {
   readonly enabled: boolean;
   readonly query: string;
+  readonly limit: number;
   readonly onProblem: (notice: Notice) => void;
 }): {reply: SearchReply; invalidate: () => void} {
   const [reply, setReply] = useState(noReply);
@@ -56,14 +62,11 @@ function useSearchReply({
       const request = ++version;
       const isCurrent = (): boolean => active && request === version;
       try {
-        const found = await api.library.search({
-          query: term,
-          limit: TOOLBAR_SEARCH_LIMIT,
-        });
+        const found = await api.library.search({query: term, limit});
         if (!isCurrent() || found.query !== term) return;
         setReply({
           query,
-          matches: found.matches.slice(0, TOOLBAR_SEARCH_LIMIT),
+          matches: found.matches.slice(0, limit),
           failed: false,
           loading: false,
         });
@@ -88,7 +91,7 @@ function useSearchReply({
       version++;
       stop();
     };
-  }, [enabled, query]);
+  }, [enabled, query, limit]);
   return {reply, invalidate: () => setReply(noReply)};
 }
 
@@ -167,7 +170,12 @@ export function useToolbarSearch(
   onOpenPrepSong?: (songId: SongId) => void,
 ) {
   const [query, setQuery] = useState('');
-  const {reply, invalidate} = useSearchReply({enabled, query, onProblem});
+  const {reply, invalidate} = useSearchReply({
+    enabled,
+    query,
+    limit: TOOLBAR_SEARCH_LIMIT,
+    onProblem,
+  });
   const {choose: openSource, supersede} = useResultChooser(enabled, onProblem);
   const choose = async (match: LibrarySearchMatch): Promise<void> => {
     if (!enabled) return;

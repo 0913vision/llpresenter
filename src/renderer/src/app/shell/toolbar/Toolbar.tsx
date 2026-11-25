@@ -101,6 +101,7 @@ export function Toolbar({
         focusSearch={focusSearch}
         onSearchFocused={onSearchFocused}
         key={frame}
+        tab={workspace}
         addsToOrder={frame === 'prep'}
         enabled={
           frame === 'show' || (frame === 'prep' && onOpenPrepSong !== undefined)

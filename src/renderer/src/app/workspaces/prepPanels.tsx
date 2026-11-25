@@ -31,6 +31,8 @@ import {
 } from '@renderer/session/show/showLibrary';
 import {serviceItem} from '@renderer/session/service/openService';
 import {LIBRARY_TAB_ONLY} from '@renderer/platform/problemReasons';
+import {SearchResultsPanel} from '@renderer/app/shell/toolbar/SearchResultsPanel';
+import {useShownSearch} from '@renderer/app/shell/toolbar/searchResults';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {
   logPanelProblem,
@@ -190,6 +192,9 @@ export function usePrepPanels({
   });
   const song = useSongEditor({report, onBack: back, ui});
   const editor = target === null ? null : target.kind === 'item' ? item : song;
+  const shownSearch = useShownSearch(
+    target?.kind === 'song' ? 'library' : 'prep',
+  );
   useReturnFocus(editor === null ? null : target);
   const selectedSong = useShow(view =>
     isLibrarySource(view, selectedItem) ? view.librarySong.songId : null,
@@ -201,8 +206,21 @@ export function usePrepPanels({
       : parsed.ok
         ? {kind: 'item', itemId: parsed.value}
         : null;
+  const editing = editor !== null && target !== null;
+  const columns = !editing
+    ? COLUMNS
+    : target.kind === 'item'
+      ? ITEM_COLUMNS
+      : SONG_COLUMNS;
   const partsOf = (title: string): PanelParts => {
     if (prep === undefined) return {};
+    // NOTE(0913vision): A toolbar search's results take the center column
+    // until closed, as the 성경 panel does in 진행.
+    if (shownSearch !== null && title === columns[1][0]) {
+      return {
+        embedded: <SearchResultsPanel shown={shownSearch} onProblem={report} />,
+      };
+    }
     switch (title) {
       case SERVICE_ORDER:
         return serviceOrderParts({
@@ -243,15 +261,10 @@ export function usePrepPanels({
         return {};
     }
   };
-  const editing = editor !== null && target !== null;
   return {
     shownItem: editing && target.kind === 'item' ? target.itemId : selectedItem,
     editing,
-    columns: !editing
-      ? COLUMNS
-      : target.kind === 'item'
-        ? ITEM_COLUMNS
-        : SONG_COLUMNS,
+    columns,
     partsOf,
   };
 }
