@@ -12,12 +12,7 @@ import type {LaunchIdle} from '../store/launchIdle';
 import type {UiZoomRegistration} from '../store/settings/uiZoom';
 import {createControlWindow} from '../windows/control';
 import {registerControlClose, type ControlClose} from '../windows/controlClose';
-import {ControlHeartbeat} from '../windows/controlHeartbeat';
-import {
-  LATE_DISPLAY_CHANGE_MS,
-  stallNeedsRecovery,
-  watchDisplayChanges,
-} from '../windows/displayStall';
+import {watchControlStall} from '../windows/controlStallWatch';
 import {announceReloadAfterCrash} from '../windows/reloadNotice';
 import {showStartupError} from '../windows/startupError';
 import type {LaunchProgress} from './launchProgress';
@@ -25,7 +20,6 @@ import type {LaunchProgress} from './launchProgress';
 /** The load error of a page that another load replaced. */
 const ABORTED = -3;
 const PAGE_STEPS = 3;
-const ONE_PIXEL = {x: 0, y: 0, width: 1, height: 1};
 
 /** Where a control window opens. */
 export interface ControlPlacement {
@@ -120,12 +114,12 @@ export class ControlOwner {
   }
 
   private take(win: BrowserWindow): void {
-    const {problems, log} = this.options;
+    const {problems, log, windowMode, onHang} = this.options;
     this.closing?.dispose();
     this.stopReloadNotice();
     this.win = win;
     this.watchLaunch(win);
-    this.watchHeartbeat(win);
+    watchControlStall(win, {windowMode, onHang, log});
     win.once('closed', () => {
       if (this.isCurrent(win)) app.quit();
     });
@@ -167,65 +161,6 @@ export class ControlOwner {
       launch.end();
       if (windowMode === 'normal') showStartupError();
       app.quit();
-    });
-  }
-
-  private watchHeartbeat(win: BrowserWindow): void {
-    const {windowMode, onHang, log} = this.options;
-    let scriptAnswered = false;
-    const displays = watchDisplayChanges();
-    let settling: ReturnType<typeof setTimeout> | undefined;
-    /**
-     * A window that draws nothing while its script answers waits a moment for
-     * a display change that Windows reports late, then starts its graphics
-     * again only when the displays did not just change.
-     */
-    const stalled = (answered: boolean): void => {
-      if (!answered) {
-        onHang(false);
-        return;
-      }
-      settling = setTimeout(() => {
-        settling = undefined;
-        if (win.isDestroyed()) return;
-        const lastDisplayChange = displays.last();
-        if (
-          stallNeedsRecovery({
-            scriptAnswered: true,
-            lastDisplayChange,
-            now: Date.now(),
-          })
-        ) {
-          onHang(true);
-          return;
-        }
-        log.warn('control window drew nothing while the displays changed', {
-          sinceChangeMs: Date.now() - (lastDisplayChange ?? 0),
-        });
-        heartbeat.stop();
-        heartbeat.start();
-      }, LATE_DISPLAY_CHANGE_MS);
-    };
-    const heartbeat = new ControlHeartbeat(
-      () => {
-        scriptAnswered = false;
-        const answer = win.webContents.executeJavaScript('0').then(() => {
-          scriptAnswered = true;
-        });
-        const draws =
-          windowMode === 'offscreen' || (win.isVisible() && !win.isMinimized());
-        return draws
-          ? Promise.all([answer, win.webContents.capturePage(ONE_PIXEL)])
-          : answer;
-      },
-      () => stalled(scriptAnswered),
-    );
-    win.webContents.on('did-start-loading', () => heartbeat.stop());
-    win.webContents.on('did-finish-load', () => heartbeat.start());
-    win.once('closed', () => {
-      heartbeat.stop();
-      if (settling !== undefined) clearTimeout(settling);
-      displays.stop();
     });
   }
 }
