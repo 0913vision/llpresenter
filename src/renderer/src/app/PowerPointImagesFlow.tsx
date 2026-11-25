@@ -9,6 +9,10 @@ import {insertItems} from '@renderer/session/service/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {useShow} from '@renderer/session/show/showStore';
 
+const STORE_FAILED = '그림을 미디어에 저장하지 못했습니다.';
+const SERVICE_CHANGED = '가져오는 동안 열린 예배가 바뀌었습니다.';
+const INSERT_FAILED = '예배 순서에 넣지 못했습니다.';
+
 /** One item with a slide for each picture. */
 function imagesItem(fileName: string, media: readonly MediaId[]): ServiceItem {
   const making = slideMaking();
@@ -19,15 +23,20 @@ function imagesItem(fileName: string, media: readonly MediaId[]): ServiceItem {
   };
 }
 
-function insertAfter(
+/**
+ * Puts the item after the open one, or at the end when there is none or the
+ * order no longer has it.
+ */
+async function insertAfter(
   item: ServiceItem,
   selected: string | null,
 ): Promise<OpenServiceResult> {
   const row = useShow.getState().rows.find(entry => entry.id === selected);
-  return insertItems(
-    [item],
-    row === undefined ? null : createServiceItemId(row.id),
-  );
+  if (row === undefined) return insertItems([item], null);
+  const placed = await insertItems([item], createServiceItemId(row.id));
+  return !placed.ok && placed.error.reason === 'not-found'
+    ? insertItems([item], null)
+    : placed;
 }
 
 /** Imports a complete deck before modifying the service. */
@@ -51,7 +60,10 @@ export function PowerPointImagesFlow({
       const notify = (
         title: string,
         kind: Notice['kind'],
-        cancel = false,
+        {
+          cancel = false,
+          meta,
+        }: {cancel?: boolean; meta?: string | undefined} = {},
       ): void =>
         onProblem({
           key: 'powerpoint:images',
@@ -59,6 +71,7 @@ export function PowerPointImagesFlow({
           icon: kind === 'warning' ? 'warning' : 'fileppt',
           title,
           time: noticeTime(),
+          ...(meta === undefined ? {} : {meta: [meta]}),
           ...(cancel ? {persistent: true} : {}),
           ...(cancel
             ? {
@@ -85,10 +98,13 @@ export function PowerPointImagesFlow({
           notify(
             `PowerPoint 이미지로 가져오는 중 (${done} / ${total})`,
             'info',
-            true,
+            {cancel: true},
           ),
       );
-      notify('PowerPoint 이미지로 가져오는 중', 'info', true);
+      notify('PowerPoint 이미지로 가져오는 중', 'info', {cancel: true});
+      // NOTE(0913vision): The step that runs, so a failure says where it
+      // stopped (church Nov 25: the card named no cause).
+      let step: string | undefined;
       void (async () => {
         const result = await api.powerpoint.images();
         unsubscribe();
@@ -106,20 +122,24 @@ export function PowerPointImagesFlow({
         try {
           if (stopped()) return;
           notify('PowerPoint 이미지를 추가하는 중', 'info');
+          step = STORE_FAILED;
           const stored = await api.powerpoint.storeImages({
             paths: slides.map(slide => slide.path),
           });
           if (!stored.ok) throw new Error(stored.message);
           const media = stored.value;
           if (stopped()) return;
+          step = SERVICE_CHANGED;
           if (useShow.getState().serviceId !== serviceId) {
             throw new Error('Service changed');
           }
+          step = INSERT_FAILED;
           const item = imagesItem(fileName, media);
           const saved = await insertAfter(item, selected);
           if (!saved.ok && saved.error.reason !== 'write-failed') {
-            throw new Error(saved.error.message);
+            throw new Error(`${saved.error.reason}: ${saved.error.message}`);
           }
+          step = undefined;
           notify(`PowerPoint 이미지 ${media.length}개를 가져왔습니다.`, 'info');
         } finally {
           await Promise.all(
@@ -127,9 +147,14 @@ export function PowerPointImagesFlow({
           );
         }
       })()
-        .catch(() => {
+        .catch((error: unknown) => {
+          api.log.write({
+            level: 'warn',
+            message: 'PowerPoint images import failed',
+            detail: `${step ?? 'after the import'}: ${String(error)}`,
+          });
           if (!stopped()) {
-            notify('PowerPoint 이미지 가져오기 실패', 'warning');
+            notify('PowerPoint 이미지 가져오기 실패', 'warning', {meta: step});
           }
         })
         .finally(() => {
