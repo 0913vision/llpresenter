@@ -60,6 +60,47 @@ function slide(content: string, extra = '', attrs = '') {
 }
 
 describe('PowerPoint XML reader', () => {
+  it('takes a slide as a picture only when its one picture covers it as it is, or its background is one', () => {
+    const picture = (frame: string, extra = '') =>
+      `<p:pic><p:blipFill><a:blip r:embed="pic"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr><a:xfrm${extra}>${frame}</a:xfrm></p:spPr></p:pic>`;
+    const whole = '<a:off x="0" y="0"/><a:ext cx="1600" cy="900"/>';
+    const half = '<a:off x="0" y="0"/><a:ext cx="800" cy="900"/>';
+    const slides = [
+      picture(whole),
+      picture(half),
+      picture(whole, ' flipH="1"'),
+      picture(whole) + picture(whole),
+      '',
+    ];
+    const ids = slides.map((_, n) => `<p:sldId r:id="r${n + 1}"/>`).join('');
+    const parts: Record<string, string> = {
+      'ppt/presentation.xml': `<p:presentation ${ns}><p:sldIdLst>${ids}</p:sldIdLst><p:sldSz cx="1600" cy="900"/></p:presentation>`,
+      'ppt/_rels/presentation.xml.rels': rels(
+        slides
+          .map((_, n) => rel(`r${n + 1}`, `slides/slide${n + 1}.xml`, 'slide'))
+          .join(''),
+      ),
+    };
+    slides.forEach((content, n) => {
+      const extra =
+        content === ''
+          ? '<p:bg><p:bgPr><a:blipFill><a:blip r:embed="pic"/><a:stretch><a:fillRect/></a:stretch></a:blipFill></p:bgPr></p:bg>'
+          : '';
+      parts[`ppt/slides/slide${n + 1}.xml`] = slide(content, extra);
+      parts[`ppt/slides/_rels/slide${n + 1}.xml.rels`] = rels(
+        rel('pic', '../media/p.png'),
+      );
+    });
+    const deck = readPowerPoint(archive(parts));
+    expect(deck.slides.map(s => s.picture !== undefined)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      true,
+    ]);
+  });
+
   it('reads titles, grouped body, breaks, blanks, hidden slides and inherited backgrounds', () => {
     const title = shape('Title') + shape('Subtitle');
     const body = `<p:grpSp><p:sp><p:nvSpPr><p:nvPr><p:ph idx="1"/></p:nvPr></p:nvSpPr><p:txBody><a:p><a:r><a:t>First &amp; line</a:t></a:r><a:br/><a:r><a:t>Second  </a:t></a:r></a:p></p:txBody></p:sp></p:grpSp>`;
