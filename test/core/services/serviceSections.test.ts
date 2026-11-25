@@ -1,5 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {sectionBoundaryIndex} from '@core/services/serviceSections';
+import {
+  sectionBoundaryIndex,
+  sectionDropIndex,
+} from '@core/services/serviceSections';
 
 function isHeader(row: string): boolean {
   return row.startsWith('#');
@@ -22,5 +25,27 @@ describe('sectionBoundaryIndex', () => {
     const rows = ['#1부', '찬양'];
     expect(sectionBoundaryIndex(rows, -1, isHeader)).toBe(-1);
     expect(sectionBoundaryIndex(rows, 2, isHeader)).toBe(2);
+  });
+});
+
+describe('sectionDropIndex', () => {
+  const rows = ['#1부', '찬양', '기도', '#2부', '말씀'];
+
+  it('lands a moved section at the start of the section a drop falls in', () => {
+    expect(sectionDropIndex(rows, {requested: 2, after: false}, isHeader)).toBe(
+      0,
+    );
+    expect(sectionDropIndex(rows, {requested: 4, after: false}, isHeader)).toBe(
+      3,
+    );
+  });
+
+  it('never snaps a drop on the lower half of a row back above it', () => {
+    expect(sectionDropIndex(rows, {requested: 2, after: true}, isHeader)).toBe(
+      3,
+    );
+    expect(sectionDropIndex(rows, {requested: 4, after: true}, isHeader)).toBe(
+      5,
+    );
   });
 });
