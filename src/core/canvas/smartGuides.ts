@@ -127,6 +127,71 @@ function keepAspect(
   };
 }
 
+/** Whether the gesture's numbers can't place guides: then the grid alone decides. */
+function guidesUnusable({
+  bypass,
+  scale,
+  distance,
+  delta,
+}: GuideGesture): boolean {
+  return (
+    bypass ||
+    !Number.isFinite(scale) ||
+    scale <= 0 ||
+    !Number.isFinite(distance) ||
+    distance < 0 ||
+    !Number.isFinite(delta.x) ||
+    !Number.isFinite(delta.y)
+  );
+}
+
+/**
+ * The frame moved onto the nearest guides. Keeping its ratio, it follows the
+ * closer of the two guides and keeps its shape, unless that makes it too
+ * small; otherwise each axis follows its own guide.
+ */
+function snappedFrame(
+  raw: ElementFrame,
+  {
+    x,
+    y,
+    fallback,
+  }: {
+    readonly x: Match | undefined;
+    readonly y: Match | undefined;
+    /** The frame without guides, from the pointer and the grid. */
+    readonly fallback: ElementFrame;
+  },
+  gesture: GuideGesture,
+): ElementFrame {
+  const {handle, keepRatio, minimumSize = MIN_SIZE} = gesture;
+  if (keepRatio && handle !== 'move') {
+    const axis =
+      x !== undefined &&
+      (y === undefined || Math.abs(x.offset) <= Math.abs(y.offset))
+        ? 'x'
+        : 'y';
+    const match = axis === 'x' ? x : y;
+    if (match === undefined) return fallback;
+    const next = keepAspect(
+      matchedFrame(raw, match, {axis, handle}),
+      gesture,
+      axis,
+    );
+    return next.w >= minimumSize && next.h >= minimumSize ? next : fallback;
+  }
+  let frame = fallback;
+  if (x !== undefined) {
+    const next = matchedFrame(raw, x, {axis: 'x', handle});
+    frame = {...frame, x: next.x, w: next.w};
+  }
+  if (y !== undefined) {
+    const next = matchedFrame(raw, y, {axis: 'y', handle});
+    frame = {...frame, y: next.y, h: next.h};
+  }
+  return frame;
+}
+
 /** Resolves viewport-distance guides before the independent document grid. */
 export function guideFrame(gesture: GuideGesture): {
   frame: ElementFrame;
@@ -136,8 +201,6 @@ export function guideFrame(gesture: GuideGesture): {
     start,
     delta,
     bypass,
-    scale,
-    distance,
     handle,
     keepRatio,
     minimumSize = MIN_SIZE,
@@ -152,51 +215,16 @@ export function guideFrame(gesture: GuideGesture): {
     minimumSize,
     ...('ratioAxis' in grid ? {ratioAxis: grid.ratioAxis} : {}),
   });
-  if (
-    bypass ||
-    !Number.isFinite(scale) ||
-    scale <= 0 ||
-    !Number.isFinite(distance) ||
-    distance < 0 ||
-    !Number.isFinite(delta.x) ||
-    !Number.isFinite(delta.y)
-  ) {
-    return {frame: fallback, guides: {}};
-  }
+  if (guidesUnusable(gesture)) return {frame: fallback, guides: {}};
   const raw = editFrame(start, delta, {
     handle,
     keepRatio,
     precision: 'pointer',
     minimumSize,
   });
-  const x = nearest(raw, 'x', gesture),
-    y = nearest(raw, 'y', gesture);
-  let frame = fallback;
-  if (keepRatio && handle !== 'move' && (x !== undefined || y !== undefined)) {
-    const axis =
-      x !== undefined &&
-      (y === undefined || Math.abs(x.offset) <= Math.abs(y.offset))
-        ? 'x'
-        : 'y';
-    const match = axis === 'x' ? x : y;
-    if (match !== undefined) {
-      const next = keepAspect(
-        matchedFrame(raw, match, {axis, handle}),
-        gesture,
-        axis,
-      );
-      if (next.w >= minimumSize && next.h >= minimumSize) frame = next;
-    }
-  } else {
-    if (x !== undefined) {
-      const next = matchedFrame(raw, x, {axis: 'x', handle});
-      frame = {...frame, x: next.x, w: next.w};
-    }
-    if (y !== undefined) {
-      const next = matchedFrame(raw, y, {axis: 'y', handle});
-      frame = {...frame, y: next.y, h: next.h};
-    }
-  }
+  const x = nearest(raw, 'x', gesture);
+  const y = nearest(raw, 'y', gesture);
+  const frame = snappedFrame(raw, {x, y, fallback}, gesture);
   const aligned = (axis: Axis, match: Match | undefined): boolean =>
     match !== undefined &&
     movingAnchors(frame, axis, handle).some(
