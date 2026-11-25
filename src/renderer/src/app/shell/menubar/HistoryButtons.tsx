@@ -6,6 +6,10 @@ import {
   subscribeHistoryCommands,
 } from '@renderer/ui/keys/commandDispatcher';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {
+  NOTHING_TO_REDO,
+  NOTHING_TO_UNDO,
+} from '@renderer/platform/problemReasons';
 import styles from './HistoryButtons.module.css';
 
 /** Chromium exposes native text history availability through this editing API. */
@@ -46,14 +50,20 @@ export function HistoryButtons(): JSX.Element {
     };
   }, []);
   const owner = place?.isConnected ? place : null;
-  const canRun = (id: string): boolean => {
-    const probe = probeCommand(id, owner);
-    return probe.found
-      ? probe.reason === undefined
-      : owner !== null &&
-          isInTextEntry(owner) &&
-          nativeHistoryAvailable(id === 'edit.undo' ? 'undo' : 'redo');
+  /** Why the command cannot run at the focus owner; nothing when it can. */
+  const reasonOf = (kind: 'undo' | 'redo'): string | undefined => {
+    const probe = probeCommand(`edit.${kind}`, owner);
+    if (probe.found) return probe.reason;
+    const native =
+      owner !== null && isInTextEntry(owner) && nativeHistoryAvailable(kind);
+    return native
+      ? undefined
+      : kind === 'undo'
+        ? NOTHING_TO_UNDO
+        : NOTHING_TO_REDO;
   };
+  const undoReason = reasonOf('undo');
+  const redoReason = reasonOf('redo');
   const run = (kind: 'undo' | 'redo'): void => {
     if (owner instanceof HTMLElement) owner.focus({preventScroll: true});
     if (
@@ -70,7 +80,8 @@ export function HistoryButtons(): JSX.Element {
         icon="arrow-u-up-left"
         label="실행 취소"
         shortcut="Ctrl Z"
-        disabled={!canRun('edit.undo')}
+        disabled={undoReason !== undefined}
+        title={undoReason}
         onMouseDown={event => event.preventDefault()}
         onClick={() => run('undo')}
       />
@@ -78,7 +89,8 @@ export function HistoryButtons(): JSX.Element {
         icon="arrow-u-up-right"
         label="다시 실행"
         shortcut="Ctrl Y"
-        disabled={!canRun('edit.redo')}
+        disabled={redoReason !== undefined}
+        title={redoReason}
         onMouseDown={event => event.preventDefault()}
         onClick={() => run('redo')}
       />

@@ -1,5 +1,6 @@
 import {useState} from 'react';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {expect, it, vi} from 'vitest';
 import {HistoryButtons} from '@renderer/app/shell/menubar/HistoryButtons';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
@@ -39,6 +40,9 @@ it('uses the focused editor history and follows its availability', async () => {
   const redo = screen.getByRole('button', {name: '다시 실행'});
   expect(undo.getAttribute('aria-disabled')).toBe('true');
   expect(redo.getAttribute('aria-disabled')).toBeNull();
+  await userEvent.hover(undo);
+  expect((await screen.findByRole('tooltip')).textContent).toBe('empty');
+  await userEvent.unhover(undo);
   fireEvent.click(redo);
   await screen.findByRole('button', {name: 'Editor 1'});
   await waitFor(() => expect(undo.getAttribute('aria-disabled')).toBeNull());
