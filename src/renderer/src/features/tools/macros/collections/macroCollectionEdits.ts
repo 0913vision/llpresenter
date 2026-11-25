@@ -134,3 +134,8 @@ export function saveMacroCollectionEdit(
         };
   });
 }
+
+/** Whether a 모음 edit deletes a 모음. */
+export function deletesCollection(edit: MacroCollectionEdit): boolean {
+  return edit.kind === 'delete';
+}

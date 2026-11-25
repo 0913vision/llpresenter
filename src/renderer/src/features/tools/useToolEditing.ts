@@ -37,14 +37,26 @@ export function useToolEditing<Edit>({
     readonly key: string;
     readonly label: string;
     readonly log: string;
-    readonly history?: SettingsName | undefined;
+    /**
+     * The deletions this area keeps for 실행 취소: the settings document they
+     * are made in, and which edits delete.
+     */
+    readonly deletions?:
+      | {
+          readonly name: SettingsName;
+          readonly of: (edit: Edit) => boolean;
+        }
+      | undefined;
   };
 }) {
   const [busy, setBusy] = useState(false);
+  const deletions = area.deletions?.name;
   const history = useMemo(
     () =>
-      api && area.history ? settingsDeleteHistory(api, area.history) : null,
-    [api, area.history],
+      api && deletions !== undefined
+        ? settingsDeleteHistory(api, deletions)
+        : null,
+    [api, deletions],
   );
   const historyState = useSyncExternalStore(
     history?.subscribe ?? noSubscribe,
@@ -85,21 +97,9 @@ export function useToolEditing<Edit>({
         }
         report('save');
       }
-      if (
-        (result.ok || result.error.reason === 'write-failed') &&
-        edit !== null &&
-        typeof edit === 'object' &&
-        (('kind' in edit && edit.kind === 'delete') ||
-          ('type' in edit && edit.type === 'timer.delete') ||
-          ('kind' in edit &&
-            edit.kind === 'action' &&
-            'action' in edit &&
-            edit.action !== null &&
-            typeof edit.action === 'object' &&
-            'kind' in edit.action &&
-            (edit.action.kind === 'remove' ||
-              edit.action.kind === 'removeAll')))
-      ) {
+      if (area.deletions?.of(edit) === true) {
+        // NOTE(0913vision): A deletion that was applied but could not be
+        // written still happened, so it can be undone too.
         const revision = result.ok
           ? result.value.revision
           : result.error.reason === 'write-failed'

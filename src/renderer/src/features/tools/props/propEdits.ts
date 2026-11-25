@@ -109,3 +109,8 @@ export function savePropEdit(api: LlpApi, edit: PropEdit): Promise<EditResult> {
         };
   });
 }
+
+/** Whether a 그래픽 edit deletes one. */
+export function deletesProp(edit: PropEdit): boolean {
+  return edit.kind === 'delete';
+}

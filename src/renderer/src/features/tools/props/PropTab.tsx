@@ -15,7 +15,7 @@ import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {PropDialog} from './PropDialog';
 import {PropGrid} from './PropGrid';
-import {MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
+import {deletesProp, MAX_PROPS, savePropEdit, type PropEdit} from './propEdits';
 import {useMediaDocument} from '../useMediaDocument';
 import {
   focusedOptionIndex,
@@ -55,7 +55,7 @@ export function PropTab({
       key: 'props',
       label: '그래픽',
       log: 'Could not edit props',
-      history: 'props',
+      deletions: {name: 'props', of: deletesProp},
     },
   });
   const {busy, run} = editing;

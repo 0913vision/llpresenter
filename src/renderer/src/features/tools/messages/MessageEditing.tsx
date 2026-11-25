@@ -25,6 +25,7 @@ import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {
+  deletesMessage,
   MAX_MESSAGE_TEMPLATES,
   newMessageTemplate,
   saveMessageEdit,
@@ -73,7 +74,7 @@ export function MessageEditing({
       key: 'messages',
       label: '메시지',
       log: 'Could not edit message templates',
-      history: 'messages',
+      deletions: {name: 'messages', of: deletesMessage},
     },
   });
   const {busy, run} = editing;

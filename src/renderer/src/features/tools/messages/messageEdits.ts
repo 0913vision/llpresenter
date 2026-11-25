@@ -117,3 +117,8 @@ export function saveMessageEdit(
         };
   });
 }
+
+/** Whether a message edit deletes a template. */
+export function deletesMessage(edit: MessageEdit): boolean {
+  return edit.kind === 'delete';
+}

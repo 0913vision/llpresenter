@@ -229,3 +229,12 @@ export function saveMacroEdit(
         };
   });
 }
+
+/** Whether a macro edit deletes: a macro, or actions from one. */
+export function deletesMacro(edit: MacroEdit): boolean {
+  return (
+    edit.kind === 'delete' ||
+    (edit.kind === 'action' &&
+      (edit.action.kind === 'remove' || edit.action.kind === 'removeAll'))
+  );
+}

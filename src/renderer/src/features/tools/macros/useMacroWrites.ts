@@ -2,10 +2,11 @@ import {logFailure} from '@renderer/platform/logFailure';
 import {useRef} from 'react';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {
+  deletesCollection,
   saveMacroCollectionEdit,
   type MacroCollectionEdit,
 } from './collections/macroCollectionEdits';
-import {saveMacroEdit, type MacroEdit} from './macroEdits';
+import {deletesMacro, saveMacroEdit, type MacroEdit} from './macroEdits';
 import {useToolEditing} from '../useToolEditing';
 
 /**
@@ -23,7 +24,7 @@ export function useCollectionEditing(
       key: 'macro-collections',
       label: '모음',
       log: 'Could not edit macro collections',
-      history: 'macros',
+      deletions: {name: 'macros', of: deletesCollection},
     },
   });
 }
@@ -45,7 +46,7 @@ export function useMacroWrites(
       key: 'macros',
       label: '매크로',
       log: 'Could not edit macros',
-      history: 'macros',
+      deletions: {name: 'macros', of: deletesMacro},
     },
   });
   const collections = useCollectionEditing(onProblem);

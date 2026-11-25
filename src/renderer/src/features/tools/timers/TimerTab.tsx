@@ -58,7 +58,7 @@ export function TimerTab({
       key: 'timer-delete',
       label: '타이머',
       log: 'Could not delete timer',
-      history: 'timers',
+      deletions: {name: 'timers', of: () => true},
     },
   });
   useUndoKeys(root);
