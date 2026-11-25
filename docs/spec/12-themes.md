@@ -53,6 +53,10 @@ The user's needs (October 30 and November 22):
   shows it: on the title 슬라이드 (전주), on a 슬라이드 without lyrics (간주),
   and at the end (후주), one line at the lyrics' size: 성부 성자 성령 (새찬송가
   7장), or the name alone for a song that is not a hymn.
+- **The song band on 방송.** The built-in song 테마 (가사, 곡 제목, 찬송가 제목,
+  and their light versions) put the lyrics on a black band across the bottom of
+  방송 at 70% (user decision, November 16): lyrics 72 px, 40 px above and below
+  them, so the band is 260 px high.
 - **Labels on title 슬라이드.** On 무대 a title 슬라이드 shows its label like a
   lyrics 슬라이드: (전주) above the title, or in front of it as the 환경설정
   says.
