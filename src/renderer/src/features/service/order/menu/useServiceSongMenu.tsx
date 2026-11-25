@@ -62,14 +62,15 @@ async function readSongMenu(
 /**
  * Opens the song of a song item in the song editor with the item's slides,
  * its title slides left out, to be saved over the library song there (USER
- * Nov 25). The item and the song are read again first, so the editor gets
- * the last edits.
+ * Nov 25). The edits on their way are waited for and the item and the song
+ * read again, so the editor gets the last edits.
  */
 async function openItemInSongEditor(
   api: LlpApi,
   data: SongMenuData,
   onProblem: (notice: Notice) => void,
 ): Promise<void> {
+  await pendingWritesOf(api).settle();
   const latest = await readSongMenu(api, data.target, data.revision);
   if (latest === null) {
     onProblem(warningNotice('song-transfer', '곡 열기 실패'));
