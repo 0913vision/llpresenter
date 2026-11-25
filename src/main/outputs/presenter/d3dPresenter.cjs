@@ -84,6 +84,18 @@ const SetWindowPos = user32.func('SetWindowPos', 'int', [
   'int',
   'uint32',
 ]);
+const RECT = k.struct('LLPPresenterRect', {
+  left: 'int32',
+  top: 'int32',
+  right: 'int32',
+  bottom: 'int32',
+});
+const GetWindowRect = user32.func('GetWindowRect', 'int', [
+  'void *',
+  k.out(k.pointer(RECT)),
+]);
+const IsWindowVisible = user32.func('IsWindowVisible', 'int', ['void *']);
+const IsWindow = user32.func('IsWindow', 'int', ['void *']);
 const PeekMessageW = user32.func('PeekMessageW', 'int', [
   'void *',
   'void *',
@@ -286,6 +298,11 @@ const SHADER = [
 const MODES = {cut: 0, wipe: 1, dissolve: 2, push: 3};
 /** How long a transition waits for the page to paint the new slide. */
 const FIRST_FRAME_WAIT_MS = 200;
+// NOTE(0913vision): When a monitor comes or goes, Windows may move or hide the
+// windows on the other monitors as it lays the desktop out again; the 무대
+// output stayed dark after the 청중 TV dropped out (church, Nov 25). A shown
+// presenter looks at its window this often and puts it back.
+const PLACE_CHECK_MS = 500;
 const DIRECTIONS = {left: 0, right: 1, up: 2, down: 3};
 
 let classRegistered = false;
@@ -631,6 +648,9 @@ function createPresenter({x, y, width, height, hz, topmost}) {
   let visible = false;
   let hasFrame = false;
   let closed = false;
+  let topmostNow = topmost;
+  let placeCheckedAt = 0;
+  let corrections = 0;
   let mirror = null;
   let mirrorFailure = null;
 
@@ -1029,6 +1049,8 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     },
     show(onTop) {
       if (!hasFrame) return false;
+      topmostNow = onTop;
+      corrections = 0;
       SetWindowPos(
         hwnd,
         onTop ? HWND_TOPMOST : HWND_NOTOPMOST,
@@ -1044,6 +1066,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
       return true;
     },
     setOnTop(onTop) {
+      topmostNow = onTop;
       SetWindowPos(
         hwnd,
         onTop ? HWND_TOPMOST : HWND_TOP,
@@ -1057,6 +1080,46 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     hide() {
       ShowWindow(hwnd, SW_HIDE);
       visible = false;
+    },
+    /**
+     * Looks at the window at most every PLACE_CHECK_MS: null when it is where
+     * it belongs; `{lost: true}` when it is gone (the class uses the default
+     * window procedure, so a close message destroys it without a word while
+     * frames still copy); else puts a moved or hidden shown window back and
+     * gives where it was.
+     */
+    keepPlaced(now) {
+      if (closed || now - placeCheckedAt < PLACE_CHECK_MS) return null;
+      placeCheckedAt = now;
+      if (!IsWindow(hwnd)) return {lost: true};
+      // NOTE(0913vision): A window that will not stay put after three tries in
+      // a row is left alone, so the presenter never fights Windows.
+      if (!visible || corrections >= 3) return null;
+      const rect = {};
+      if (!GetWindowRect(hwnd, rect)) return null;
+      const shown = IsWindowVisible(hwnd) !== 0;
+      if (
+        shown &&
+        rect.left === x &&
+        rect.top === y &&
+        rect.right === x + width &&
+        rect.bottom === y + height
+      ) {
+        corrections = 0;
+        return null;
+      }
+      corrections += 1;
+      SetWindowPos(
+        hwnd,
+        topmostNow ? HWND_TOPMOST : HWND_NOTOPMOST,
+        x,
+        y,
+        width,
+        height,
+        SWP_NOACTIVATE | SWP_SHOWWINDOW,
+      );
+      ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+      return {lost: false, was: {...rect, shown}};
     },
     get visible() {
       return visible;

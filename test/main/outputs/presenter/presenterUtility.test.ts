@@ -20,6 +20,7 @@ it('mirrors changed presenter frames at most ten times per second', () => {
     frame: vi.fn(),
     copied: () => false,
     takeEnded: () => null,
+    keepPlaced: () => null,
     submit: vi.fn(),
     startMirror: vi.fn(),
     stopMirror: vi.fn(),
@@ -85,4 +86,130 @@ it('mirrors changed presenter frames at most ten times per second', () => {
   now = 1100;
   tick();
   expect(requestMirror).toHaveBeenCalledTimes(3);
+});
+
+function runUtility(presenter: object, onCreate: () => void = () => undefined) {
+  const port = new EventEmitter();
+  const postMessage =
+    vi.fn<(value: {type: string; message?: string}) => void>();
+  Object.assign(port, {postMessage});
+  const ticks: Array<() => void> = [];
+  const source = readFileSync(
+    new URL(
+      '../../../../src/main/outputs/presenter/presenter-utility.cjs',
+      import.meta.url,
+    ),
+    'utf8',
+  );
+  runInNewContext(source, {
+    require: (name: string): unknown => {
+      if (name === 'node:process') return {parentPort: port};
+      if (name === 'node:perf_hooks') return {performance: {now: () => 0}};
+      if (name === 'node:timers') {
+        return {
+          setImmediate: (callback: () => void) => ticks.push(callback),
+          setTimeout: (callback: () => void) => ticks.push(callback),
+        };
+      }
+      if (name === './d3dPresenter.cjs') {
+        return {
+          createPresenter: () => {
+            onCreate();
+            return presenter;
+          },
+        };
+      }
+      throw new Error(`Unexpected import ${name}`);
+    },
+  });
+  port.emit('message', {
+    data: {type: 'open', bounds: {x: 1920, y: 0, width: 1920, height: 1080}},
+  });
+  return {postMessage, ticks};
+}
+
+it('opens its window again when it is gone, and gives up after three times a minute', () => {
+  let made = 0;
+  const presenter = {
+    visible: true,
+    busy: false,
+    frame: vi.fn(),
+    copied: () => false,
+    takeEnded: () => null,
+    keepPlaced: () => ({lost: true}),
+    close: vi.fn(),
+    startMirror: vi.fn(),
+    stopMirror: vi.fn(),
+  };
+  const {postMessage, ticks} = runUtility(presenter, () => {
+    made += 1;
+  });
+  for (let i = 0; i < 3; i++) ticks.shift()?.();
+
+  expect(made).toBe(4);
+  const types = postMessage.mock.calls.map(([value]) => value.type);
+  expect(types.filter(type => type === 'reopened')).toHaveLength(3);
+  expect(types.filter(type => type === 'ready')).toHaveLength(4);
+
+  ticks.shift()?.();
+  const last = postMessage.mock.lastCall?.[0];
+  expect(last?.type).toBe('error');
+  expect(last?.message).toContain('keeps going away');
+});
+
+it('tells the main process when it put a moved or hidden window back', () => {
+  const port = new EventEmitter();
+  const postMessage = vi.fn<(value: {type: string; was?: unknown}) => void>();
+  Object.assign(port, {postMessage});
+  const ticks: Array<() => void> = [];
+  const was = {left: 0, top: 0, right: 1920, bottom: 1080, shown: false};
+  const keepPlaced = vi
+    .fn()
+    .mockReturnValueOnce({lost: false, was})
+    .mockReturnValue(null);
+  const presenter = {
+    visible: true,
+    busy: false,
+    frame: vi.fn(),
+    copied: () => false,
+    takeEnded: () => null,
+    keepPlaced,
+    submit: vi.fn(),
+    startMirror: vi.fn(),
+    stopMirror: vi.fn(),
+  };
+  const source = readFileSync(
+    new URL(
+      '../../../../src/main/outputs/presenter/presenter-utility.cjs',
+      import.meta.url,
+    ),
+    'utf8',
+  );
+  runInNewContext(source, {
+    require: (name: string): unknown => {
+      if (name === 'node:process') return {parentPort: port};
+      if (name === 'node:perf_hooks') return {performance: {now: () => 0}};
+      if (name === 'node:timers') {
+        return {
+          setImmediate: (callback: () => void) => ticks.push(callback),
+          setTimeout: (callback: () => void) => ticks.push(callback),
+        };
+      }
+      if (name === './d3dPresenter.cjs') {
+        return {createPresenter: () => presenter};
+      }
+      throw new Error(`Unexpected import ${name}`);
+    },
+  });
+  port.emit('message', {
+    data: {type: 'open', bounds: {x: 1920, y: 0, width: 1920, height: 1080}},
+  });
+  ticks.shift()?.();
+  ticks.shift()?.();
+
+  const replaced = postMessage.mock.calls.filter(
+    ([value]) => value.type === 'replaced',
+  );
+  expect(replaced).toEqual([[{type: 'replaced', was}]]);
+  expect(keepPlaced).toHaveBeenCalledTimes(2);
 });

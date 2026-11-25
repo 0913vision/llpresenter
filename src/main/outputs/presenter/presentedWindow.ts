@@ -33,6 +33,12 @@ const PING_SCRIPT = '0';
 const DEFAULT_SIZE: Size = THEME_CANVAS;
 const UTILITY_TIMEOUT_MS = 5000;
 const FIRST_TEXTURE_TIMEOUT_MS = 5000;
+/**
+ * How long a frame may wait for the presenter to take it. A presenter that
+ * waits longer has stopped, and the screen falls back to its output window
+ * instead of staying dark while its status says it runs (church, Nov 25).
+ */
+export const PRESENTER_STALL_MS = 3000;
 
 // NOTE(0913vision): Chromium paces every window by the primary display's
 // vblank on Windows. A full screen output on a monitor with another refresh
@@ -111,10 +117,10 @@ export function createPresentedOutputWindow(
   const fallBack = (reason: unknown): void => {
     if (failed) return;
     failed = true;
-    options.log.warn(
-      'output presenter unavailable; using the output window',
-      reason,
-    );
+    options.log.warn('output presenter unavailable; using the output window', {
+      screen: current.id,
+      reason: String(reason),
+    });
     closePresenter();
     if (lastFullScreen === null) return;
     const handle = ensureWindow();
@@ -255,9 +261,14 @@ function createPresenterPart(
   let outstanding: OffscreenSharedTexture | null = null;
   let waiting: OffscreenSharedTexture | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let stall: ReturnType<typeof setTimeout> | null = null;
   const stopTimer = (): void => {
     if (timer !== null) clearTimeout(timer);
     timer = null;
+  };
+  const stopStall = (): void => {
+    if (stall !== null) clearTimeout(stall);
+    stall = null;
   };
   const failWith = (reason: unknown): void => {
     if (closed) return;
@@ -299,8 +310,17 @@ function createPresenterPart(
       pid: process.pid,
       handle: handle.readBigUInt64LE(0).toString(16),
     });
+    stall ??= setTimeout(() => {
+      stall = null;
+      log.warn('output presenter stopped taking frames', {
+        screen: current.id,
+        waitedMs: PRESENTER_STALL_MS,
+      });
+      failWith('presenter stalled');
+    }, PRESENTER_STALL_MS);
   };
   const copied = (): void => {
+    stopStall();
     outstanding?.release();
     outstanding = null;
     const next = waiting;
@@ -352,11 +372,22 @@ function createPresenterPart(
     );
     worker.on(
       'message',
-      (message: {type: string; message?: string; frame?: unknown}) => {
+      (message: {
+        type: string;
+        message?: string;
+        frame?: unknown;
+        was?: unknown;
+      }) => {
         if (child !== worker) return;
         if (message.type === 'ready') {
           ready = true;
           stopTimer();
+          // NOTE(0913vision): A presenter (re)opened has dropped the frame it
+          // was taking; without this the page's later frames would wait for a
+          // copy that never comes.
+          stopStall();
+          outstanding?.release();
+          outstanding = null;
           const held = waiting;
           waiting = null;
           if (held !== null) send(held);
@@ -386,6 +417,17 @@ function createPresenterPart(
         if (message.type === 'mirror-error') {
           log.warn('presenter preview unavailable', message.message);
           setNativeMirror(current.id, null);
+        }
+        if (message.type === 'reopened') {
+          log.warn('output presenter window was gone; opened again', {
+            screen: current.id,
+          });
+        }
+        if (message.type === 'replaced') {
+          log.warn('output presenter window was moved or hidden; put back', {
+            screen: current.id,
+            was: message.was,
+          });
         }
         if (message.type === 'transitioned') {
           log.info('output presenter transition', {
@@ -473,6 +515,7 @@ function createPresenterPart(
       closed = true;
       setNativeMirror(current.id, null);
       stopTimer();
+      stopStall();
       releaseProblems?.();
       outstanding?.release();
       waiting?.release();

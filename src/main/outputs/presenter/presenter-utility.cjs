@@ -8,7 +8,11 @@ const {createPresenter} = require('./d3dPresenter.cjs');
 // messages are handled between frames.
 
 const IDLE_MS = 16;
+const REOPEN_LIMIT = 3;
+const REOPEN_WINDOW_MS = 60_000;
 let presenter = null;
+let opened = null;
+let reopenedAt = [];
 let wantShown = false;
 let onTop = true;
 let timer = null;
@@ -91,11 +95,48 @@ function tick() {
     }
     const ended = presenter.takeEnded();
     if (ended !== null) post({type: 'transitioned', ...ended});
+    const placed = presenter.keepPlaced(performance.now());
+    if (placed?.lost === true) {
+      // NOTE(0913vision): The window went away under the presenter (the 무대
+      // window at the hourly 청중 TV dropout, church Nov 25). A new one opens
+      // at the same place; the main process sends its frame again on ready.
+      reopen();
+      post({type: 'reopened'});
+      post({type: 'ready'});
+    } else if (placed !== null) {
+      post({type: 'replaced', was: placed.was});
+    }
   } catch (error) {
     fail(error);
     return;
   }
   schedule();
+}
+
+/** Opens the presenter window at `bounds`, the one before closed first. */
+function open(bounds) {
+  close();
+  mirrorInFlight = false;
+  mirrorPending = false;
+  mirrorDue = 0;
+  mirrorDirty = mirrorEnabled;
+  opened = bounds;
+  presenter = createPresenter({...bounds, topmost: onTop});
+  if (mirrorEnabled) applyMirror();
+}
+
+/**
+ * Opens the window again where it was, keeping whether it should show; a
+ * window that keeps going away (REOPEN_LIMIT times a minute) is an error, and
+ * the main process shows the screen in its output window instead.
+ */
+function reopen() {
+  const now = performance.now();
+  reopenedAt = [...reopenedAt.filter(at => now - at < REOPEN_WINDOW_MS), now];
+  if (reopenedAt.length > REOPEN_LIMIT) {
+    throw Error('the presenter window keeps going away');
+  }
+  if (opened !== null) open(opened);
 }
 
 function show() {
@@ -114,18 +155,8 @@ process.parentPort.on('message', event => {
   try {
     switch (message.type) {
       case 'open': {
-        close();
-        mirrorInFlight = false;
-        mirrorPending = false;
-        mirrorDue = 0;
-        mirrorDirty = mirrorEnabled;
         onTop = message.topmost !== false;
-        presenter = createPresenter({
-          ...message.bounds,
-          hz: message.hz,
-          topmost: onTop,
-        });
-        if (mirrorEnabled) applyMirror();
+        open({...message.bounds, hz: message.hz});
         wantShown = false;
         post({type: 'ready'});
         schedule();

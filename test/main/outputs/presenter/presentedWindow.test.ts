@@ -101,7 +101,7 @@ vi.mock('@main/outputs/window/electronWindow', () => ({
   OUTPUT_BACKGROUND: '#000000',
 }));
 
-const {createPresentedOutputWindow, presentTransition} =
+const {createPresentedOutputWindow, presentTransition, PRESENTER_STALL_MS} =
   await import('@main/outputs/presenter/presentedWindow');
 
 const screen: OutputScreen = {
@@ -263,6 +263,81 @@ describe('a full screen output drawn by a presenter', () => {
     ]);
     handle.showFullScreen(monitor, false);
     expect(mocks.children).toHaveLength(1);
+    handle.destroy();
+  });
+
+  it('falls back to the output window when the presenter stops taking frames', () => {
+    vi.useFakeTimers();
+    const {handle, fallbacks, log} = setup();
+    handle.showFullScreen(monitor, true);
+    const child = spawned();
+    child.emitter.emit('message', {type: 'ready'});
+    mocks.windows[0]?.contents.emit('paint', {texture: texture()}, {});
+    child.emitter.emit('message', {type: 'copied'});
+    mocks.windows[0]?.contents.emit('paint', {texture: texture()}, {});
+    vi.advanceTimersByTime(PRESENTER_STALL_MS - 1);
+    expect(fallbacks).toHaveLength(0);
+
+    vi.advanceTimersByTime(1);
+
+    expect(log.warn).toHaveBeenCalledWith(
+      'output presenter stopped taking frames',
+      expect.objectContaining({screen: 'main'}),
+    );
+    expect(fallbacks[0]?.calls).toContain('showFullScreen');
+    expect(child.killed || child.posted.at(-1)?.['type'] === 'stop').toBe(true);
+    handle.destroy();
+  });
+
+  it('sends the next frame to a presenter that opened again while it took one', () => {
+    const {handle} = setup();
+    handle.showFullScreen(monitor, true);
+    const child = spawned();
+    child.emitter.emit('message', {type: 'ready'});
+    const dropped = texture();
+    mocks.windows[0]?.contents.emit('paint', {texture: dropped}, {});
+    child.emitter.emit('message', {type: 'ready'});
+    expect(dropped.release).toHaveBeenCalledOnce();
+
+    mocks.windows[0]?.contents.emit('paint', {texture: texture()}, {});
+
+    expect(
+      child.posted.filter(message => message['type'] === 'frame'),
+    ).toHaveLength(2);
+    handle.destroy();
+  });
+
+  it('logs a presenter window that was gone and opened again, and sends it the page again', () => {
+    const {handle, log} = setup();
+    handle.showFullScreen(monitor, true);
+    const child = spawned();
+    child.emitter.emit('message', {type: 'ready'});
+    mocks.windows[0]?.contents.emit('paint', {texture: texture()}, {});
+
+    child.emitter.emit('message', {type: 'reopened'});
+    child.emitter.emit('message', {type: 'ready'});
+    mocks.windows[0]?.contents.emit('paint', {texture: texture()}, {});
+
+    expect(log.warn).toHaveBeenCalledWith(
+      'output presenter window was gone; opened again',
+      {screen: 'main'},
+    );
+    expect(
+      child.posted.filter(message => message['type'] === 'frame'),
+    ).toHaveLength(2);
+    handle.destroy();
+  });
+
+  it('logs a window the presenter put back on its monitor', () => {
+    const {handle, log} = setup();
+    handle.showFullScreen(monitor, true);
+    const child = spawned();
+    const was = {left: 0, top: 0, right: 1920, bottom: 1080, shown: false};
+    child.emitter.emit('message', {type: 'replaced', was});
+    expect(log.warn).toHaveBeenCalledWith(
+      'output presenter window was moved or hidden; put back',
+      {screen: 'main', was},
+    );
     handle.destroy();
   });
 });
