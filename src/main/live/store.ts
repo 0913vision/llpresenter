@@ -206,42 +206,14 @@ export class LiveStore {
     onSkipped?: (problem: SkippedLiveCommand) => void,
   ): boolean | Promise<boolean> {
     if (this.committing !== null) {
-      if (this.waiting.length >= MAX_WAITING_COMMANDS) {
-        onListenerError?.(
-          new Error('Too many commands waiting for an output switch'),
-        );
-        return false;
-      }
-      return new Promise((resolve, reject) => {
-        this.waiting.push(() => {
-          try {
-            resolve(this.dispatchResult(command, onListenerError, onSkipped));
-          } catch (error: unknown) {
-            reject(
-              error instanceof Error
-                ? error
-                : new Error('Queued live command failed', {cause: error}),
-            );
-          }
-        });
-      });
+      return this.afterOutputSwitch(command, onListenerError, onSkipped);
     }
     const commands: SingleLiveCommand[] = [];
-    const {history: next, skipped} = this.slices.run(this.history, command, {
-      onCommand: executed => commands.push(executed),
-      ...(this.themes === undefined ? {} : {themes: this.themes}),
-      ...this.readClock(),
-      ...(this.audioMedia === undefined ? {} : {audioMedia: this.audioMedia}),
-      ...(this.settings === undefined ? {} : {settings: this.settings}),
-      ...(this.macros === undefined ? {} : {macros: this.macros}),
-      nextMessageId: () => createMessageId(randomUUID()),
-      ...(this.screenSettings === undefined
-        ? {}
-        : {screenSettings: this.screenSettings}),
-      ...(this.monitorNumbers === undefined
-        ? {}
-        : {monitorNumbers: this.monitorNumbers}),
-    });
+    const {history: next, skipped} = this.slices.run(
+      this.history,
+      command,
+      this.sliceInputs(executed => commands.push(executed)),
+    );
     const changed = next !== this.history;
     for (const problem of skipped) {
       try {
@@ -256,29 +228,105 @@ export class LiveStore {
       this.persistOutputs !== undefined &&
       outputsChanged(this.state, next.state)
     ) {
-      const result = this.persistOutputs(next.state)
-        .then(saved => {
-          if (!saved) throw new Error('Could not save the output switch');
-          this.publish(next, commands, onListenerError);
-          return true;
-        })
-        .catch((error: unknown) => {
-          onListenerError?.(error);
-          throw error;
-        });
-      this.committing = result
-        .then(
-          () => undefined,
-          () => undefined,
-        )
-        .finally(() => {
-          this.committing = null;
-          this.drainWaiting();
-        });
-      return result;
+      return this.commitOutputSwitch(this.persistOutputs, {
+        next,
+        commands,
+        onListenerError,
+      });
     }
     this.publish(next, commands, onListenerError);
     return changed;
+  }
+
+  /**
+   * Runs a command once the output switch being saved is written, so it
+   * sees the state that switch made. Too many waiting are refused.
+   */
+  private afterOutputSwitch(
+    command: LiveCommand,
+    onListenerError?: (error: unknown) => void,
+    onSkipped?: (problem: SkippedLiveCommand) => void,
+  ): boolean | Promise<boolean> {
+    if (this.waiting.length >= MAX_WAITING_COMMANDS) {
+      onListenerError?.(
+        new Error('Too many commands waiting for an output switch'),
+      );
+      return false;
+    }
+    return new Promise((resolve, reject) => {
+      this.waiting.push(() => {
+        try {
+          resolve(this.dispatchResult(command, onListenerError, onSkipped));
+        } catch (error: unknown) {
+          reject(
+            error instanceof Error
+              ? error
+              : new Error('Queued live command failed', {cause: error}),
+          );
+        }
+      });
+    });
+  }
+
+  /** What the slices read while they run a command. */
+  private sliceInputs(
+    onCommand: (command: SingleLiveCommand) => void,
+  ): SliceInputs {
+    return {
+      onCommand,
+      ...(this.themes === undefined ? {} : {themes: this.themes}),
+      ...this.readClock(),
+      ...(this.audioMedia === undefined ? {} : {audioMedia: this.audioMedia}),
+      ...(this.settings === undefined ? {} : {settings: this.settings}),
+      ...(this.macros === undefined ? {} : {macros: this.macros}),
+      nextMessageId: () => createMessageId(randomUUID()),
+      ...(this.screenSettings === undefined
+        ? {}
+        : {screenSettings: this.screenSettings}),
+      ...(this.monitorNumbers === undefined
+        ? {}
+        : {monitorNumbers: this.monitorNumbers}),
+    };
+  }
+
+  /**
+   * A command that turns an output on or off is published only once the
+   * switch is saved; commands that come meanwhile wait for it.
+   *
+   * @returns Whether it was saved; rejects when it was not.
+   */
+  private commitOutputSwitch(
+    persist: PersistOutputs,
+    {
+      next,
+      commands,
+      onListenerError,
+    }: {
+      readonly next: LiveHistory;
+      readonly commands: readonly SingleLiveCommand[];
+      readonly onListenerError: ((error: unknown) => void) | undefined;
+    },
+  ): Promise<boolean> {
+    const result = persist(next.state)
+      .then(saved => {
+        if (!saved) throw new Error('Could not save the output switch');
+        this.publish(next, commands, onListenerError);
+        return true;
+      })
+      .catch((error: unknown) => {
+        onListenerError?.(error);
+        throw error;
+      });
+    this.committing = result
+      .then(
+        () => undefined,
+        () => undefined,
+      )
+      .finally(() => {
+        this.committing = null;
+        this.drainWaiting();
+      });
+    return result;
   }
 
   private drainWaiting(): void {
