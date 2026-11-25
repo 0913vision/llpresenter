@@ -13,6 +13,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {NoticeMeta} from '@renderer/ui/popups/Notification';
 import {Popover} from '@renderer/ui/popups/Popover';
+import {useCloseAway} from '@renderer/ui/popups/useCloseAway';
 import type {Notice, NoticeRecord} from '@renderer/ui/popups/notices';
 import type {ControlSession} from '../controlSession';
 import styles from './NoticeHistory.module.css';
@@ -38,31 +39,6 @@ function RecordRow({record}: {readonly record: NoticeRecord}): JSX.Element {
   );
 }
 
-function useCloseAway(
-  surface: RefObject<HTMLElement | null>,
-  bell: RefObject<HTMLElement | null>,
-  onClose: () => void,
-): void {
-  useEffect(() => {
-    const away = (event: PointerEvent): void => {
-      const target = event.target;
-      if (!(target instanceof Node)) return;
-      if (surface.current?.contains(target) === true) return;
-      if (bell.current?.contains(target) === true) return;
-      onClose();
-    };
-    const escape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('pointerdown', away, true);
-    document.addEventListener('keydown', escape);
-    return () => {
-      document.removeEventListener('pointerdown', away, true);
-      document.removeEventListener('keydown', escape);
-    };
-  }, [surface, bell, onClose]);
-}
-
 function HistoryPanel({
   records,
   bell,
@@ -75,7 +51,11 @@ function HistoryPanel({
   readonly onClose: () => void;
 }): JSX.Element {
   const surface = useRef<HTMLElement | null>(null);
-  useCloseAway(surface, bell, onClose);
+  useCloseAway(
+    surface,
+    onClose,
+    target => bell.current?.contains(target) === true,
+  );
   useEffect(() => surface.current?.focus({preventScroll: true}), []);
   return (
     <Popover>

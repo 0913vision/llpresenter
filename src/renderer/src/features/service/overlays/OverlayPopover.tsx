@@ -1,5 +1,5 @@
 import {MEDIA_END_OPTIONS} from '@renderer/ui/choices/mediaChoices';
-import {useEffect, useRef, type JSX, type RefCallback} from 'react';
+import {useRef, type JSX, type RefCallback} from 'react';
 import type {PlacedOverlay} from '@core/schema/services/itemOverlays';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {editorTask} from '@renderer/platform/editorTask';
@@ -10,6 +10,7 @@ import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 import {placeFloating} from '@renderer/ui/popups/floating';
 import {Popover} from '@renderer/ui/popups/Popover';
+import {useCloseAway} from '@renderer/ui/popups/useCloseAway';
 import {viewportSize} from '@renderer/ui/popups/placement';
 import {ItemOverlayRange} from './ItemOverlayRange';
 import type {OverlayControl} from './useOverlayControl';
@@ -61,25 +62,13 @@ export function OverlayPopover({
         current.map(row => (row.id === overlay.id ? {...row, ...patch} : row)),
       ),
     );
-  useEffect(() => {
-    const away = (event: PointerEvent): void => {
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      if (surface.current?.contains(target) === true) return;
-      if (target.closest(LAYERS) !== null) return;
-      if (target.closest('[data-overlay-clip]') !== null) return;
-      onClose();
-    };
-    const escape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('pointerdown', away, true);
-    document.addEventListener('keydown', escape);
-    return () => {
-      document.removeEventListener('pointerdown', away, true);
-      document.removeEventListener('keydown', escape);
-    };
-  }, [onClose]);
+  useCloseAway(
+    surface,
+    onClose,
+    target =>
+      target.closest(LAYERS) !== null ||
+      target.closest('[data-overlay-clip]') !== null,
+  );
   const mediaContent = 'media' in overlay.content ? overlay.content : undefined;
   const file = editing.media.find(item => item.id === mediaContent?.media);
   const place = placeBelow(anchor);
