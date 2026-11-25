@@ -171,24 +171,24 @@ export class BibleLookupSession {
     const [, name = ''] = BOOK_PREFIX.exec(request.input.trim()) ?? [];
     const matches = matchBooks(name);
     const book = matches.length === 1 ? matches[0] : undefined;
-    const missingBook =
-      book !== undefined && !library.hasBook(request.translation, book.id);
+    // NOTE(0913vision): Only the operator's lookups and the cache-only
+    // refreshes may read the web Bible in place of the chosen translation.
+    const mayUseWeb =
+      request.translation !== LIVE_BIBLE_ID && (cacheOnly || operatorLookup);
     const target =
-      request.translation !== LIVE_BIBLE_ID &&
-      (cacheOnly || operatorLookup) &&
-      (!library.hasTranslation(request.translation) ||
-        missingBook ||
-        (operatorLookup &&
-          request.translation === this.defaultTranslation &&
-          !library.complete(request.translation)))
+      mayUseWeb &&
+      this.chosenIsIncomplete(library, request.translation, {
+        bookId: book?.id,
+        operatorLookup,
+      })
         ? LIVE_BIBLE_ID
         : request.translation;
     let result = await library.resolve(target, request.input, cacheOnly);
     if (
+      mayUseWeb &&
+      target !== LIVE_BIBLE_ID &&
       !result.ok &&
       result.error.code === 'translation' &&
-      target !== LIVE_BIBLE_ID &&
-      (cacheOnly || operatorLookup) &&
       !library.hasTranslation(target)
     ) {
       result = await library.resolve(LIVE_BIBLE_ID, request.input, cacheOnly);
@@ -211,5 +211,29 @@ export class BibleLookupSession {
       throw new Error(`Invalid Bible lookup reply: ${reply.error.message}`);
     }
     return reply.value;
+  }
+
+  /**
+   * Whether the chosen translation can't answer the lookup: it is not
+   * installed, lacks the book, or, for the operator, is the default one and
+   * installed only in part.
+   */
+  private chosenIsIncomplete(
+    library: BibleLibrary,
+    translation: BibleLookupRequest['translation'],
+    {
+      bookId,
+      operatorLookup,
+    }: {readonly bookId: number | undefined; readonly operatorLookup: boolean},
+  ): boolean {
+    if (!library.hasTranslation(translation)) return true;
+    if (bookId !== undefined && !library.hasBook(translation, bookId)) {
+      return true;
+    }
+    return (
+      operatorLookup &&
+      translation === this.defaultTranslation &&
+      !library.complete(translation)
+    );
   }
 }
