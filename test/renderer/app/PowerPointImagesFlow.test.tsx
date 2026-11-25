@@ -90,3 +90,34 @@ describe('PowerPoint image cancellation', () => {
     expect(edit).not.toHaveBeenCalled();
   });
 });
+
+describe('PowerPoint image failures', () => {
+  it('says the pictures could not be stored, and logs why', async () => {
+    const write = vi.fn();
+    const api = mockLlpApi({
+      powerpoint: {
+        images: async () => ({
+          ok: true,
+          value: {fileName: 'deck.pptx', slides: [slide]},
+        }),
+        storeImages: async () => ({ok: false, message: 'Copy failed'}),
+        release: async () => true,
+      },
+      log: {write},
+    });
+    const report = vi.fn<(notice: Notice) => void>();
+    render(
+      <PowerPointImagesFlow api={api} onDone={vi.fn()} onProblem={report} />,
+    );
+    await waitFor(() =>
+      expect(report).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          title: 'PowerPoint 이미지 가져오기 실패',
+          meta: ['그림을 미디어에 저장하지 못했습니다.'],
+        }),
+      ),
+    );
+    const logged = write.mock.calls.map(([entry]) => JSON.stringify(entry));
+    expect(logged.some(entry => entry.includes('Copy failed'))).toBe(true);
+  });
+});
