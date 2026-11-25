@@ -10,16 +10,15 @@ import {
 } from '@core/schema/tools/quick';
 import {
   editableSettings,
-  gatedSettingsWrite,
   unchangedSettings,
+  writeSettings,
 } from '@renderer/session/settingsWrites';
+import type {SettingsEdit} from '@core/schema/app/settingsDocuments';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import type {QuickTimerEdit} from '@core/schema/tools/quickTimerEdit';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {nameReason} from '@renderer/ui/fields/nameReason';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/tools/timers';
-
-const SAVE_ATTEMPTS = 2;
 
 /** What a new quick item points at, before it has an id. */
 export type QuickChoice = {
@@ -123,12 +122,15 @@ function applyEdit(
   }
 }
 
-/** Keeps the complete settings operation in the window's close gate. */
+/**
+ * Saves a change of the 빠른 실행 items, in the window's close gate, planned
+ * again when another write came first.
+ */
 export function saveQuickEdit(
   api: LlpApi,
   edit: QuickEdit,
 ): Promise<EditResult> {
-  return gatedSettingsWrite(api, () => sendQuickEdit(api, edit));
+  return writeSettings(api, () => planQuickEdit(api, edit));
 }
 
 /**
@@ -232,11 +234,14 @@ async function removeOrphanTimer(api: LlpApi, timerId: TimerId): Promise<void> {
   }
 }
 
-async function sendQuickEdit(
+/**
+ * The edit of the quick list that `edit` makes, or the answer of the writes a
+ * 타이머 row needs, which go to main as edits of their own.
+ */
+async function planQuickEdit(
   api: LlpApi,
   edit: QuickEdit,
-  attempt = 0,
-): Promise<EditResult> {
+): Promise<SettingsEdit | EditResult> {
   if (edit.kind === 'timer-add') {
     return api.settings.edit({
       type: 'quick.timer.create',
@@ -282,15 +287,10 @@ async function sendQuickEdit(
   if (items === document.value.items) {
     return unchangedSettings(document);
   }
-  const result = await api.settings.edit({
+  return {
     type: 'settings.update',
     name: 'quick',
     baseRevision: document.revision,
     value: {...document.value, items},
-  });
-  if (result.ok || result.error.reason === 'write-failed') return result;
-  if (result.error.reason === 'stale' && attempt + 1 < SAVE_ATTEMPTS) {
-    return sendQuickEdit(api, edit, attempt + 1);
-  }
-  throw new Error(result.error.message);
+  };
 }
