@@ -100,7 +100,9 @@ function setup() {
     hide: vi.fn(),
     destroy: vi.fn(),
     setGpuInput: vi.fn(),
-    submitGpuPixels: vi.fn((_data: Uint8Array, sent: () => void) => sent()),
+    submitGpuPixels: vi.fn((_data: Uint8Array, done: (sent: boolean) => void) =>
+      done(true),
+    ),
   } satisfies BitmapSender;
   const bitmap = vi.fn(() => sink);
   const screen = fullScreenScreen({method: 'capture', target: 'ndi'});

@@ -153,9 +153,9 @@ export function createGpuOutput(
                   return;
                 }
                 sink.setGpuInput(true);
-                sink.submitGpuPixels(data, () => {
+                sink.submitGpuPixels(data, sent => {
                   release();
-                  promote();
+                  if (sent) promote();
                 });
               },
             }

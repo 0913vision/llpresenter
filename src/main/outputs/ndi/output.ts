@@ -33,10 +33,15 @@ export const NDI_SEND_TIMEOUT_MS = 5000;
  */
 export const NDI_STOP_TIMEOUT_MS = 2000;
 
-/** Retains the original sender while accepting frames from a GPU capture. */
+/**
+ * Retains the original sender while accepting frames from a GPU capture. Each
+ * submitted frame is handed back exactly once through `done`: sent, or dropped
+ * (a stop, a restart, GPU input turned off, a newer frame, a wrong size), so
+ * its owner always frees it.
+ */
 export interface BitmapSender extends OutputWindowHandle {
   setGpuInput(enabled: boolean): void;
-  submitGpuPixels(data: Uint8Array, sent: () => void): void;
+  submitGpuPixels(data: Uint8Array, done: (sent: boolean) => void): void;
 }
 
 /** Creates an offscreen output whose sender is isolated in a utility process. */
@@ -117,7 +122,7 @@ interface SenderMessage {
  * pixels in instead. A sender that stops answering, fails or exits is a
  * failure of the screen.
  */
-function createBitmapOutput(
+export function createBitmapOutput(
   screen: OutputScreen,
   events: OutputWindowEvents,
   options: {log: Logger; onFailure: (id: string, missing: boolean) => void},
@@ -134,8 +139,20 @@ function createBitmapOutput(
   let inFlight = false;
   let pending: {dirty: Rectangle; image: NativeImage} | null = null;
   let gpuInput = false;
-  let pendingGpu: {data: Uint8Array; sent: () => void} | null = null;
-  let gpuSent: (() => void) | null = null;
+  let pendingGpu: {
+    data: Uint8Array;
+    done: (sent: boolean) => void;
+  } | null = null;
+  let gpuInFlight: ((sent: boolean) => void) | null = null;
+  /** Hands back the GPU frames that wait or are on their way, unsent. */
+  const dropGpuFrames = (): void => {
+    const waiting = pendingGpu;
+    const sending = gpuInFlight;
+    pendingGpu = null;
+    gpuInFlight = null;
+    waiting?.done(false);
+    sending?.(false);
+  };
   let closed = false;
   let watchdog: ReturnType<typeof setTimeout> | null = null;
   let heartbeatWatchdog: ReturnType<typeof setTimeout> | null = null;
@@ -157,7 +174,7 @@ function createBitmapOutput(
     }
     const next = pendingGpu;
     pendingGpu = null;
-    gpuSent = next.sent;
+    gpuInFlight = next.done;
     inFlight = true;
     sendMessage(child, {
       type: 'frame',
@@ -209,8 +226,7 @@ function createBitmapOutput(
     ready = false;
     inFlight = false;
     pending = null;
-    pendingGpu = null;
-    gpuSent = null;
+    dropGpuFrames();
     if (old === null || exited) return;
     stopSender(old, {timeoutMs: NDI_STOP_TIMEOUT_MS, log});
   };
@@ -248,9 +264,9 @@ function createBitmapOutput(
     if (watchdog !== null) clearTimeout(watchdog);
     watchdog = null;
     inFlight = false;
-    const done = gpuSent;
-    gpuSent = null;
-    done?.();
+    const done = gpuInFlight;
+    gpuInFlight = null;
+    done?.(true);
     if (gpuInput) sendGpu();
     else if (pending !== null) {
       const {dirty, image} = pending;
@@ -326,13 +342,20 @@ function createBitmapOutput(
       gpuInput = enabled;
       pending = null;
       if (!enabled) {
+        const waiting = pendingGpu;
         pendingGpu = null;
+        waiting?.done(false);
         win.webContents.invalidate();
       }
     },
-    submitGpuPixels: (data, sent) => {
-      if (data.byteLength !== NDI_FRAME_WIDTH * NDI_FRAME_HEIGHT * 4) return;
-      pendingGpu = {data, sent};
+    submitGpuPixels: (data, done) => {
+      if (data.byteLength !== NDI_FRAME_WIDTH * NDI_FRAME_HEIGHT * 4) {
+        done(false);
+        return;
+      }
+      const replaced = pendingGpu;
+      pendingGpu = {data, done};
+      replaced?.done(false);
       sendGpu();
     },
   };

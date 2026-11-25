@@ -2,6 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 import {
+  createBitmapOutput,
   createNdiOutput,
   NDI_SEND_TIMEOUT_MS,
   NDI_STOP_TIMEOUT_MS,
@@ -508,5 +509,57 @@ describe('GPU NDI output', () => {
     expect(mocks.windows).toHaveLength(2);
     expect(mocks.workers).toHaveLength(2);
     handle.destroy();
+  });
+});
+
+describe('GPU frames given to the bitmap sender', () => {
+  const FRAME_BYTES = 1920 * 1080 * 4;
+  function bitmap() {
+    const sender = createBitmapOutput(
+      fullScreenScreen({
+        method: 'capture',
+        target: 'ndi',
+        ndi: {hardwareAcceleration: false},
+      }),
+      {onRendererGone: vi.fn(), onCloseRequested: vi.fn()},
+      {log: recordingLogger(), onFailure: vi.fn()},
+    );
+    sender.showCapture({x: 0, y: 0, width: 1920, height: 1080});
+    const worker = mocks.workers.at(-1);
+    if (!worker) throw new Error('Missing worker');
+    worker.emit('message', {type: 'ready'});
+    sender.setGpuInput(true);
+    return {sender, worker};
+  }
+
+  it('hands a frame back as sent once the sender sent it', () => {
+    const {sender, worker} = bitmap();
+    const done = vi.fn();
+    sender.submitGpuPixels(new Uint8Array(FRAME_BYTES), done);
+    expect(done).not.toHaveBeenCalled();
+    worker.emit('message', {type: 'sent'});
+    expect(done).toHaveBeenCalledExactlyOnceWith(true);
+  });
+
+  it('hands back unsent every frame a stop, GPU input off, a newer frame or a wrong size drops', () => {
+    const {sender} = bitmap();
+    const wrongSize = vi.fn();
+    sender.submitGpuPixels(new Uint8Array(4), wrongSize);
+    expect(wrongSize).toHaveBeenCalledExactlyOnceWith(false);
+
+    const sending = vi.fn();
+    const replaced = vi.fn();
+    const newest = vi.fn();
+    sender.submitGpuPixels(new Uint8Array(FRAME_BYTES), sending);
+    sender.submitGpuPixels(new Uint8Array(FRAME_BYTES), replaced);
+    sender.submitGpuPixels(new Uint8Array(FRAME_BYTES), newest);
+    expect(replaced).toHaveBeenCalledExactlyOnceWith(false);
+
+    sender.setGpuInput(false);
+    expect(newest).toHaveBeenCalledExactlyOnceWith(false);
+    expect(sending).not.toHaveBeenCalled();
+
+    sender.hide();
+    expect(sending).toHaveBeenCalledExactlyOnceWith(false);
   });
 });
