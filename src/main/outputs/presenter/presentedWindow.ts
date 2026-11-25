@@ -1,12 +1,5 @@
 import {THEME_CANVAS} from '@core/schema/screens/screens';
-import {
-  BrowserWindow,
-  screen as displays,
-  utilityProcess,
-  type UtilityProcess,
-  type WebContents,
-} from 'electron';
-import {join} from 'node:path';
+import {BrowserWindow, screen as displays, type WebContents} from 'electron';
 import type {SlideTransition} from '@core/schema/slides/slideTransition';
 import {sameRect, type Rect, type Size} from '../../displays/rect';
 import type {Logger} from '../../base/log';
@@ -28,6 +21,7 @@ import {
 } from '../health/playbackProblems';
 import {publishNativeMirror, setNativeMirror} from '../previews/nativeMirror';
 import {PRESENTER_STALL_MS, PresenterFrames} from './presenterFrames';
+import {PresenterProcess, type PresenterMessage} from './presenterProcess';
 
 const PING_SCRIPT = '0';
 const DEFAULT_SIZE: Size = THEME_CANVAS;
@@ -245,9 +239,6 @@ function createPresenterPart(
           retry: () => win.webContents.reload(),
         });
   let closed = false;
-  let child: UtilityProcess | null = null;
-  let spawned = false;
-  let pending: Array<Record<string, unknown>> = [];
   let ready = false;
   let openKey = '';
   let shown: Rect | null = null;
@@ -262,16 +253,7 @@ function createPresenterPart(
     fail(reason);
   };
   const post = (message: Record<string, unknown>): void => {
-    if (child === null) return;
-    if (!spawned) {
-      pending.push(message);
-      return;
-    }
-    try {
-      child.postMessage(message);
-    } catch (error) {
-      failWith(error);
-    }
+    presenterProcess.post(message);
   };
   const mirrorPump = {
     enable: (enabled: boolean): void => post({type: 'mirror', enabled}),
@@ -305,110 +287,88 @@ function createPresenterPart(
       return;
     }
     if (shown !== null && timer !== null && ready) stopTimer();
-    frames.take(texture, child !== null && ready);
+    frames.take(texture, presenterProcess.running && ready);
+  });
+  /** A shown screen whose presenter gets no picture in time falls back. */
+  const awaitFirstPicture = (): void => {
+    if (shown === null || timer !== null) return;
+    timer = setTimeout(
+      () => failWith('no shared texture paint'),
+      FIRST_TEXTURE_TIMEOUT_MS,
+    );
+  };
+  const mirrorFrame = (frame: unknown): void => {
+    if (frame instanceof Uint8Array && frame.length === 640 * 360 * 4) {
+      publishNativeMirror(current.id, frame);
+    } else mirrorPump.ack();
+  };
+  /** What the presenter process says about the window, frames and preview. */
+  const heard = (message: PresenterMessage): void => {
+    switch (message.type) {
+      case 'ready':
+        ready = true;
+        stopTimer();
+        if (!frames.sendWaiting()) repaint();
+        awaitFirstPicture();
+        break;
+      case 'copied':
+        frames.copied(message.id);
+        break;
+      case 'shown':
+        stopTimer();
+        if (shown !== null) setNativeMirror(current.id, mirrorPump);
+        break;
+      case 'mirror-frame':
+        mirrorFrame(message.frame);
+        break;
+      case 'mirror-error':
+        log.warn('presenter preview unavailable', message.message);
+        setNativeMirror(current.id, null);
+        break;
+      case 'reopened':
+        log.warn('output presenter window was gone; opened again', {
+          screen: current.id,
+        });
+        // NOTE(0913vision): The new window shows once it has a frame; the
+        // page paints one for it, and a window that never gets one falls
+        // back like a presenter that never paints.
+        if (frames.idle) repaint();
+        awaitFirstPicture();
+        break;
+      case 'replaced':
+        log.warn('output presenter window was moved or hidden; put back', {
+          screen: current.id,
+          was: message.was,
+        });
+        break;
+      case 'transitioned':
+        log.info('output presenter transition', {
+          screen: current.id,
+          ...message,
+        });
+        break;
+      case 'error':
+        failWith(message.message);
+        break;
+      default:
+        break;
+    }
+  };
+  const presenterProcess = new PresenterProcess({
+    message: heard,
+    failed: failWith,
+    exited: code => {
+      setNativeMirror(current.id, null);
+      failWith(`presenter exited ${code}`);
+    },
   });
   const start = (): void => {
-    if (child !== null || closed) return;
-    let worker: UtilityProcess;
-    try {
-      worker = utilityProcess.fork(
-        join(__dirname, 'presenter/presenter-utility.cjs'),
-        [],
-        {serviceName: 'Output presenter'},
-      );
-    } catch (error) {
-      failWith(error);
-      return;
-    }
-    child = worker;
-    worker.once('spawn', () => {
-      if (child !== worker) return;
-      spawned = true;
-      const queued = pending;
-      pending = [];
-      for (const message of queued) post(message);
-    });
+    if (presenterProcess.running || closed) return;
+    if (!presenterProcess.start()) return;
     timer = setTimeout(
       () => failWith('presenter startup timeout'),
       UTILITY_TIMEOUT_MS,
     );
-    worker.on(
-      'message',
-      (message: {
-        type: string;
-        message?: string;
-        frame?: unknown;
-        was?: unknown;
-        id?: unknown;
-      }) => {
-        if (child !== worker) return;
-        if (message.type === 'ready') {
-          ready = true;
-          stopTimer();
-          if (!frames.sendWaiting()) repaint();
-          if (shown !== null) {
-            timer = setTimeout(
-              () => failWith('no shared texture paint'),
-              FIRST_TEXTURE_TIMEOUT_MS,
-            );
-          }
-        }
-        if (message.type === 'copied') frames.copied(message.id);
-        if (message.type === 'shown') {
-          stopTimer();
-          if (shown !== null) setNativeMirror(current.id, mirrorPump);
-        }
-        if (message.type === 'mirror-frame') {
-          if (
-            message.frame instanceof Uint8Array &&
-            message.frame.length === 640 * 360 * 4
-          ) {
-            publishNativeMirror(current.id, message.frame);
-          } else {
-            mirrorPump.ack();
-          }
-        }
-        if (message.type === 'mirror-error') {
-          log.warn('presenter preview unavailable', message.message);
-          setNativeMirror(current.id, null);
-        }
-        if (message.type === 'reopened') {
-          log.warn('output presenter window was gone; opened again', {
-            screen: current.id,
-          });
-          // NOTE(0913vision): The new window shows once it has a frame; the
-          // page paints one for it, and a window that never gets one falls
-          // back like a presenter that never paints.
-          if (frames.idle) repaint();
-          if (shown !== null && timer === null) {
-            timer = setTimeout(
-              () => failWith('no shared texture paint'),
-              FIRST_TEXTURE_TIMEOUT_MS,
-            );
-          }
-        }
-        if (message.type === 'replaced') {
-          log.warn('output presenter window was moved or hidden; put back', {
-            screen: current.id,
-            was: message.was,
-          });
-        }
-        if (message.type === 'transitioned') {
-          log.info('output presenter transition', {
-            screen: current.id,
-            ...message,
-          });
-        }
-        if (message.type === 'error') failWith(message.message);
-      },
-    );
-    worker.on('exit', code => {
-      if (child === worker) {
-        setNativeMirror(current.id, null);
-        child = null;
-        failWith(`presenter exited ${code}`);
-      }
-    });
   };
   const open = (bounds: Rect): void => {
     const display = displays.getDisplayMatching(bounds);
@@ -441,12 +401,7 @@ function createPresenterPart(
       if (shown === null || !sameRect(shown, bounds)) open(bounds);
       shown = bounds;
       post({type: 'show', topmost: top});
-      if (ready && timer === null) {
-        timer = setTimeout(
-          () => failWith('no shared texture paint'),
-          FIRST_TEXTURE_TIMEOUT_MS,
-        );
-      }
+      if (ready) awaitFirstPicture();
     },
     setOnTop: top => {
       onTop = top;
@@ -481,16 +436,7 @@ function createPresenterPart(
       stopTimer();
       releaseProblems?.();
       frames.close();
-      const old = child;
-      child = null;
-      if (old !== null) {
-        try {
-          old.postMessage({type: 'stop'});
-        } catch {
-          old.kill();
-        }
-        setTimeout(() => old.kill(), 2000).unref();
-      }
+      presenterProcess.stop();
       if (!win.isDestroyed()) win.destroy();
     },
   };
