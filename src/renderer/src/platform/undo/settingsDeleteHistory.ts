@@ -2,6 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {undoFailure, undoTimeline, type UndoOwner} from './undoTimeline';
 import type {SettingsName} from '@core/schema/app/settingsDocuments';
+import {pushUndoStep} from '@core/common/undoHistory';
 
 interface State {
   readonly undo: number;
@@ -27,7 +28,7 @@ class DeleteHistory implements UndoOwner {
     for (const listener of this.listeners) listener();
   }
   record(revision: number): void {
-    this.undo.push(revision);
+    pushUndoStep(this.undo, revision);
     this.redo = [];
     this.set({undo: this.undo.length, redo: 0, busy: this.state.busy});
     undoTimeline.record(this);

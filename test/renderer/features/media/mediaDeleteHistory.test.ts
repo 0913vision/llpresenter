@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {MEDIA_DELETE_HISTORY_LIMIT} from '@core/schema/media/mediaList';
+import {UNDO_HISTORY_LIMIT} from '@core/common/undoHistory';
 import {MediaDeleteHistory} from '@renderer/features/media/mediaDeleteHistory';
 
 describe('MediaDeleteHistory', () => {
@@ -15,11 +15,7 @@ describe('MediaDeleteHistory', () => {
 
   it('keeps at most the limit of undo steps', () => {
     const history = new MediaDeleteHistory();
-    for (
-      let revision = 1;
-      revision <= MEDIA_DELETE_HISTORY_LIMIT + 5;
-      revision++
-    ) {
+    for (let revision = 1; revision <= UNDO_HISTORY_LIMIT + 5; revision++) {
       history.recordDelete(revision);
     }
     let undone = 0;
@@ -27,7 +23,7 @@ describe('MediaDeleteHistory', () => {
       history.recordStep('undo', 1000 + undone);
       undone += 1;
     }
-    expect(undone).toBe(MEDIA_DELETE_HISTORY_LIMIT);
+    expect(undone).toBe(UNDO_HISTORY_LIMIT);
   });
 
   it('drops every step when a write lands on a list that moved on', () => {

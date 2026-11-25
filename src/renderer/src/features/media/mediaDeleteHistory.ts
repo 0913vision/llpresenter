@@ -1,4 +1,4 @@
-import {MEDIA_DELETE_HISTORY_LIMIT} from '@core/schema/media/mediaList';
+import {UNDO_HISTORY_LIMIT} from '@core/common/undoHistory';
 
 /** Which way a step of the delete history goes. */
 export type HistoryStep = 'undo' | 'redo';
@@ -51,7 +51,7 @@ export class MediaDeleteHistory {
       return false;
     }
     this.revision = revision;
-    this.undoCount = Math.min(this.undoCount + 1, MEDIA_DELETE_HISTORY_LIMIT);
+    this.undoCount = Math.min(this.undoCount + 1, UNDO_HISTORY_LIMIT);
     this.redoCount = 0;
     return true;
   }

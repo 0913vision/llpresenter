@@ -1,5 +1,6 @@
 import type {Notice} from '@renderer/ui/popups/notices';
 import {undoFailure, undoTimeline, type UndoOwner} from './undoTimeline';
+import {pushUndoStep} from '@core/common/undoHistory';
 
 /**
  * One rename that 실행 취소 can run back: the names before and after, and how
@@ -23,7 +24,7 @@ class RenameHistory implements UndoOwner {
   /** A rename that went through; an unchanged name is no step. */
   record(step: RenameStep): void {
     if (step.before === step.after) return;
-    this.undo.push(step);
+    pushUndoStep(this.undo, step);
     this.redo = [];
     undoTimeline.record(this);
   }

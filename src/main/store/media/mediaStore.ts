@@ -10,7 +10,6 @@ import {
 } from '@core/schema/media/mediaEdit';
 import {
   MEDIA_LIMITS,
-  MEDIA_DELETE_HISTORY_LIMIT,
   serializeMediaList,
   type MediaItem,
 } from '@core/schema/media/mediaList';
@@ -36,6 +35,7 @@ import {
 import {isInside} from '../locations/locations';
 import {buildMediaLibrary, type MediaLibrary} from './mediaLibrary';
 import {SettingsPersistence} from '../settings/settingsPersistence';
+import {pushUndoStep} from '@core/common/undoHistory';
 
 /**
  * What the media store starts from: the media document, its file, the media
@@ -178,10 +178,7 @@ export class MediaStore implements MediaLibrary {
       }
       if (deleting && this.document.revision !== revision) {
         const step = captureMediaDeletion(before, edit);
-        if (step) this.deleteUndo.push(step);
-        if (this.deleteUndo.length > MEDIA_DELETE_HISTORY_LIMIT) {
-          this.deleteUndo.shift();
-        }
+        if (step) pushUndoStep(this.deleteUndo, step);
         this.deleteRedo = [];
       }
       return result;

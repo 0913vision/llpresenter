@@ -53,6 +53,7 @@ import {prepareLabelRename} from '../settings/labelRenameTransaction';
 import type {StoredFile} from '../files/library';
 import type {DataLocations} from '../locations/locations';
 import type {SettingsStore} from '../settings/settingsStore';
+import {pushUndoStep} from '@core/common/undoHistory';
 
 /**
  * What the content store starts from: the settings store, the data folders, the
@@ -422,7 +423,7 @@ export class ContentStore {
       record: failed => {
         deleteFailed = failed;
         const stack = this.deletions[area];
-        stack.undo.push(step);
+        pushUndoStep(stack.undo, step);
         stack.redo = [];
       },
     };

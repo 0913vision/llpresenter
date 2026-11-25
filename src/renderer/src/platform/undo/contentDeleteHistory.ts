@@ -6,6 +6,7 @@ import {
   type UndoOwner,
   type UndoPlace,
 } from './undoTimeline';
+import {pushUndoStep} from '@core/common/undoHistory';
 
 type Area = 'song' | 'service' | 'template';
 interface Entry {
@@ -34,7 +35,7 @@ class ContentDeleteHistory implements UndoOwner {
     for (const listener of this.listeners) listener();
   }
   record(area: Area, id: string): void {
-    this.undo.push({area, id});
+    pushUndoStep(this.undo, {area, id});
     this.redo = [];
     this.publish(false);
     undoTimeline.record(this);

@@ -2,9 +2,7 @@ import type {
   SettingsDocument,
   SettingsName,
 } from '@core/schema/app/settingsDocuments';
-
-/** The most deletions one settings area keeps for 실행 취소. */
-const MAX_DELETE_STEPS = 100;
+import {pushUndoStep} from '@core/common/undoHistory';
 
 /** One deletion: the documents it changed, before and after. */
 export interface SettingsDeleteStep {
@@ -105,8 +103,7 @@ export class SettingsDeleteHistory {
   /** A new deletion: the latest to undo, and nothing left to redo. */
   record(name: SettingsName, step: SettingsDeleteStep): void {
     const history = this.areas.get(name) ?? {undo: [], redo: []};
-    history.undo.push(step);
-    if (history.undo.length > MAX_DELETE_STEPS) history.undo.shift();
+    pushUndoStep(history.undo, step);
     history.redo = [];
     this.areas.set(name, history);
   }

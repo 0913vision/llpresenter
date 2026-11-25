@@ -170,9 +170,6 @@ export type MediaList = ReadonlyKnown<v.InferOutput<typeof mediaListSchema>>;
  * it, and absolute otherwise. An absent property means its default.
  */
 export type MediaItem = MediaList['items'][number];
-/** How many deletions of media items can be undone in a session. */
-export const MEDIA_DELETE_HISTORY_LIMIT = 100;
-
 /** A playlist of video and image items in `media.json`. */
 export type MediaPlaylist = MediaList['playlists'][number];
 
