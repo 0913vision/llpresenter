@@ -5,8 +5,11 @@ import {saveFailedProblem} from '@core/schema/app/appProblem';
 import {
   backupFailedCard,
   controlReloadedCard,
+  graphicsRecoveredCard,
   launchFailedCard,
   macroDroppedCard,
+  ndiCard,
+  protectionWriteCard,
   skippedFilesCard,
   waitingSavesCard,
 } from '@renderer/app/notifications/problemNotices';
@@ -127,4 +130,39 @@ it('names what the launch could not prepare, with the log folder', () => {
   });
   card.actions?.[0]?.onSelect();
   expect(openLogs).toHaveBeenCalledOnce();
+});
+
+it('names each NDI problem under its own key, with the capture window where it helps', () => {
+  expect(ndiCard('ndi-runtime-missing')).toMatchObject({
+    key: 'ndi-runtime-missing',
+    kind: 'warning',
+    title: 'NDI Runtime을 찾을 수 없습니다.',
+    meta: ['캡처용 창을 사용할 수 있습니다.'],
+  });
+  expect(ndiCard('ndi-gpu-fallback')).toMatchObject({
+    key: 'ndi-gpu-fallback',
+    title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다.',
+  });
+  expect(ndiCard('ndi-failed')).toMatchObject({
+    key: 'ndi-failed',
+    title: 'NDI 출력 실패',
+    meta: ['캡처용 창으로 표시 중'],
+  });
+});
+
+it('names the recovery record and the earlier versions apart when they cannot be saved', () => {
+  expect(protectionWriteCard('k', 'record').title).toBe(
+    '진행 복구 기록 저장 실패',
+  );
+  expect(protectionWriteCard('k', 'copies').title).toBe('이전 판 저장 실패');
+});
+
+it('says the window was drawn again, as information', () => {
+  expect(graphicsRecoveredCard(TIME)).toEqual({
+    key: 'graphics-recovered',
+    kind: 'info',
+    icon: 'refresh',
+    title: '화면을 다시 그렸습니다.',
+    time: TIME,
+  });
 });

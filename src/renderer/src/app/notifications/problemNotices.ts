@@ -1,6 +1,6 @@
 import {launchTaskName} from '@core/app';
 import type {AppProblemOf} from '@core/schema/app/appProblem';
-import type {Notice} from '@renderer/ui/popups/notices';
+import {warningNotice, type Notice} from '@renderer/ui/popups/notices';
 
 /** One card stands for every data file skipped so far. */
 export const SKIPPED_FILES_KEY = 'file-skipped';
@@ -130,5 +130,50 @@ export function launchFailedCard(
     time,
     meta: [tasks.map(launchTaskName).join(', ')],
     actions: [{icon: 'folder', label: '로그 폴더 열기', onSelect: openLogs}],
+  };
+}
+
+/**
+ * The card of an NDI problem: no NDI Runtime on this PC, a GPU path that fell
+ * back to the plain one, or an NDI output that failed and shows its capture
+ * window.
+ */
+export function ndiCard(
+  kind: 'ndi-runtime-missing' | 'ndi-gpu-fallback' | 'ndi-failed',
+): Notice {
+  switch (kind) {
+    case 'ndi-runtime-missing':
+      return warningNotice(kind, 'NDI Runtime을 찾을 수 없습니다.', [
+        '캡처용 창을 사용할 수 있습니다.',
+      ]);
+    case 'ndi-gpu-fallback':
+      return warningNotice(
+        kind,
+        '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다.',
+      );
+    case 'ndi-failed':
+      return warningNotice(kind, 'NDI 출력 실패', ['캡처용 창으로 표시 중']);
+  }
+}
+
+/** The card of a 진행 복구 기록 or 이전 판 that could not be saved, under `key`. */
+export function protectionWriteCard(
+  key: string,
+  target: AppProblemOf<'protection-write'>['target'],
+): Notice {
+  return warningNotice(
+    key,
+    target === 'record' ? '진행 복구 기록 저장 실패' : '이전 판 저장 실패',
+  );
+}
+
+/** The card shown after the window's pictures were drawn again. */
+export function graphicsRecoveredCard(time: string): Notice {
+  return {
+    key: 'graphics-recovered',
+    kind: 'info',
+    icon: 'refresh',
+    title: '화면을 다시 그렸습니다.',
+    time,
   };
 }
