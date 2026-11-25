@@ -1,6 +1,8 @@
 import {describe, expect, expectTypeOf, it} from 'vitest';
 import {
+  hasCheckColumn,
   hasIconColumn,
+  isRunnable,
   menuBlocks,
   menuItemRole,
   menuItems,
@@ -61,6 +63,34 @@ describe('hasIconColumn', () => {
     expect(hasIconColumn([item('a', {check: 'radio', checked: true})])).toBe(
       false,
     );
+  });
+});
+
+describe('hasCheckColumn', () => {
+  it('keeps the check column when any row can be checked, also an unchecked one', () => {
+    expect(hasCheckColumn([item('a'), item('b', {icon: 'filetext'})])).toBe(
+      false,
+    );
+    expect(
+      hasCheckColumn([
+        item('a'),
+        item('b', {check: 'checkbox', checked: false}),
+      ]),
+    ).toBe(true);
+  });
+});
+
+describe('isRunnable', () => {
+  it('runs an item that is there and not disabled', () => {
+    expect(isRunnable(item('a'))).toBe(true);
+    expect(isRunnable(undefined)).toBe(false);
+    expect(
+      isRunnable({
+        ...item('a'),
+        disabled: true,
+        title: '지금은 할 수 없습니다.',
+      }),
+    ).toBe(false);
   });
 });
 
