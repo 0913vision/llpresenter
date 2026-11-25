@@ -133,7 +133,10 @@ export function useThemeDraft({saved, reason, write, report}: DraftOptions) {
         }
         if (result.value) history.tookSaved(direction, entry);
       })
-      .catch(() => report('테마 변경 실패'))
+      .catch((cause: unknown) => {
+        console.error(`Could not ${direction} a theme change`, cause);
+        report('테마 변경 실패');
+      })
       .finally(() => {
         history.setWriting(false);
         setHistoryVersion(value => value + 1);

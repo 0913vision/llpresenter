@@ -42,6 +42,7 @@ import {
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 import {useShow} from '@renderer/session/show/showStore';
 import type {SizeClass} from '@core/schema/app/appConfig';
+import {logFailure} from '@renderer/platform/logFailure';
 
 const COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;
 const ITEM_COLUMNS = [[SERVICE_ORDER], ['편집'], ['슬라이드 속성']] as const;
@@ -91,7 +92,10 @@ function Library({
           openLibrarySong(song);
         }
       },
-      () => report(warningNotice('details:library', '곡 불러오기 실패')),
+      (cause: unknown) => {
+        logFailure(prep.api, `Could not show library song ${songId}`, cause);
+        report(warningNotice('details:library', '곡 불러오기 실패'));
+      },
     );
   };
   return (

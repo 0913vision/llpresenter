@@ -29,6 +29,7 @@ import {
 import {SlideSidePanel} from '../../slides/SlideSidePanel';
 import styles from './DetailsPanel.module.css';
 import type {SizeClass} from '@core/schema/app/appConfig';
+import {logFailure} from '@renderer/platform/logFailure';
 
 /**
  * What the 세부정보 panel describes: an item of the service, or a song of the
@@ -54,7 +55,8 @@ function useLibrarySong(
       value => {
         if (active) setSong(value);
       },
-      () => {
+      (cause: unknown) => {
+        logFailure(api, `Could not show library song ${songId}`, cause);
         if (!active) return;
         report(warningNotice('details:library', '곡 불러오기 실패'));
       },

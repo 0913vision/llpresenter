@@ -160,7 +160,8 @@ export class MediaLibrary {
           ready('document');
         }
       },
-      () => {
+      (cause: unknown) => {
+        console.error('Could not read the media list', cause);
         if (following) {
           this.onProblem(
             warningNotice('media-view:load', '미디어 불러오기 실패'),

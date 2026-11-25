@@ -67,6 +67,7 @@ export function useSplitSave({
       plan.slides.map(slide => slide.text),
     )
       .catch((cause: unknown) => {
+        console.error('Could not save the verse split', cause);
         if (alive.current) {
           setProblem(
             cause instanceof Error ? cause.message : '절 나누기 저장 실패',

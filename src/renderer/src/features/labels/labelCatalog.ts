@@ -219,7 +219,8 @@ export class LabelCatalog {
   private async read(): Promise<void> {
     try {
       this.accept(await this.api.settings.get({name: 'labels'}));
-    } catch {
+    } catch (cause) {
+      console.error('Could not read the labels', cause);
       if (this.disposed) return;
       this.state = {...this.state, status: 'failed'};
       this.publish();

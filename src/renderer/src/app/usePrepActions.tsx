@@ -18,6 +18,7 @@ import type {ControlSession} from './controlSession';
 import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {editItemInPrep, type PrepBinding} from './workspaces/prepPanels';
 import {useShow} from '@renderer/session/show/showStore';
+import {logFailure} from '@renderer/platform/logFailure';
 
 /** Where 준비 imports songs from. */
 export type ImportSource =
@@ -45,19 +46,27 @@ export function usePrepActions(session: ControlSession): PrepActions {
   const done = useCallback(() => setSource(null), []);
   const draft = useSongDraft(view => view.draft);
   const songOpen = usePrepTarget(view => view.target?.kind === 'song');
-  const failed = (): void =>
+  const failed = (songId: SongId, cause: unknown): void => {
+    logFailure(api, `Could not open song ${songId} in 준비`, cause);
     report(warningNotice('prep:song-open', '곡 열기 실패'));
+  };
   const openSong = (songId: SongId, position = 0): void =>
     requestLeaveSong(() => {
-      api?.songs.get(songId).then(document => {
-        if (document === null) {
-          failed();
-          return;
-        }
-        openSongDraft(document);
-        openDeckAt(document.song.id, songSlidesOf(document.song)[position]?.id);
-        openInPrep({kind: 'song'});
-      }, failed);
+      api?.songs.get(songId).then(
+        document => {
+          if (document === null) {
+            failed(songId, new Error('The song is not in the library'));
+            return;
+          }
+          openSongDraft(document);
+          openDeckAt(
+            document.song.id,
+            songSlidesOf(document.song)[position]?.id,
+          );
+          openInPrep({kind: 'song'});
+        },
+        (cause: unknown) => failed(songId, cause),
+      );
     });
   const newSong = (): void =>
     requestLeaveSong(() => {
