@@ -65,107 +65,152 @@ function forward(event: ReferenceKeyEvent): boolean {
   return event.key === 'Enter' || (event.key === 'Tab' && !event.shift);
 }
 
-/** Decides what a key does in a field of the reference form. */
-export function referenceKey(
+/** Korean still composing: the IME takes the key; Tab moves on after it. */
+function composingKey(
+  part: ReferencePart,
+  event: ReferenceKeyEvent,
+): ReferenceKey {
+  return part === 'book' &&
+    !event.shift &&
+    (event.key === 'Tab' || event.code === 'Tab')
+    ? {kind: 'tab-after-composition'}
+    : {kind: 'pass'};
+}
+
+/**
+ * Esc: in the dialog it empties the fields or closes; otherwise it closes the
+ * book list, leaves the form where it escapes, or goes back to the book.
+ */
+function escapeKey(
   part: ReferencePart,
   event: ReferenceKeyEvent,
   state: ReferenceKeyState,
-): ReferenceKey {
-  if (event.composing) {
-    return part === 'book' &&
-      !event.shift &&
-      (event.key === 'Tab' || event.code === 'Tab')
-      ? {kind: 'tab-after-composition'}
-      : {kind: 'pass'};
-  }
-  if (event.command) return {kind: 'pass'};
+): ReferenceKey | undefined {
+  if (event.key !== 'Escape') return undefined;
   const {book, chapter, start, end} = state.fields;
-  const values = [book, chapter, start, end];
-  if (state.dialogMode && event.key === 'Escape') {
-    return values.some(value => value !== '')
+  if (state.dialogMode) {
+    return [book, chapter, start, end].some(value => value !== '')
       ? {kind: 'clear'}
       : {kind: 'escape'};
   }
+  if (state.expanded) return {kind: 'close-suggestions'};
+  if (state.escapes) return {kind: 'escape'};
+  return part === 'book' ? undefined : {kind: 'to-book'};
+}
+
+/** The 책 field: its book list, a whole typed reference, and moving on to 장. */
+function bookKey(
+  event: ReferenceKeyEvent,
+  state: ReferenceKeyState,
+): ReferenceKey | undefined {
   if (
-    state.dialogMode &&
-    event.key === 'Backspace' &&
-    event.value === '' &&
-    part !== 'book'
+    state.expanded &&
+    !event.repeat &&
+    forward(event) &&
+    state.highlightedBook
   ) {
+    return {kind: 'choose-highlighted'};
+  }
+  if (event.key === 'Enter' && state.submissionDisabled) {
+    return {kind: 'ignore'};
+  }
+  if (
+    forward(event) &&
+    !event.repeat &&
+    fullReferenceCandidate(event.value) !== null
+  ) {
+    return {kind: 'full-reference', submit: event.key === 'Enter'};
+  }
+  // NOTE(0913vision): While the book list is open, Enter picks the book and
+  // moves on to 장, as Tab does; it shows a passage only once 장 has a
+  // value (user decision, November 21).
+  if (
+    event.key === 'Enter' &&
+    !event.repeat &&
+    state.expanded &&
+    state.fields.book.trim() !== '' &&
+    state.fields.chapter === ''
+  ) {
+    return {kind: 'advance-book'};
+  }
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    return {
+      kind: 'point',
+      index:
+        event.key === 'ArrowDown'
+          ? Math.min(state.pointed + 1, state.suggestions - 1)
+          : Math.max(-1, state.pointed - 1),
+    };
+  }
+  if (event.key === 'Tab' && !event.shift) {
+    return state.fields.book.trim() === '' && !state.highlighted
+      ? {kind: 'pass'}
+      : {kind: 'advance-book'};
+  }
+  return undefined;
+}
+
+/**
+ * The 장 and 절 fields: Backspace in an empty one goes back, : and ~ move on,
+ * and they take digits only.
+ */
+function numberKey(
+  part: Exclude<ReferencePart, 'book'>,
+  event: ReferenceKeyEvent,
+  state: ReferenceKeyState,
+): ReferenceKey | undefined {
+  if (state.dialogMode && event.key === 'Backspace' && event.value === '') {
     const index = NUMBER_PARTS.indexOf(part);
     return {
       kind: 'focus',
       part: index <= 0 ? 'book' : (NUMBER_PARTS[index - 1] ?? 'book'),
     };
   }
-  if (event.key === 'Escape' && state.expanded) {
-    return {kind: 'close-suggestions'};
-  }
-  if (event.key === 'Escape' && state.escapes) return {kind: 'escape'};
-  if (part === 'book') {
-    if (
-      state.expanded &&
-      !event.repeat &&
-      forward(event) &&
-      state.highlightedBook
-    ) {
-      return {kind: 'choose-highlighted'};
-    }
-    if (event.key === 'Enter' && state.submissionDisabled) {
-      return {kind: 'ignore'};
-    }
-    if (
-      forward(event) &&
-      !event.repeat &&
-      fullReferenceCandidate(event.value) !== null
-    ) {
-      return {kind: 'full-reference', submit: event.key === 'Enter'};
-    }
-    // NOTE(0913vision): While the book list is open, Enter picks the book and
-    // moves on to 장, as Tab does; it shows a passage only once 장 has a
-    // value (user decision, November 21).
-    if (
-      event.key === 'Enter' &&
-      !event.repeat &&
-      state.expanded &&
-      book.trim() !== '' &&
-      chapter === ''
-    ) {
-      return {kind: 'advance-book'};
-    }
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      return {
-        kind: 'point',
-        index:
-          event.key === 'ArrowDown'
-            ? Math.min(state.pointed + 1, state.suggestions - 1)
-            : Math.max(-1, state.pointed - 1),
-      };
-    }
-    if (event.key === 'Tab' && !event.shift) {
-      return state.fields.book.trim() === '' && !state.highlighted
-        ? {kind: 'pass'}
-        : {kind: 'advance-book'};
-    }
-  }
-  if (event.key === 'Escape' && part !== 'book') return {kind: 'to-book'};
   if (part === 'chapter' && event.key === ':' && state.enabled.start) {
     return {kind: 'focus', part: 'start'};
   }
   if (part === 'start' && /^[-~～]$/u.test(event.key) && state.enabled.end) {
     return {kind: 'focus', part: 'end'};
   }
-  if (part !== 'book' && event.key.length === 1 && !/^\d$/u.test(event.key)) {
+  if (event.key.length === 1 && !/^\d$/u.test(event.key)) {
     return {kind: 'refuse'};
   }
+  return undefined;
+}
+
+/** Tab out of a wrong reference stays; Enter shows the passage. */
+function finishKey(
+  event: ReferenceKeyEvent,
+  state: ReferenceKeyState,
+): ReferenceKey {
+  const {book, chapter, start, end} = state.fields;
   if (
     event.key === 'Tab' &&
     !event.shift &&
     state.error &&
-    values.some(value => value.trim() !== '')
+    [book, chapter, start, end].some(value => value.trim() !== '')
   ) {
     return {kind: 'block'};
   }
   if (event.key !== 'Enter') return {kind: 'pass'};
   return event.repeat ? {kind: 'repeat'} : {kind: 'submit'};
+}
+
+/**
+ * Decides what a key does in a field of the reference form: the IME first,
+ * then Esc, then the rules of the 책 field or of the 장 and 절 fields, then Tab
+ * and Enter.
+ */
+export function referenceKey(
+  part: ReferencePart,
+  event: ReferenceKeyEvent,
+  state: ReferenceKeyState,
+): ReferenceKey {
+  if (event.composing) return composingKey(part, event);
+  if (event.command) return {kind: 'pass'};
+  return (
+    escapeKey(part, event, state) ??
+    (part === 'book' ? bookKey(event, state) : numberKey(part, event, state)) ??
+    finishKey(event, state)
+  );
 }
