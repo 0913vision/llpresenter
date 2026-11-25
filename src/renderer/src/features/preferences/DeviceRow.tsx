@@ -54,7 +54,7 @@ export function DeviceRow({
       ? [
           {
             value: '__loading__',
-            label: '불러오는 중...',
+            label: '불러오는 중',
             disabled: true as const,
             title: '장치 목록을 불러오는 중',
           },
