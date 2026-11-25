@@ -1,7 +1,8 @@
 import {expect, it, vi} from 'vitest';
 import {ORDER_FULL_REASON} from '@renderer/session/service/serviceOrderEdits';
-import {menuItems} from '@renderer/ui/menus/menuModel';
+import {menuItems, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {
+  fitOrderMenu,
   serviceOrderMenuEntries,
   type ServiceOrderMenuInput,
 } from '@renderer/features/service/order/menu/serviceOrderMenu';
@@ -197,4 +198,38 @@ it('disables 복제 with the limit sentence when the 예배 순서 is full', () 
     disabled: true,
     title: ORDER_FULL_REASON,
   });
+});
+
+it('fits the menu to 진행, to several rows, and names how many rows a command takes', () => {
+  const entry = (id: string, label: string): MenuEntry => ({
+    kind: 'item',
+    id,
+    label,
+  });
+  const entries: readonly MenuEntry[] = [
+    entry('open', '열기'),
+    {kind: 'separator', id: 'edit'},
+    entry('copy', '복사'),
+    entry('duplicate', '복제'),
+    entry('move-up', '위로 이동'),
+    entry('delete', '삭제'),
+  ];
+  const ids = (fitted: readonly MenuEntry[]) => fitted.map(item => item.id);
+
+  expect(
+    ids(fitOrderMenu(entries, {workspace: 'prep', count: 1, copies: 1})),
+  ).toEqual(['open', 'edit', 'copy', 'duplicate', 'move-up', 'delete']);
+  expect(
+    ids(fitOrderMenu(entries, {workspace: 'show', count: 1, copies: 1})),
+  ).toEqual(['open', 'edit', 'copy', 'duplicate', 'delete']);
+
+  const many = menuItems(
+    fitOrderMenu(entries, {workspace: 'prep', count: 3, copies: 5}),
+  );
+  expect(many.map(item => item.label)).toEqual([
+    '3개 복사',
+    '5개 복제',
+    '위로 이동',
+    '3개 삭제',
+  ]);
 });
