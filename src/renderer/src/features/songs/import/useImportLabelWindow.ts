@@ -15,6 +15,39 @@ interface FocusTarget {
   readonly part: FieldPart;
 }
 
+/**
+ * Where a key moves the focus among the rows of a window that shows only some
+ * of them: Tab and Shift+Tab cross from a row's button to the next row's
+ * field and back, Page Up and Page Down move a page, and Home and End jump
+ * from a button (a field keeps them for its caret).
+ */
+export function nextFocus(
+  {key, shift}: {readonly key: string; readonly shift: boolean},
+  {index, part}: FocusTarget,
+  {count, visible}: {readonly count: number; readonly visible: number},
+): FocusTarget | undefined {
+  if (key === 'Tab') {
+    if (shift && part === 'input' && index > 0) {
+      return {index: index - 1, part: 'button'};
+    }
+    if (!shift && part === 'button' && index + 1 < count) {
+      return {index: index + 1, part: 'input'};
+    }
+    return undefined;
+  }
+  if (shift) return undefined;
+  const pages: Record<string, number> = {
+    PageDown: index + visible,
+    PageUp: index - visible,
+  };
+  const jumps: Record<string, number> =
+    part === 'button' ? {Home: 0, End: count - 1} : {};
+  const proposed = pages[key] ?? jumps[key];
+  return proposed === undefined
+    ? undefined
+    : {index: Math.max(0, Math.min(count - 1, proposed)), part};
+}
+
 /** Windows header fields while retaining the focused row and logical Tab order. */
 export function useImportLabelWindow(count: number) {
   const viewport = useRef<HTMLDivElement>(null);
@@ -101,30 +134,14 @@ export function useImportLabelWindow(count: number) {
     }
     const row = target.closest<HTMLElement>('[data-header-index]');
     if (row === null) return;
-    const index = Number(row.dataset['headerIndex']);
-    const part = target instanceof HTMLInputElement ? 'input' : 'button';
-    let next: FocusTarget | undefined;
-    if (event.key === 'Tab') {
-      if (event.shiftKey && part === 'input' && index > 0) {
-        next = {index: index - 1, part: 'button'};
-      } else if (!event.shiftKey && part === 'button' && index + 1 < count) {
-        next = {index: index + 1, part: 'input'};
-      }
-    } else if (!event.shiftKey) {
-      const proposed =
-        event.key === 'PageDown'
-          ? index + visible
-          : event.key === 'PageUp'
-            ? index - visible
-            : part === 'button' && event.key === 'Home'
-              ? 0
-              : part === 'button' && event.key === 'End'
-                ? count - 1
-                : undefined;
-      if (proposed !== undefined) {
-        next = {index: Math.max(0, Math.min(count - 1, proposed)), part};
-      }
-    }
+    const next = nextFocus(
+      {key: event.key, shift: event.shiftKey},
+      {
+        index: Number(row.dataset['headerIndex']),
+        part: target instanceof HTMLInputElement ? 'input' : 'button',
+      },
+      {count, visible},
+    );
     if (next === undefined) return;
     event.preventDefault();
     focus(next);
