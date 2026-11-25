@@ -81,7 +81,8 @@ const backgroundsRequest = payloadObject({
     v.check(indices => new Set(indices).size === indices.length),
   ),
 });
-const backgroundsResult = v.nullable(
+const backgroundsResult = v.union([
+  v.null(),
   v.pipe(
     v.array(
       payloadObject({
@@ -92,7 +93,10 @@ const backgroundsResult = v.nullable(
     v.minLength(1),
     v.maxLength(POWERPOINT_PICTURE_LIMITS.count),
   ),
-);
+  // NOTE(0913vision): Why PowerPoint drew none, so the card can say what to do
+  // (church Nov 25: a hung PowerPoint blocked a hymn until a reboot).
+  payloadObject({failure: v.picklist(['unavailable', 'unresponsive'])}),
+]);
 /**
  * The slides of the PowerPoint file read last, by position, whose backgrounds
  * main saves as picture files; at most 200.
@@ -101,8 +105,9 @@ export type PowerPointBackgroundsRequest = v.InferOutput<
   typeof backgroundsRequest
 >;
 /**
- * The picture file of each background asked for, or `null` when they could not
- * be made.
+ * The picture file of each background asked for; why PowerPoint drew none,
+ * when it is not installed or does not answer; or `null` when they could not
+ * be made for another reason.
  */
 export type PowerPointBackgroundsResult = v.InferOutput<
   typeof backgroundsResult

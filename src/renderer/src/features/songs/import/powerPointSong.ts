@@ -28,6 +28,30 @@ interface Reports {
   readonly dismiss: (key: string) => void;
 }
 
+/**
+ * What the card says when backgrounds are missing: what to do when PowerPoint
+ * is not installed or does not answer (church Nov 25: a hung PowerPoint until
+ * a reboot), and where they came from otherwise.
+ */
+function missingBackgrounds(
+  failure: PowerPointBackgrounds['failure'],
+): readonly [title: string, meta: string] {
+  switch (failure) {
+    case 'unresponsive':
+      return [
+        'PowerPoint가 응답하지 않아 배경을 가져오지 못했습니다.',
+        'PowerPoint를 모두 닫거나 PC를 다시 시작한 뒤 다시 가져오세요.',
+      ];
+    case 'unavailable':
+      return [
+        'PowerPoint가 없어 배경을 가져오지 못했습니다.',
+        '가사는 그대로 가져왔습니다.',
+      ];
+    case undefined:
+      return ['배경을 모두 가져오지 못했습니다.', 'PowerPoint'];
+  }
+}
+
 function warn({report}: Reports, title: string, meta?: string): void {
   report({
     key: READING,
@@ -99,8 +123,9 @@ class SongBackgrounds implements ImportPictures {
   }
 
   async fill(): Promise<void> {
+    let failure: PowerPointBackgrounds['failure'];
     try {
-      const {release} = await exportPowerPointBackgrounds(
+      const exported = await exportPowerPointBackgrounds(
         this.api,
         this.source.slides,
         {
@@ -111,8 +136,9 @@ class SongBackgrounds implements ImportPictures {
           },
         },
       );
-      if (this.active) this.free = release;
-      else release();
+      failure = exported.failure;
+      if (this.active) this.free = exported.release;
+      else exported.release();
     } catch (error) {
       console.error('Could not export the PowerPoint backgrounds', error);
     }
@@ -122,7 +148,7 @@ class SongBackgrounds implements ImportPictures {
     finishImportedPictures(this);
     this.close();
     if (missing) {
-      warn(this.reports, '배경을 모두 가져오지 못했습니다.', 'PowerPoint');
+      warn(this.reports, ...missingBackgrounds(failure));
     }
   }
 

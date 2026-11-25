@@ -360,6 +360,23 @@ it('says so when PowerPoint cannot export the backgrounds', async () => {
   log.mockRestore();
 });
 
+it('says what to do when PowerPoint does not answer', async () => {
+  const {show, onProblem} = setup({
+    backgrounds: () => Promise.resolve({failure: 'unresponsive'}),
+  });
+  show();
+  await opened();
+  await filled();
+  expect(
+    onProblem.mock.calls.map(([notice]) => [notice.title, notice.meta]),
+  ).toEqual([
+    [
+      'PowerPoint가 응답하지 않아 배경을 가져오지 못했습니다.',
+      ['PowerPoint를 모두 닫거나 PC를 다시 시작한 뒤 다시 가져오세요.'],
+    ],
+  ]);
+});
+
 it('asks before it replaces a song that is not saved', async () => {
   const {show, cancelRead} = setup();
   act(() => {
