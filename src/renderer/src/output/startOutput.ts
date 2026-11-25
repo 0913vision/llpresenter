@@ -13,6 +13,7 @@ import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
 import {followPlaybackProblems} from '@renderer/rendering/media/playbackProblem';
 import {previewMediaOf} from '@renderer/rendering/media/previewMedia';
+import {RevealReadiness} from './revealReadiness';
 
 /** What an output window runs on. */
 export interface OutputContext {
@@ -25,14 +26,6 @@ export interface OutputContext {
 }
 
 type ErrorReport = (message: string, error: unknown) => void;
-/**
- * How long an output waits before it tells main again that a frame is not
- * ready.
- */
-export const READY_RECHECK_MS = 100;
-
-/** How often an output that waits to be revealed checks its frame. */
-export const READY_POLL_MS = 16;
 
 const MOTION_EVENTS = [
   'playing',
@@ -123,36 +116,35 @@ export function startOutput({
   let preloader: MediaPreloader | null = null;
   let hasFrame = false;
   let latest: LiveState | null = null;
-  let stopped = false;
-  let revealPending = true;
-  let lastAttempt = -Infinity;
-  let lastReady = false;
-  let enableEpoch = 0;
   let drawCount = 0;
   let drawnState = '';
-  let seenFrame = '';
-  let paintedFrame = '';
   let fontsReady = typeof document.fonts === 'undefined';
-  let readyInFlight = false;
-  let readyTimer: ReturnType<typeof setTimeout> | null = null;
   const enabled = (): boolean => latest?.outputs[screenId] === true;
-  /** The screen waits again to be revealed, as when it was just turned on. */
-  const restartReveal = (): void => {
-    enableEpoch += 1;
-    revealPending = true;
-    lastAttempt = -Infinity;
-    lastReady = false;
-  };
-  /** Forgets the frames seen so far, so readiness waits for a new paint. */
-  const forgetFrames = (): void => {
-    seenFrame = '';
-    paintedFrame = '';
-  };
+  const reveal = new RevealReadiness({
+    complete: () => complete(),
+    frameKey: () => frameKey(),
+    version: () => latest?.version ?? null,
+    enabled,
+    report: ({version, ready}) =>
+      api.output.reportReady({
+        screenId,
+        version,
+        ready,
+        width: window.innerWidth,
+        height: window.innerHeight,
+      }),
+    onStandbyReady: () => {
+      meter?.stop();
+      meter = null;
+    },
+    onShown: () => draw(),
+    onError: report,
+  });
   const draw = (): void => {
     if (latest === null) return;
     if (!enabled()) {
-      restartReveal();
-      forgetFrames();
+      reveal.restart();
+      reveal.forgetFrames();
     }
     hasFrame = false;
     try {
@@ -168,12 +160,12 @@ export function startOutput({
         ...frame,
         standby: !enabled(),
         ...(!enabled() ? {clearEffects: []} : {}),
-        transitions: enabled() && !revealPending && !slides.changing,
+        transitions: enabled() && !reveal.isPending && !slides.changing,
       });
       hasFrame = true;
       drawCount += 1;
       reportFrameRates();
-      watchReadiness();
+      reveal.watch();
     } catch (error) {
       report('could not update the output frame', error);
     }
@@ -206,72 +198,11 @@ export function startOutput({
     fontsReady && hasFrame && slides.renderer().ready();
   const frameKey = (): string =>
     `${drawCount}/${window.innerWidth}/${window.innerHeight}`;
-  // NOTE(0913vision): Only a pending reveal needs readiness work. A frame is
-  // painted once the next animation frame sees the same completed drawing.
-  const noteFrame = (time: number): void => {
-    if (!revealPending) return;
-    const key = complete() ? frameKey() : '';
-    if (key === '') paintedFrame = '';
-    else if (key === seenFrame) paintedFrame = key;
-    seenFrame = key;
-    reportReady(time);
-  };
-  const reportReady = (time: number): void => {
-    if (stopped || readyInFlight || latest === null || !revealPending) {
-      return;
-    }
-    const version = latest.version;
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    // NOTE(0913vision): An unpainted frame must reach main as not ready so it
-    // can wake a hidden native compositor without treating a timer as a paint.
-    const ready = complete() && paintedFrame === frameKey();
-    if (time - lastAttempt < READY_RECHECK_MS && (!ready || lastReady)) return;
-    lastAttempt = time;
-    lastReady = ready;
-    const epoch = enableEpoch;
-    readyInFlight = true;
-    void api.output
-      .reportReady({
-        screenId,
-        version,
-        ready,
-        width,
-        height,
-      })
-      .then(shown => {
-        if (stopped || enableEpoch !== epoch) return;
-        if (!enabled() && ready) {
-          revealPending = false;
-          if (readyTimer !== null) clearTimeout(readyTimer);
-          readyTimer = null;
-          meter?.stop();
-          meter = null;
-        } else if (enabled() && shown) {
-          revealPending = false;
-          draw();
-        }
-      })
-      .catch((error: unknown) =>
-        report('could not report a ready output frame', error),
-      )
-      .finally(() => {
-        readyInFlight = false;
-      });
-  };
-  const watchReadiness = (): void => {
-    if (stopped || readyTimer !== null || !revealPending) return;
-    readyTimer = setTimeout(() => {
-      readyTimer = null;
-      reportReady(performance.now());
-      watchReadiness();
-    }, READY_POLL_MS);
-  };
   const resized = (): void => {
-    restartReveal();
-    forgetFrames();
+    reveal.restart();
+    reveal.forgetFrames();
     if (!enabled()) draw();
-    watchReadiness();
+    reveal.watch();
     meter?.refresh();
   };
   window.addEventListener('resize', resized);
@@ -280,10 +211,12 @@ export function startOutput({
   };
   root.addEventListener('pointerdown', raise);
   const reportFrameRates = (): void => {
-    if (!enabled() && !revealPending) return;
+    if (!enabled() && !reveal.isPending) return;
     meter ??= startFrameRateMeter({
-      onFrame: noteFrame,
-      active: () => revealPending || (enabled() && slides.renderer().moving()),
+      // NOTE(0913vision): Only a pending reveal needs readiness work.
+      onFrame: time => reveal.noteFrame(time),
+      active: () =>
+        reveal.isPending || (enabled() && slides.renderer().moving()),
       reportIdle: () => api.output.reportHealth({screenId}),
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
@@ -295,14 +228,14 @@ export function startOutput({
   const applyState = (state: LiveState): void => {
     const wasEnabled = enabled();
     latest = state;
-    if (wasEnabled !== enabled()) restartReveal();
+    if (wasEnabled !== enabled()) reveal.restart();
     const content = drawnContent(state);
     if (content !== drawnState || wasEnabled !== enabled()) {
       drawnState = content;
       draw();
     }
     reportFrameRates();
-    watchReadiness();
+    reveal.watch();
   };
   const stopFollowing = followLiveState(
     api.live,
@@ -315,7 +248,7 @@ export function startOutput({
         id: screenId,
         kind: frames.screenKind(),
         on: enabled(),
-        revealing: revealPending,
+        revealing: reveal.isPending,
       });
       if (change.kind === 'change') {
         slides.change(change.effect, {
@@ -330,9 +263,8 @@ export function startOutput({
     report,
   );
   return () => {
-    stopped = true;
+    reveal.stop();
     preloader?.dispose();
-    if (readyTimer !== null) clearTimeout(readyTimer);
     window.removeEventListener('resize', resized);
     root.removeEventListener('pointerdown', raise);
     meter?.stop();
