@@ -273,6 +273,21 @@ describe('a full screen output drawn by a presenter', () => {
     handle.destroy();
   });
 
+  it('asks the presenter again once the output has been off after a fallback', () => {
+    const {handle, fallbacks} = setup();
+    handle.showFullScreen(monitor, false);
+    spawned().emitter.emit('message', {type: 'error', message: 'no device'});
+    expect(fallbacks[0]?.calls).toContain('showFullScreen');
+
+    handle.hide();
+    handle.showFullScreen(monitor, false);
+
+    expect(mocks.children).toHaveLength(2);
+    expect(fallbacks[0]?.calls.at(-1)).toBe('destroy');
+    expect(fallbacks).toHaveLength(1);
+    handle.destroy();
+  });
+
   it('falls back to the output window when the presenter stops taking frames', () => {
     vi.useFakeTimers();
     const {handle, fallbacks, log} = setup();

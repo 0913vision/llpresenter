@@ -22,7 +22,8 @@ export interface PresentedWindowOptions {
 /**
  * The output of one screen. In full screen it is drawn by a presenter at the
  * monitor's refresh; in window and capture placements, or when the presenter
- * cannot run, it is the ordinary Electron output window.
+ * cannot run, it is the ordinary Electron output window. After a fallback the
+ * presenter is asked again once the output has been off.
  */
 export function createPresentedOutputWindow(
   screen: OutputScreen,
@@ -125,6 +126,10 @@ export function createPresentedOutputWindow(
       lastFullScreen = null;
       presenter?.hide();
       window?.hide();
+      // NOTE(0913vision): Turning the output off and on is how an operator
+      // tries again, so the next full screen asks the presenter once more
+      // instead of keeping the output window until the app restarts.
+      failed = false;
     },
     reload: () => active()?.reload() ?? Promise.resolve(),
     crashRenderer: () => active()?.crashRenderer(),
