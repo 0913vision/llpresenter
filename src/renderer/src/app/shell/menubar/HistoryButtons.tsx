@@ -1,10 +1,7 @@
 import {useEffect, useState, type JSX} from 'react';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
-import {
-  probeCommand,
-  runCommandAt,
-  subscribeHistoryCommands,
-} from '@renderer/ui/keys/commandDispatcher';
+import {subscribeHistoryCommands} from '@renderer/ui/keys/commandDispatcher';
+import {probeCommand, runCommandAt} from '@renderer/ui/keys/commandProbe';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {
   NOTHING_TO_REDO,

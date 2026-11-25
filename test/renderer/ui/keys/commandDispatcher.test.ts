@@ -2,10 +2,10 @@ import {fireEvent, renderHook} from '@testing-library/react';
 import {afterEach, describe, expect, it} from 'vitest';
 import {
   dispatchShortcut,
-  probeCommand,
   useCommandShortcuts,
   isInputMethodKey,
 } from '@renderer/ui/keys/commandDispatcher';
+import {probeCommand} from '@renderer/ui/keys/commandProbe';
 import {onShortcutCommit} from '@renderer/ui/fields/commitDraft';
 
 afterEach(() => {
