@@ -1,5 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {UpdateController} from '@main/update/controller';
+import {UpdateController, updateErrorReason} from '@main/update/controller';
 import type {UpdaterPort} from '@main/update/port';
 import type {UpdateAction, UpdateSnapshot} from '@core/schema/app/update';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -251,5 +251,43 @@ describe('UpdateController', () => {
     controller.dispose();
     controller.launch();
     expect(options.updater.check).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateErrorReason', () => {
+  it.each([
+    [
+      'getaddrinfo ENOTFOUND github.com',
+      '인터넷 연결을 확인한 뒤 다시 시도해 주세요.',
+    ],
+    [
+      'net::ERR_INTERNET_DISCONNECTED',
+      '인터넷 연결을 확인한 뒤 다시 시도해 주세요.',
+    ],
+    [
+      'HttpError: 404 Not Found latest.yml',
+      '공개된 업데이트를 찾을 수 없습니다.',
+    ],
+    ['ENOSPC: no space left on device', '저장 공간이 부족합니다.'],
+    [
+      'sha512 checksum mismatch',
+      '설치 파일을 확인할 수 없습니다. 다시 내려받아 주세요.',
+    ],
+    [
+      'EPERM: operation not permitted',
+      '업데이트 파일을 저장할 권한이 없습니다.',
+    ],
+    [
+      'Invented failure',
+      '업데이트를 완료할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+    ],
+  ])('tells the operator what to do about %s', (message, reason) => {
+    expect(updateErrorReason(new Error(message))).toBe(reason);
+  });
+
+  it('reads a thrown value that is not an Error by its text', () => {
+    expect(updateErrorReason('ETIMEDOUT')).toBe(
+      '인터넷 연결을 확인한 뒤 다시 시도해 주세요.',
+    );
   });
 });
