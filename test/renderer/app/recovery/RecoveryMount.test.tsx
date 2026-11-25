@@ -51,7 +51,7 @@ function setup(offers: ReadonlyArray<RecoverySummary | Error>) {
 
 function dialog() {
   return screen.queryByRole('alertdialog', {
-    name: '끊긴 곳부터 이어서 할까요?',
+    name: '끊긴 곳부터 이어서 하시겠습니까?',
   });
 }
 
@@ -62,7 +62,9 @@ it('keeps the dialog and checked rows available to retry a failed durable restor
     ok: false,
     error: {reason: 'apply-failed', message: 'Invented failed durable write'},
   });
-  await screen.findByRole('alertdialog', {name: '끊긴 곳부터 이어서 할까요?'});
+  await screen.findByRole('alertdialog', {
+    name: '끊긴 곳부터 이어서 하시겠습니까?',
+  });
   await userEvent.click(
     screen.getByRole('checkbox', {name: /마지막 슬라이드/}),
   );
@@ -104,7 +106,9 @@ afterEach(async () => {
 
 it('lets F1 clear the screens while the dialog is open', async () => {
   const {send} = setup([sampleOffer()]);
-  await screen.findByRole('alertdialog', {name: '끊긴 곳부터 이어서 할까요?'});
+  await screen.findByRole('alertdialog', {
+    name: '끊긴 곳부터 이어서 하시겠습니까?',
+  });
   const empty = emptyLiveState();
   useLive.setState({
     state: {

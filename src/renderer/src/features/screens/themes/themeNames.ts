@@ -56,7 +56,7 @@ export function elementName(element: ThemeElement): string {
 /** What each problem of the theme list says. */
 export const themeProblems: Readonly<Record<ThemeListProblem, string>> = {
   missing: '테마를 찾을 수 없습니다.',
-  name: '이름을 확인하세요.',
+  name: '이름을 확인해야 합니다.',
   taken: '같은 이름의 테마가 있습니다.',
   full: '테마는 더 만들 수 없습니다.',
   own: '기본 테마는 삭제할 수 없습니다.',

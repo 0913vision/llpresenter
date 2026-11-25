@@ -209,7 +209,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
     await userEvent.click(saveButton());
     await confirmName();
     const prompt = await screen.findByRole('alertdialog', {
-      name: '‘이번 주일 예배’ 템플릿이 이미 있습니다. 덮어쓸까요?',
+      name: '‘이번 주일 예배’ 템플릿이 이미 있습니다. 덮어쓰시겠습니까?',
     });
     expect(prompt).toBeDefined();
     await userEvent.click(

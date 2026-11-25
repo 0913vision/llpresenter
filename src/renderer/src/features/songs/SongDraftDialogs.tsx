@@ -61,7 +61,7 @@ function TakenDialog({
   return (
     <AlertDialog
       icon="song"
-      title={`‘${title}’ 곡이 이미 있습니다. 덮어쓸까요?`}
+      title={`‘${title}’ 곡이 이미 있습니다. 덮어쓰시겠습니까?`}
       meta={[
         '곡',
         ...countedMeta(slides.length, `슬라이드 ${slides.length}개`),
@@ -143,7 +143,7 @@ export function SongDraftDialogs(): JSX.Element | null {
       return (
         <AlertDialog
           icon="song"
-          title={`‘${title}’ 곡을 덮어쓸까요?`}
+          title={`‘${title}’ 곡을 덮어쓰시겠습니까?`}
           meta={usageMeta(used, '예배')}
           onCancel={close}
           actions={[
@@ -165,7 +165,7 @@ export function SongDraftDialogs(): JSX.Element | null {
       return (
         <AlertDialog
           icon="song"
-          title={`‘${title}’ 곡의 변경을 저장할까요?`}
+          title={`‘${title}’ 곡의 변경을 저장하시겠습니까?`}
           onCancel={close}
           actions={[
             {label: '저장 안 함', disabled: saving, onSelect: leave},

@@ -55,8 +55,8 @@ export function useServiceSwitchGuard() {
         icon="warning"
         title={
           pending.kind === 'open'
-            ? `‘${pending.name}’${objectParticle(pending.name)} 열까요?`
-            : '새 예배를 만들까요?'
+            ? `‘${pending.name}’${objectParticle(pending.name)} 여시겠습니까?`
+            : '새 예배를 만드시겠습니까?'
         }
         meta={['모든 화면이 대기 화면으로 바뀝니다.']}
         initialFocus="cancel"

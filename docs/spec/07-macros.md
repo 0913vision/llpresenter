@@ -102,8 +102,8 @@ Source: `MacroTile` README (runs at once, no confirmation), `docs/TECH.md`
 
 The rows, groups, and order of the 매크로 right-click menu follow ProPresenter
 and are set in [11-menus.md](11-menus.md), "매크로 오른쪽 클릭". 삭제 asks in a
-confirmation dialog, for example "‘예배 시작’ 매크로를 삭제할까요?" (Delete this
-매크로?).
+confirmation dialog, for example "‘예배 시작’ 매크로를 삭제하시겠습니까?"
+(Delete this 매크로?).
 
 Source: `Macros`, 11-menus.md.
 

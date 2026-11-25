@@ -322,7 +322,7 @@ describe('ShortcutsPage', () => {
     );
     expect(edit).not.toHaveBeenCalled();
     const dialog = await screen.findByRole('alertdialog', {
-      name: '모든 단축키를 기본값으로 되돌릴까요?',
+      name: '모든 단축키를 기본값으로 되돌리시겠습니까?',
     });
     await userEvent.click(
       within(dialog).getByRole('button', {name: '모두 기본값으로'}),

@@ -185,7 +185,7 @@ export function useServiceSongMenu(
       question === null ? null : (
         <AlertDialog
           icon="song"
-          title="라이브러리에서 다시 불러올까요?"
+          title="라이브러리에서 다시 불러오시겠습니까?"
           onCancel={() => {
             if (!busy) setQuestion(null);
           }}

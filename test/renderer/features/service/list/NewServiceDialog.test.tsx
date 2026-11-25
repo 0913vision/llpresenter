@@ -206,7 +206,7 @@ describe('NewServiceDialog', () => {
     await screen.findByRole('treeitem', {name: titles.first});
     await userEvent.click(createButton());
     const guard = await screen.findByRole('alertdialog', {
-      name: '새 예배를 만들까요?',
+      name: '새 예배를 만드시겠습니까?',
     });
     expect(
       within(guard).getByText('모든 화면이 대기 화면으로 바뀝니다.'),

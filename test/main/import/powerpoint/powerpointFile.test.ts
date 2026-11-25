@@ -53,7 +53,9 @@ describe('unsupportedSlideSize', () => {
     ).toBeNull();
     expect(
       unsupportedSlideSize({widescreen: false, width: 960, height: 720}),
-    ).toBe('4:3 파일은 가져올 수 없습니다. PowerPoint에서 16:9로 바꾸세요.');
+    ).toBe(
+      '4:3 파일은 가져올 수 없습니다. PowerPoint에서 16:9로 바꿔야 합니다.',
+    );
   });
 
   it('throws on a reply that is not a slide size', () => {

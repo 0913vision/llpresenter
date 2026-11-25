@@ -19,7 +19,7 @@ export function SaveTemplatePrompt({
   return (
     <AlertDialog
       icon="frame"
-      title={`‘${conflict.name}’ 템플릿이 이미 있습니다. 덮어쓸까요?`}
+      title={`‘${conflict.name}’ 템플릿이 이미 있습니다. 덮어쓰시겠습니까?`}
       onCancel={onCancel}
       actions={[
         {label: '새 템플릿으로 저장', onSelect: onSaveNew, disabled: busy},

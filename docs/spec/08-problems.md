@@ -15,16 +15,16 @@ tools). See 01.
 A failure card that has a reason from main says it under its title, in the same
 standard words for the same reason wherever it comes from (user decision,
 November 26): `변경 내용을 파일에 저장할 수 없습니다.` with
-`디스크 공간과 폴더 권한을 확인하세요.` for an unwritten file;
-`다른 곳에서 먼저 변경되었습니다.` with `다시 시도하세요.` for a change made
-elsewhere first; `대상을 찾을 수 없습니다.`;
+`디스크 공간과 폴더 권한을 확인해야 합니다.` for an unwritten file;
+`다른 곳에서 먼저 변경되었습니다.` with `다시 시도해야 합니다.` for a change
+made elsewhere first; `대상을 찾을 수 없습니다.`;
 `새 버전의 파일이라 바꿀 수 없습니다.`; `같은 이름이 이미 있습니다.`;
 `올바르지 않은 값입니다.`; `저장을 기다리는 변경이 너무 많습니다.` and
-`이전 작업이 진행 중입니다.`, each with `잠시 후 다시 시도하세요.`. A card whose
-request itself failed keeps its title alone; the cause is in the log. Every
-message of the app that asks the operator to do something ends in the plain
-request form (`다시 시도하세요.`, `16:9로 바꾸세요.`), never `~해 주세요` or
-`~해 주십시오`.
+`이전 작업이 진행 중입니다.`, each with `잠시 후 다시 시도해야 합니다.`. A card
+whose request itself failed keeps its title alone; the cause is in the log.
+Every message of the app is in 합니다체 (user decision, November 26): a
+statement ends in `~니다`, a request in `~해야 합니다` (`다시 시도해야 합니다.`,
+`16:9로 바꿔야 합니다.`), and a question in `~하시겠습니까?`; never `~요`.
 
 Live media playback failures, audio playback failures, and audio output device
 failures appear in the control window's existing warning cards and the 출력
@@ -344,7 +344,7 @@ session over it. A second answer is refused while a restore is in progress.
 | Part    | Content                                                                                                            |
 | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | Icon    | History icon                                                                                                       |
-| Title   | "끊긴 곳부터 이어서 할까요?" (go on from where it stopped?)                                                        |
+| Title   | "끊긴 곳부터 이어서 하시겠습니까?" (go on from where it stopped?)                                                  |
 | Detail  | "앱이 갑자기 꺼졌습니다 10월 25일 오전 11:26" (the app closed suddenly, with the time of the last recovery record) |
 | Group   | "이어서 할 항목" (items to go on with), with three check rows, all checked by default                              |
 | Buttons | 새로 시작 (start fresh) and 이어서 하기 (go on, primary). There is no cancel button.                               |

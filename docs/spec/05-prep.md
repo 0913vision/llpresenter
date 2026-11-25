@@ -560,7 +560,7 @@ The service list opens from the service name in the 예배 순서 header in both
   Keep content items and empty sections. The section rows remain even when they
   contain no content. A template has no slot items.
 - If a 템플릿 with the same name exists, show the confirmation dialog "‘주일
-  예배’ 템플릿이 이미 있습니다. 덮어쓸까요?" (This 템플릿 already exists.
+  예배’ 템플릿이 이미 있습니다. 덮어쓰시겠습니까?" (This 템플릿 already exists.
   Overwrite it?) with 취소, 새 템플릿으로 저장 (save as new 템플릿), and
   덮어쓰기 (overwrite).
 - 새 템플릿으로 저장 uses the first unused numbered name, such as 주일 예배 2,
@@ -735,8 +735,8 @@ row-menu decision.
     autosaved, and a crash loses it (proposal).
 - While the draft is open, if the operator selects another song or item or
   starts another import, ask in a confirmation dialog: "가져온 곡을 저장하지
-  않았습니다. 버릴까요?" (The imported song isn't saved. Discard it?) with 취소
-  and 저장 안 함 (proposal).
+  않았습니다. 버리시겠습니까?" (The imported song isn't saved. Discard it?) with
+  취소 and 저장 안 함 (proposal).
 - 저장 is unavailable while the title is empty, with the tooltip "곡 제목을
   적어야 저장할 수 있습니다.".
 - 저장 with a new title saves the song to the 라이브러리 with a new ID. The
@@ -744,12 +744,12 @@ row-menu decision.
   is selected in the 라이브러리.
 - 저장 with a title that exists opens the confirmation dialog:
 
-| Part    | Content                                                                                          |
-| ------- | ------------------------------------------------------------------------------------------------ |
-| Title   | "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?" (This song already exists. Overwrite it?) |
-| Detail  | "라이브러리 곡 슬라이드 4개, 10월 20일 수정" (라이브러리 song, 4 슬라이드, edited October 20)    |
-| Buttons | 취소 (left), 새 곡으로 저장 (save as new song), 덮어쓰기 (overwrite, primary)                    |
-| Keys    | Enter is 덮어쓰기. Esc is 취소.                                                                  |
+| Part    | Content                                                                                                |
+| ------- | ------------------------------------------------------------------------------------------------------ |
+| Title   | "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓰시겠습니까?" (This song already exists. Overwrite it?) |
+| Detail  | "라이브러리 곡 슬라이드 4개, 10월 20일 수정" (라이브러리 song, 4 슬라이드, edited October 20)          |
+| Buttons | 취소 (left), 새 곡으로 저장 (save as new song), 덮어쓰기 (overwrite, primary)                          |
+| Keys    | Enter is 덮어쓰기. Esc is 취소.                                                                        |
 
 - The answers:
   - 덮어쓰기 replaces the library song at its checked revision, preserving its
@@ -768,7 +768,7 @@ and 59.
 가져오기…, also while an item is open. Both take `.ppt`, `.pptx`, and `.pptm`. A
 `.ppt` is converted from a private copy by PowerPoint with macros disabled.
 Hidden slides are skipped. A 4:3 file is refused: "4:3 파일은 가져올 수
-없습니다. PowerPoint에서 16:9로 바꾸세요."
+없습니다. PowerPoint에서 16:9로 바꿔야 합니다."
 
 ### 곡 가져오기
 

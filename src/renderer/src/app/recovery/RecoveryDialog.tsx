@@ -40,7 +40,7 @@ export function RecoveryDialog({
   return (
     <AlertDialog
       icon="history"
-      title="끊긴 곳부터 이어서 할까요?"
+      title="끊긴 곳부터 이어서 하시겠습니까?"
       meta={['앱이 갑자기 꺼졌습니다.', recoveryTime(summary.savedAt)]}
       actions={[
         {

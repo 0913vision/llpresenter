@@ -107,7 +107,7 @@ it(
     await app.crash();
     page = await app.start();
     const recovery = page.getByRole('alertdialog', {
-      name: '끊긴 곳부터 이어서 할까요?',
+      name: '끊긴 곳부터 이어서 하시겠습니까?',
     });
     await recovery.getByRole('button', {name: '이어서 하기'}).click();
     await expect

@@ -52,7 +52,7 @@ export function ThemeSaveDialogs({
     return (
       <AlertDialog
         icon="layers"
-        title={`‘${theme.name}’ 테마를 덮어쓸까요?`}
+        title={`‘${theme.name}’ 테마를 덮어쓰시겠습니까?`}
         meta={usageMeta(usage)}
         onCancel={model.closeDialog}
         actions={[
@@ -69,7 +69,7 @@ export function ThemeSaveDialogs({
   return (
     <AlertDialog
       icon="layers"
-      title={`‘${theme.name}’ 테마의 변경을 저장할까요?`}
+      title={`‘${theme.name}’ 테마의 변경을 저장하시겠습니까?`}
       onCancel={model.closeDialog}
       actions={[
         {

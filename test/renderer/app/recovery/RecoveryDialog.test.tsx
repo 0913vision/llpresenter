@@ -27,7 +27,7 @@ function restoreButton() {
 it('asks with the time of the record and every offered row checked', () => {
   setup();
   const dialog = screen.getByRole('alertdialog', {
-    name: '끊긴 곳부터 이어서 할까요?',
+    name: '끊긴 곳부터 이어서 하시겠습니까?',
   });
   expect(dialog.textContent).toContain('앱이 갑자기 꺼졌습니다.');
   expect(dialog.textContent).toContain('10월 25일 오전 11:26');

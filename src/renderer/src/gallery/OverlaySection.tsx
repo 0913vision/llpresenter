@@ -439,7 +439,7 @@ export function OverlaySection(): JSX.Element {
             render={close => (
               <AlertDialog
                 icon="song"
-                title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?"
+                title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓰시겠습니까?"
                 meta={[
                   '라이브러리 곡 슬라이드 4개, 10월 20일 수정',
                   '새 제목: ‘만복의 근원 하나님 (2)’',
@@ -459,7 +459,7 @@ export function OverlaySection(): JSX.Element {
             render={close => (
               <AlertDialog
                 icon="song"
-                title={`‘${LONG_SONG_TITLE}’ 곡이 이미 있습니다. 덮어쓸까요?`}
+                title={`‘${LONG_SONG_TITLE}’ 곡이 이미 있습니다. 덮어쓰시겠습니까?`}
                 meta={[
                   '라이브러리 곡 슬라이드 4개',
                   `새 제목: ‘${LONG_SONG_TITLE}${NEW_SONG_SUFFIX}’`,
@@ -479,7 +479,7 @@ export function OverlaySection(): JSX.Element {
             render={close => (
               <AlertDialog
                 icon="history"
-                title="끊긴 곳부터 이어서 할까요?"
+                title="끊긴 곳부터 이어서 하시겠습니까?"
                 meta={['앱이 갑자기 꺼졌습니다.', '10월 25일 오전 11:26']}
                 actions={[
                   {label: '새로 시작', escape: true, onSelect: close},

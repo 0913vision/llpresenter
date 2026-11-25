@@ -246,7 +246,7 @@ export function ShortcutsPage({
       {confirmingAll ? (
         <AlertDialog
           icon="undo"
-          title="모든 단축키를 기본값으로 되돌릴까요?"
+          title="모든 단축키를 기본값으로 되돌리시겠습니까?"
           onCancel={() => setConfirmingAll(false)}
           actions={[
             {

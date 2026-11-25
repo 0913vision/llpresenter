@@ -10,7 +10,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 
 ## Where not to use
 
-- A window that answers one question ("덮어쓸까요?", output state recovery): use `AlertDialog`.
+- A window that answers one question ("덮어쓰시겠습니까?", output state recovery): use `AlertDialog`.
 - Picking one item from a short list: use the popover list from `Menu`.
 - Something that only informs: use `Notification`.
 

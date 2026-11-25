@@ -148,7 +148,7 @@ describe('the 파일 menu', () => {
       await screen.findByRole('menuitemradio', {name: /Evening sermon/}),
     );
     const dialog = await screen.findByRole('alertdialog', {
-      name: '‘Evening sermon’을 열까요?',
+      name: '‘Evening sermon’을 여시겠습니까?',
     });
     expect(document.activeElement).toBe(
       within(dialog).getByRole('button', {name: '취소'}),

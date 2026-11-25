@@ -520,7 +520,7 @@ The page in 06 stays. This proposal changes these points:
   particular source slide in its song (05); this page does not assign app-wide
   이름표 keys. This is the October 27 S26 user decision.
 - 모두 기본값으로 (reset all) asks in a confirmation dialog, because it can't be
-  undone: "단축키를 모두 기본값으로 되돌릴까요?" with 취소 and 되돌리기
+  undone: "모든 단축키를 기본값으로 되돌리시겠습니까?" with 취소 and 되돌리기
   (decided; design system principle 6).
 - The bottom bar shows the default key of the selected command, as
   ProPresenter's Key Mappings window does (S2). This is already in 06.
@@ -1060,9 +1060,9 @@ retain their own transitions.
   song or service file (02). They are different policies, so they sit in
   different groups.
 - When the operator picks a new, empty data folder, the app asks whether to copy
-  the current data there: "새 폴더가 비어 있습니다. 지금 데이터를 복사할까요?"
-  with 취소, 복사하지 않음, and 복사 (proposal). 02 says the app doesn't move
-  existing files; copying keeps the original as it is.
+  the current data there: "새 폴더가 비어 있습니다. 지금 데이터를
+  복사하시겠습니까?" with 취소, 복사하지 않음, and 복사 (proposal). 02 says the
+  app doesn't move existing files; copying keeps the original as it is.
 - Deleted songs, services, and 템플릿 go to the Windows Recycle Bin (see "Fixed
   behaviors").
 
@@ -1124,8 +1124,8 @@ this preference.
 See "Shortcut system". This page lists the commands that have a handler; a
 command joins the page when its handler is registered. Source-slide hot keys are
 edited on the source slide in the song editor (05), not in a global label list.
-The reset confirmation is one question: "모든 단축키를 기본값으로 되돌릴까요?".
-The footer's clear button reads 단축키 지우기.
+The reset confirmation is one question: "모든 단축키를 기본값으로
+되돌리시겠습니까?". The footer's clear button reads 단축키 지우기.
 
 #### 정보 (About)
 
@@ -1310,7 +1310,7 @@ and preview content keeps its output proportions. Changing zoom doesn't edit
   open (focus precedence).
 - 보기 > 화면 배치 기본값 (`ui.resetLayout`, no default key) is a proposal
   pending confirmation (M2 check 1 row 10). Ask "화면 배치를 기본값으로
-  되돌릴까요?" with 취소 and 초기화. Esc or 취소 changes nothing. Enter or
+  되돌리시겠습니까?" with 취소 and 초기화. Esc or 취소 changes nothing. Enter or
   초기화 applies and saves the following reset together:
   - Main window: leave maximized state, use a proposed 1280 x 720 DIP size,
     centered in the current monitor's work area and constrained to that area.
@@ -1361,7 +1361,7 @@ service or because no operator needs another behavior.
 | The app never needs the network, sends nothing out, and has no telemetry.                                                                                              | Decided.                                                                                                                                                                                                                         | `docs/TECH.md`                                 |
 | Launch checks offer a notice only. A manual update requires confirmation, warns if outputs are on, and restores them after restart (01, "App updates").                | Decided.                                                                                                                                                                                                                         | `docs/TECH.md`, 08                             |
 | Automatic backup runs once a day at launch, never while an output is on.                                                                                               | Decided.                                                                                                                                                                                                                         | 02, 08                                         |
-| Quitting (Ctrl Q, Alt F4, the close button) while any output is on asks: "화면 출력이 켜져 있습니다. 종료할까요?" with 취소 and 종료.                                  | Quitting can't be undone (design principle 6). OBS warns about active outputs on exit as a setting (S11); here it's always on.                                                                                                   | Proposal                                       |
+| Quitting (Ctrl Q, Alt F4, the close button) while any output is on asks: "화면 출력이 켜져 있습니다. 종료하시겠습니까?" with 취소 and 종료.                            | Quitting can't be undone (design principle 6). OBS warns about active outputs on exit as a setting (S11); here it's always on.                                                                                                   | Proposal                                       |
 | Live commands ignore key repeat.                                                                                                                                       | Holding a key must not run through a song.                                                                                                                                                                                       | Proposal                                       |
 | The app opens in the 진행 workspace with the last service.                                                                                                             | Decided.                                                                                                                                                                                                                         | 01, 04                                         |
 | Text that overflows shrinks to fit. A 슬라이드 never splits.                                                                                                           | ProPresenter offers four scaling modes (S4 p. 65); one predictable rule is enough for lyrics.                                                                                                                                    | 03                                             |
@@ -1530,11 +1530,11 @@ say which one.
 | `Prefs` 정보                 | New            | 현재 버전 (read-only), 기록 폴더 (폴더 열기), 진단 정보 (복사), 자세한 기록 (switch).                                                                                                                                                                                                                          | `PropertyRow`, `Button`, `Switch`                                                           |                           |
 | `Prefs`: page reset          | New            | 기본값으로 at the bottom of a page, and its confirmation dialog.                                                                                                                                                                                                                                               | `Button`, `AlertDialog`                                                                     |                           |
 | `Shortcuts`                  | Changed        | Every group of "Command list" plus the 이름표 group, scrolled; per-object rows under 테마, 진행 도구 (그래픽, 매크로, 타이머); the states default, changed, conflict, none, and recording; the key field refusing a reserved key, with the reason in its tooltip; the bottom bar with the default key.         | `KeyCap`, `TextField` (key input), `SegmentedControl` (filter counts), `ListRow`, `Tooltip` | None (decided)            |
-| `Shortcuts`: reset all       | New            | The confirmation dialog of 모두 기본값으로 ("단축키를 모두 기본값으로 되돌릴까요?", 취소, 되돌리기).                                                                                                                                                                                                           | `AlertDialog`                                                                               |                           |
+| `Shortcuts`: reset all       | New            | The confirmation dialog of 모두 기본값으로 ("모든 단축키를 기본값으로 되돌리시겠습니까?", 취소, 되돌리기).                                                                                                                                                                                                     | `AlertDialog`                                                                               |                           |
 | `StageEditor`: clock element | Changed        | The 시계 element's properties add 시계 형식 (segmented 24시간, 12시간).                                                                                                                                                                                                                                        | `PropertyRow`, `SegmentedControl`                                                           |                           |
 | `Screens`: screen properties | Changed        | The 안정성 group without 절전 막기. The 방송 화면 capture window example shows 항상 위 off.                                                                                                                                                                                                                    | `PropertyRow`, `Switch`, `Select`                                                           | Open question 10          |
-| Quit while an output is on   | New            | The confirmation dialog "화면 출력이 켜져 있습니다. 종료할까요?" with 취소 and 종료, over the main window.                                                                                                                                                                                                     | `AlertDialog`                                                                               |                           |
-| Empty data folder            | New            | The confirmation dialog "새 폴더가 비어 있습니다. 지금 데이터를 복사할까요?" with 취소, 복사하지 않음, and 복사.                                                                                                                                                                                               | `AlertDialog`                                                                               |                           |
+| Quit while an output is on   | New            | The confirmation dialog "화면 출력이 켜져 있습니다. 종료하시겠습니까?" with 취소 and 종료, over the main window.                                                                                                                                                                                               | `AlertDialog`                                                                               |                           |
+| Empty data folder            | New            | The confirmation dialog "새 폴더가 비어 있습니다. 지금 데이터를 복사하시겠습니까?" with 취소, 복사하지 않음, and 복사.                                                                                                                                                                                         | `AlertDialog`                                                                               |                           |
 | 타이머 editor                | Changed later  | The 0 지나면 choice (계속, 정지) joins the 타이머 editor once a board draws that editor (README open question 16).                                                                                                                                                                                             | `SegmentedControl`                                                                          | README open question 16   |
 
 - No board changes for keys that only live in tooltips and menus (for example

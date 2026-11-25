@@ -292,7 +292,7 @@ function Overwrite({
   return (
     <AlertDialog
       icon="song"
-      title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?"
+      title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓰시겠습니까?"
       meta={['라이브러리 곡 슬라이드 4개, 10월 20일 수정']}
       onCancel={onCancel}
       actions={[
@@ -350,7 +350,7 @@ describe('AlertDialog', () => {
   it('asks its question and starts on the primary button', () => {
     render(<Overwrite />);
     const alert = screen.getByRole('alertdialog', {
-      name: '‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?',
+      name: '‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓰시겠습니까?',
       description: '라이브러리 곡 슬라이드 4개, 10월 20일 수정',
     });
     expect(alert.getAttribute('aria-modal')).toBe('true');
@@ -378,7 +378,7 @@ describe('AlertDialog', () => {
     render(
       <AlertDialog
         icon="history"
-        title="끊긴 곳부터 이어서 할까요?"
+        title="끊긴 곳부터 이어서 하시겠습니까?"
         meta={['앱이 갑자기 꺼졌습니다.', '10월 25일 오전 11:26']}
         actions={[
           {label: '새로 시작', escape: true, onSelect: onRestart},

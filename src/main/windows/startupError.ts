@@ -4,6 +4,6 @@ import {dialog} from 'electron';
 export function showStartupError(): void {
   dialog.showErrorBox(
     '시작 오류',
-    '화면을 불러오지 못했습니다. 프로그램을 다시 실행하세요.',
+    '화면을 불러오지 못했습니다. 프로그램을 다시 실행해야 합니다.',
   );
 }

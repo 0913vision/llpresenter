@@ -78,7 +78,7 @@ export function useVerseSplit(
       : versesOfPassage(text).find(entry => sameVerse(entry.reference, verse));
   const reason =
     deck === null || verse === undefined
-      ? '말씀 슬라이드를 고르세요.'
+      ? '말씀 슬라이드를 골라야 합니다.'
       : deck.readOnly
         ? '지금은 편집할 수 없습니다.'
         : text === null
