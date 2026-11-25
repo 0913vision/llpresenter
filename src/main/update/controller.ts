@@ -110,49 +110,62 @@ export class UpdateController {
     }
   }
 
+  /** Follows a button of the update notice, if it still fits what is shown. */
   act(request: UpdateAction): void {
     if (this.disposed || request.revision !== this.revision) return;
-    if (request.action === 'later' || request.action === 'dismiss') {
-      this.visible = false;
-      this.busy = false;
-      this.publish();
-    } else if (
-      request.action === 'retry' &&
-      this.manual &&
-      this.visible &&
-      this.status.kind === 'error'
-    ) {
-      const retry = this.retry;
-      if (retry.stage === 'download' && retry.version !== undefined) {
-        this.download(retry.version).catch((error: unknown) =>
-          this.failed(error),
-        );
-      } else if (retry.stage === 'install' && retry.version !== undefined) {
-        this.install(retry.version).catch((error: unknown) =>
-          this.failed(error),
-        );
-      } else {
-        this.check().catch((error: unknown) => this.failed(error));
-      }
-    } else if (
-      request.action === 'download' &&
-      this.visible &&
-      this.status.kind === 'available'
-    ) {
-      this.manual = true;
-      this.download(this.status.version).catch((error: unknown) =>
-        this.failed(error),
-      );
-    } else if (
-      request.action === 'install' &&
-      this.manual &&
-      this.visible &&
-      this.status.kind === 'downloaded'
-    ) {
-      this.install(this.status.version).catch((error: unknown) =>
-        this.failed(error),
-      );
+    switch (request.action) {
+      case 'later':
+      case 'dismiss':
+        this.hide();
+        return;
+      case 'retry':
+        this.retryFailed();
+        return;
+      case 'download':
+        this.downloadShown();
+        return;
+      case 'install':
+        this.installDownloaded();
+        return;
     }
+  }
+
+  private hide(): void {
+    this.visible = false;
+    this.busy = false;
+    this.publish();
+  }
+
+  /** Does again the step that failed: the download, the install or the check. */
+  private retryFailed(): void {
+    if (!this.manual || !this.visible || this.status.kind !== 'error') return;
+    const {stage, version} = this.retry;
+    const step =
+      stage === 'download' && version !== undefined
+        ? this.download(version)
+        : stage === 'install' && version !== undefined
+          ? this.install(version)
+          : this.check();
+    step.catch((error: unknown) => this.failed(error));
+  }
+
+  /** Downloads the update the notice offers; from then on the operator leads. */
+  private downloadShown(): void {
+    if (!this.visible || this.status.kind !== 'available') return;
+    this.manual = true;
+    this.download(this.status.version).catch((error: unknown) =>
+      this.failed(error),
+    );
+  }
+
+  /** Installs the update the operator downloaded. */
+  private installDownloaded(): void {
+    if (!this.manual || !this.visible || this.status.kind !== 'downloaded') {
+      return;
+    }
+    this.install(this.status.version).catch((error: unknown) =>
+      this.failed(error),
+    );
   }
 
   outputsChanged(): void {
