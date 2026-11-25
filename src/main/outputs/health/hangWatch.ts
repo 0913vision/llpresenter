@@ -12,6 +12,13 @@ export const FRAME_SILENCE_MS = 5000;
  */
 export const ANSWER_LIMIT_MS = 10_000;
 
+/**
+ * How much later than due the answer limit may run out before it shows that
+ * main itself did not run (the PC slept, or main was busy): then the page's
+ * answer could not be heard, and the page gets its full time again.
+ */
+const MAIN_STALL_MS = 2000;
+
 /** What a {@link HangWatch} asks and tells. */
 export interface HangWatchOptions {
   /** Asks the page's main thread for an answer; resolves when it answers. */
@@ -20,6 +27,8 @@ export interface HangWatchOptions {
   readonly onHung: () => void;
   /** The page answers but sends no frame rate reports, once per silent stretch. */
   readonly onSilentButAnswering: () => void;
+  /** The wall clock, which tests replace. */
+  readonly now?: () => number;
 }
 
 /**
@@ -69,8 +78,17 @@ export class HangWatch {
   }
 
   private ask(): void {
+    const now = this.options.now ?? Date.now;
+    const due = now() + ANSWER_LIMIT_MS;
     this.answerTimer = setTimeout(() => {
       this.answerTimer = null;
+      if (now() - due > MAIN_STALL_MS) {
+        // NOTE(0913vision): The limit ran out late, so main itself did not
+        // run and could not hear an answer; a stalled main must not count as
+        // a hung page and reload a screen.
+        this.ask();
+        return;
+      }
       this.options.onHung();
     }, ANSWER_LIMIT_MS);
     if (this.pingInFlight === null) this.ping();

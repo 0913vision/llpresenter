@@ -36,6 +36,32 @@ describe('HangWatch', () => {
     expect(onHung).toHaveBeenCalledTimes(1);
   });
 
+  it('gives the page its full time again when main itself did not run', async () => {
+    vi.useFakeTimers();
+    let stalled = 0;
+    const ping = vi.fn(() => new Promise<void>(() => undefined));
+    const onHung = vi.fn();
+    const watch = new HangWatch({
+      ping,
+      onHung,
+      onSilentButAnswering: vi.fn(),
+      now: () => Date.now() + stalled,
+    });
+    try {
+      watch.beat();
+      await vi.advanceTimersByTimeAsync(FRAME_SILENCE_MS + SECOND);
+      stalled = 30 * SECOND;
+      await vi.advanceTimersByTimeAsync(ANSWER_LIMIT_MS);
+      expect(onHung).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(ANSWER_LIMIT_MS);
+      expect(onHung).toHaveBeenCalledTimes(1);
+      expect(ping).toHaveBeenCalledTimes(1);
+    } finally {
+      watch.stop();
+      vi.useRealTimers();
+    }
+  });
+
   it('starts over on every beat', async () => {
     const {clock, ping, watch} = setUp(null);
     watch.beat();
