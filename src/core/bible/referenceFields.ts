@@ -45,8 +45,9 @@ function chapterError(
   chapter: number | undefined,
   counts: readonly number[] | undefined,
 ): string | undefined {
-  if (!chapter || (book && chapter > book.chapters))
+  if (!chapter || (book && chapter > book.chapters)) {
     return '장을 확인해야 합니다.';
+  }
   if (!counts) return LOADING_CHAPTER;
   return counts[chapter - 1] ? undefined : '역본에 없는 장';
 }
