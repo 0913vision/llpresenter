@@ -7,7 +7,13 @@ import {
 import {parseMediaDocument} from '@core/schema/media/mediaEdit';
 import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {editMediaList, type MediaListEdit} from '@main/store/media/mediaEdits';
+import {
+  audioReferencesFit,
+  editMediaList,
+  hasPlaylist,
+  playlistItemsValid,
+  type MediaListEdit,
+} from '@main/store/media/mediaEdits';
 
 function uuid(index: number) {
   return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -337,5 +343,36 @@ describe('editMediaList copy names', () => {
       expect(name?.length).toBeLessThanOrEqual(MEDIA_LIMITS.name);
       expect(name?.endsWith(' 복사본')).toBe(true);
     }
+  });
+});
+
+describe('playlist checks', () => {
+  it('takes known media in a media playlist, and only audio in an audio playlist', () => {
+    const media = {kind: 'media', id: LIST} as const;
+    const audio = {kind: 'audio', id: AUDIO_LIST} as const;
+    expect(playlistItemsValid(list, media, [VIDEO, AUDIO])).toBe(true);
+    expect(playlistItemsValid(list, media, [GONE])).toBe(false);
+    expect(playlistItemsValid(list, audio, [AUDIO])).toBe(true);
+    expect(playlistItemsValid(list, audio, [VIDEO])).toBe(false);
+  });
+
+  it('finds a playlist by its kind and id', () => {
+    expect(hasPlaylist(list, {kind: 'media', id: LIST})).toBe(true);
+    expect(hasPlaylist(list, {kind: 'audio', id: AUDIO_LIST})).toBe(true);
+    expect(hasPlaylist(list, {kind: 'media', id: GONE_LIST})).toBe(false);
+    expect(hasPlaylist(list, {kind: 'audio', id: GONE_AUDIO_LIST})).toBe(false);
+  });
+
+  it('refuses incoming media that would turn an audio playlist entry into something else', () => {
+    const incoming = (kind: 'audio' | 'video') => ({
+      id: AUDIO,
+      name: 'Audio',
+      kind,
+      file: 'b.mp3',
+      size: 1,
+    });
+    expect(audioReferencesFit(list, [incoming('audio')])).toBe(true);
+    expect(audioReferencesFit(list, [incoming('video')])).toBe(false);
+    expect(audioReferencesFit(list, [])).toBe(true);
   });
 });

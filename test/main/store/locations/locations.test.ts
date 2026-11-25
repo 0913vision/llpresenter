@@ -9,6 +9,7 @@ import {
   resolveLocations,
   type DataLocations,
   type LocationFields,
+  isInside,
 } from '@main/store/locations/locations';
 
 const DOCUMENTS = resolve('/Users/operator/Documents');
@@ -261,5 +262,20 @@ describe('confineLocations', () => {
       ok: true,
       value: locations,
     });
+  });
+});
+
+describe('isInside', () => {
+  const base = resolve('library');
+
+  it('counts the folder itself and what lies under it', () => {
+    expect(isInside(base, base)).toBe(true);
+    expect(isInside(join(base, 'Songs', 'a.llsong'), base)).toBe(true);
+  });
+
+  it('refuses a neighbour whose name only starts the same, a parent, and a path that climbs out', () => {
+    expect(isInside(`${base}2`, base)).toBe(false);
+    expect(isInside(resolve('.'), base)).toBe(false);
+    expect(isInside(join(base, '..', 'other'), base)).toBe(false);
   });
 });
