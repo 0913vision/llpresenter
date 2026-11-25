@@ -24,6 +24,7 @@ import styles from './ChoiceRows.module.css';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 import {ListBox} from '@renderer/ui/lists/ListBox';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;
@@ -104,7 +105,7 @@ export function ChoiceRows<T extends Choice>({
   const navigate = (event: KeyboardEvent): void => {
     const selectedChoice = choices.find(choice => choice.id === selected);
     if (
-      !(event.target instanceof HTMLInputElement) &&
+      !textBoxHasKey(event.target) &&
       !event.altKey &&
       !event.ctrlKey &&
       !event.metaKey &&

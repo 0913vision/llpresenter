@@ -15,6 +15,7 @@ import {
   gridRange,
   scrollIntoBand,
 } from '@renderer/ui/lists/selection/useRowRange';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;
@@ -143,7 +144,13 @@ export function DetailsSlides({
     <div
       ref={host}
       onKeyDownCapture={event => {
-        if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        if (
+          textBoxHasKey(event.target) ||
+          event.altKey ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey
+        ) {
           return;
         }
         const moves: Record<string, number> = {

@@ -6,7 +6,7 @@ import {undoReason, undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {orderEditReason} from '@renderer/session/service/orderReasons';
 import {ORDER_FULL_REASON} from '@renderer/session/service/serviceOrderEdits';
-import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import type {ChosenRows, useOrderEdits} from './useOrderEdits';
 import type {useServiceItemClipboard} from './useServiceItemClipboard';
@@ -61,7 +61,7 @@ export function useOrderShortcuts({
 
   const ownsCommand = (event: KeyboardEvent): boolean =>
     event.target instanceof Node &&
-    !isInTextEntry(event.target) &&
+    !textBoxHasKey(event.target) &&
     list.current?.contains(event.target) === true;
   const inRows = (event: KeyboardEvent): boolean =>
     ownsCommand(event) &&
@@ -71,7 +71,7 @@ export function useOrderShortcuts({
   const ownsPaletteHistory = (event: KeyboardEvent): boolean =>
     palette &&
     event.target instanceof Element &&
-    !isInTextEntry(event.target) &&
+    !textBoxHasKey(event.target) &&
     event.target.closest('[data-panel="prep-palette"]') !== null;
   const ownsHistory = (event: KeyboardEvent): boolean =>
     ownsCommand(event) || ownsPaletteHistory(event);

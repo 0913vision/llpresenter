@@ -7,6 +7,7 @@ import {
   type KeyboardEvent,
   type RefObject,
 } from 'react';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 
 /** What a scrolled list shows: where it is, how tall it is, and its rows. */
 export interface RowView {
@@ -98,7 +99,7 @@ export function optionKeyTarget(
   selected: string | null | undefined,
 ): {readonly index: number; readonly id: string} | undefined {
   if (
-    event.target instanceof HTMLInputElement ||
+    textBoxHasKey(event.target) ||
     event.altKey ||
     event.ctrlKey ||
     event.metaKey ||

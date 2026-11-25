@@ -15,6 +15,7 @@ import styles from './MediaView.module.css';
 import {mediaGridLayout} from './mediaGridLayout';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 
 /** The rows mounted beyond the visible ones, above and below. */
 export const OVERSCAN_ROWS = 1;
@@ -204,6 +205,7 @@ export function VirtualMediaGrid({
   }, [start, end, selected]);
   const navigate = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (
+      textBoxHasKey(event.target) ||
       isComposing(event) ||
       event.ctrlKey ||
       event.altKey ||

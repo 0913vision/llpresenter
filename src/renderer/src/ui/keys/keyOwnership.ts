@@ -1,4 +1,4 @@
-import {isInTextEntry} from '../fields/textEntry';
+import {textBoxHasKey} from '../fields/textEntry';
 
 /** Whether the event happened inside an element that matches the selector. */
 export function isInside(
@@ -61,22 +61,5 @@ export function focusedControlOwnsKey(event: KeyboardEvent): boolean {
 
 /** Whether this event belongs to a text-editing control. */
 export function isTextField(event: KeyboardEvent): boolean {
-  if (!isInTextEntry(event.target)) return false;
-  if (
-    event.target instanceof HTMLInputElement &&
-    [
-      'range',
-      'checkbox',
-      'radio',
-      'button',
-      'submit',
-      'reset',
-      'color',
-      'file',
-      'image',
-    ].includes(event.target.type)
-  ) {
-    return false;
-  }
-  return true;
+  return textBoxHasKey(event.target);
 }

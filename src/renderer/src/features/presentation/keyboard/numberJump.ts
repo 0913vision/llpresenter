@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import {useEffect} from 'react';
 import {outputNext, outputTile} from '@renderer/session/show/show';
-import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 import {modalStack} from '@renderer/ui/popups/modalStack';
 import {focusSlideGrid} from '../focusSlideGrid';
 import {serviceSlideAt} from '../serviceSlideNumbers';
@@ -14,26 +14,6 @@ function clear(): void {
   useNumberJump.setState({value: ''});
 }
 
-function textEntry(target: EventTarget | null): boolean {
-  if (
-    target instanceof HTMLInputElement &&
-    [
-      'checkbox',
-      'radio',
-      'button',
-      'submit',
-      'reset',
-      'range',
-      'color',
-      'file',
-      'image',
-    ].includes(target.type)
-  ) {
-    return false;
-  }
-  return isInTextEntry(target);
-}
-
 /** Runs before focused slide grids and numeric slide hotkeys. */
 export function handleNumberJump(event: KeyboardEvent): void {
   const value = useNumberJump.getState().value;
@@ -42,7 +22,7 @@ export function handleNumberJump(event: KeyboardEvent): void {
     isColumnDragActive() ||
     event.isComposing ||
     event.key === 'Process' ||
-    textEntry(event.target) ||
+    textBoxHasKey(event.target) ||
     modalStack.isOpen ||
     (event.target instanceof Element &&
       event.target.closest(

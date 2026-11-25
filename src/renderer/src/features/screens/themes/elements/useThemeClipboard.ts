@@ -1,6 +1,6 @@
 import type {HTMLAttributes} from 'react';
 import {parseElements, pasteElements, serializeElements} from '@core/theme';
-import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 import type {ThemeModel} from '../useThemeEditor';
 
 /**
@@ -37,7 +37,7 @@ export function useThemeClipboard(model: ThemeModel) {
   const events: ThemeEditorEvents = {
     onKeyDownCapture: event => {
       if (
-        isInTextEntry(event.target) ||
+        textBoxHasKey(event.target) ||
         event.nativeEvent.isComposing ||
         event.altKey ||
         event.metaKey
@@ -61,13 +61,13 @@ export function useThemeClipboard(model: ThemeModel) {
       }
     },
     onCopy: event => {
-      if (isInTextEntry(event.target) || model.selectedIds.length === 0) return;
+      if (textBoxHasKey(event.target) || model.selectedIds.length === 0) return;
       event.preventDefault();
       event.stopPropagation();
       event.clipboardData.setData('text/plain', copied());
     },
     onPaste: event => {
-      if (isInTextEntry(event.target) || model.elementReason !== undefined) {
+      if (textBoxHasKey(event.target) || model.elementReason !== undefined) {
         return;
       }
       event.preventDefault();

@@ -1,5 +1,5 @@
 import type {KeyboardEvent} from 'react';
-import {isInTextEntry} from '@renderer/ui/fields/textEntry';
+import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
 
 /** What the rules read of a key press: the key and where it was pressed. */
 type KeyPress = Pick<KeyboardEvent<HTMLElement>, 'key' | 'target'>;
@@ -25,7 +25,7 @@ export function bookListTakes(event: KeyPress): boolean {
  */
 export function recentListTakes(event: KeyPress): boolean {
   const {target} = event;
-  if (!isInTextEntry(target)) return true;
+  if (!textBoxHasKey(target)) return true;
   return (
     target instanceof Element &&
     target.matches(SEARCH_FIELD) &&
