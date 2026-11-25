@@ -42,6 +42,7 @@ describe('transparent output preview', () => {
       source: () => source,
       outputActive: () => true,
       send,
+      log: {warn: vi.fn()},
     });
     try {
       events.emit('paint', {}, {}, image);
@@ -88,6 +89,7 @@ describe('transparent output preview', () => {
       source: () => source,
       outputActive: () => false,
       send,
+      log: {warn: vi.fn()},
     });
     expect(events.listenerCount('paint')).toBe(0);
     expect(startPainting).not.toHaveBeenCalled();
@@ -114,6 +116,7 @@ describe('transparent output preview', () => {
       source: () => source,
       outputActive: () => true,
       send,
+      log: {warn: vi.fn()},
     });
     try {
       await vi.waitFor(() => expect(send).toHaveBeenCalledOnce(), {

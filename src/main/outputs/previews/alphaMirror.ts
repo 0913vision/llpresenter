@@ -1,4 +1,5 @@
 import {Worker} from 'node:worker_threads';
+import type {Logger} from '../../base/log';
 
 const WIDTH = 640;
 const HEIGHT = 360;
@@ -60,11 +61,20 @@ export function createAlphaMirror({
   source,
   send,
   outputActive,
+  log,
 }: {
   readonly source: () => PaintSource | null;
   readonly send: (frame: Uint8Array) => void;
   readonly outputActive: () => boolean;
+  readonly log: Pick<Logger, 'warn'>;
 }): {ack(): void; stop(): void} {
+  const reported = new Set<string>();
+  /** Logs each kind of failure once, so a failure on every paint can't fill the log. */
+  const report = (message: string, error: unknown): void => {
+    if (reported.has(message)) return;
+    reported.add(message);
+    log.warn(message, error);
+  };
   let active = true;
   let watched: PaintSource | null = null;
   let latest: PaintImage | undefined;
@@ -83,7 +93,8 @@ export function createAlphaMirror({
         timer = undefined;
         try {
           produce();
-        } catch {
+        } catch (error) {
+          report('could not make an NDI preview frame', error);
           converting = false;
           schedule();
         }
@@ -147,7 +158,8 @@ export function createAlphaMirror({
       `,
         {eval: true},
       );
-      created.on('error', () => {
+      created.on('error', error => {
+        report('the NDI preview converter failed', error);
         converting = false;
         if (worker === created) worker = undefined;
         schedule();

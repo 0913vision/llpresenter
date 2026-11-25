@@ -284,6 +284,7 @@ export class PreviewHub {
         source: () => contentsOf(screenId) ?? null,
         outputActive: () => store.state.outputs[screenId] === true,
         send: upstream.publish,
+        log: this.context.log,
       });
     }
     return needed;
