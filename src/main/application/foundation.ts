@@ -80,7 +80,7 @@ export async function openFoundation({
     log,
     launchIdle: launchIdle.ready,
     isAnyOutputOn: () => isAnyOutputOn(store.state),
-    onServiceChanged: () => serviceStandby(store),
+    onServiceChanged: () => serviceStandby(store, log),
     appConfig,
     problems: problems.feed,
     launch,

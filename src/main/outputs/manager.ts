@@ -17,6 +17,7 @@ import {monitorMatchDetail} from './monitors/monitorMatchLog';
 import type {OutputScreen, ScreenSource} from './screens';
 import type {IdentifiedOutput} from './monitors/monitorNumbers';
 import type {FrameReadyReport} from '@core/schema/app/ipcPayloads';
+import type {LiveCommand} from '@core/schema/live/liveCommand';
 
 /** The connected monitors, kept current. */
 export interface MonitorFeed {
@@ -419,17 +420,14 @@ export class OutputManager {
       id => !known.has(id),
     );
     if (unknown.length === 0) return;
-    this.options.store.dispatch(
-      {
-        type: 'live.batch',
-        commands: unknown.map(screenId => ({
-          type: 'output.set' as const,
-          screenId,
-          on: false,
-        })),
-      },
-      error => this.options.log.error('live state listener failed', error),
-    );
+    this.switchOutputs({
+      type: 'live.batch',
+      commands: unknown.map(screenId => ({
+        type: 'output.set' as const,
+        screenId,
+        on: false,
+      })),
+    });
   }
 
   private surroundings(
@@ -592,9 +590,16 @@ export class OutputManager {
   }
 
   private turnOff(screenId: string): void {
-    this.options.store.dispatch(
-      {type: 'output.set', screenId, on: false},
-      error => this.options.log.error('live state listener failed', error),
+    this.switchOutputs({type: 'output.set', screenId, on: false});
+  }
+
+  /** Turns outputs off; a switch that could not be saved or shown is logged. */
+  private switchOutputs(command: LiveCommand): void {
+    this.options.store.dispatch(command, error =>
+      this.options.log.error('could not switch an output off', {
+        command: command.type,
+        error,
+      }),
     );
   }
 

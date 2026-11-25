@@ -71,7 +71,7 @@ function setup() {
       onError: vi.fn(),
     }),
   );
-  const onServiceChanged = vi.fn(() => serviceStandby(live));
+  const onServiceChanged = vi.fn(() => serviceStandby(live, log));
   const channels = registerServiceChannels(
     Promise.resolve({content: {openService}, feed}),
     config,

@@ -258,11 +258,14 @@ export class LiveStore {
         try {
           resolve(this.dispatchResult(command, onListenerError, onSkipped));
         } catch (error: unknown) {
-          reject(
+          const failure =
             error instanceof Error
               ? error
-              : new Error('Queued live command failed', {cause: error}),
-          );
+              : new Error('Queued live command failed', {cause: error});
+          // NOTE(0913vision): dispatch() drops the promise, so the failure is
+          // reported here as a save failure is, or it would vanish.
+          onListenerError?.(failure);
+          reject(failure);
         }
       });
     });

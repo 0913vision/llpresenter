@@ -28,6 +28,36 @@ function setup() {
 const OK = {ok: true, value: undefined} as const;
 
 describe('durable output switches', () => {
+  it('reports a command queued behind a switch that fails when it runs', async () => {
+    let broken = false;
+    const store = new LiveStore(undefined, () => {
+      if (broken) throw new Error('clock failed');
+      return 0;
+    });
+    let finish: (saved: boolean) => void = () => undefined;
+    store.connectOutputPersistence(
+      () =>
+        new Promise<boolean>(resolve => {
+          finish = resolve;
+        }),
+    );
+    store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
+    const onListenerError = vi.fn();
+    expect(
+      store.dispatch(
+        {type: 'stage.message.set', text: 'queued'},
+        onListenerError,
+      ),
+    ).toBe(true);
+    broken = true;
+    finish(true);
+    await vi.waitFor(() =>
+      expect(onListenerError).toHaveBeenCalledWith(
+        expect.objectContaining({message: 'clock failed'}),
+      ),
+    );
+  });
+
   it('returns the commit result for a command queued behind another switch', async () => {
     const {store, writes} = setup();
     store.dispatch({type: 'output.set', screenId: MAIN_SCREEN, on: true});
