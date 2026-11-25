@@ -509,3 +509,39 @@ describe('a full screen presenter on and off the top, and its preview', () => {
     handle.destroy();
   });
 });
+
+describe('a presented output in the other placements', () => {
+  it('prepares a window placement on the output window, and a capture shows there', () => {
+    const {handle, fallbacks} = setup();
+    handle.prepare(monitor, 'window');
+    expect(mocks.windows).toHaveLength(0);
+    expect(fallbacks[0]?.calls).toEqual(['configure', 'prepare']);
+    handle.showCapture(monitor, false);
+    expect(fallbacks[0]?.calls).toContain('showCapture');
+    handle.destroy();
+  });
+
+  it('brings the presenter to the top at its last placement, or the output window to the front', () => {
+    const {handle, fallbacks} = setup();
+    handle.showFullScreen(monitor, false);
+    const child = spawned();
+    handle.bringToFront();
+    expect(child.posted.at(-1)).toEqual({type: 'top', topmost: false});
+    handle.showWindowed(null, false);
+    handle.bringToFront();
+    expect(fallbacks[0]?.calls).toContain('bringToFront');
+    handle.destroy();
+  });
+
+  it('gives the size of what draws now, or the screen resolution before anything does', () => {
+    const {handle} = setup();
+    expect(handle.contentSize()).toEqual({width: 1920, height: 1080});
+    handle.showFullScreen(monitor, true);
+    expect(handle.contentSize()).toEqual({
+      width: monitor.width,
+      height: monitor.height,
+    });
+    handle.configure({...screen, name: '청중'});
+    handle.destroy();
+  });
+});
