@@ -5,10 +5,10 @@ import {sameRect, type Rect, type Size} from '../../displays/rect';
 import type {Logger} from '../../base/log';
 import {
   blockNavigation,
-  preloadPath,
   startLoading,
   type PageRequest,
 } from '../../base/renderers/page';
+import {APP_PAGE} from '../../base/renderers/pagePreferences';
 import {type OutputWindowEvents, OUTPUT_BACKGROUND} from '../outputWindow';
 import type {OutputScreen} from '../screens';
 import {
@@ -86,10 +86,7 @@ export function createPresenterPart(
     frame: false,
     backgroundColor: OUTPUT_BACKGROUND,
     webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
+      ...APP_PAGE,
       backgroundThrottling: false,
       offscreen: {useSharedTexture: true},
     },

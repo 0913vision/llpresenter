@@ -54,7 +54,6 @@ vi.mock('electron', () => ({
 }));
 vi.mock('@main/base/renderers/page', () => ({
   blockNavigation: vi.fn(),
-  preloadPath: 'preload.js',
   startLoading: vi.fn(async () => undefined),
 }));
 

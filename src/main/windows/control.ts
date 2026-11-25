@@ -10,9 +10,9 @@ import {logWindowResponsiveness} from '../base/renderers/responsiveness';
 import {
   blockNavigation,
   loadPage,
-  preloadPath,
   type PageRequest,
 } from '../base/renderers/page';
+import {APP_PAGE} from '../base/renderers/pagePreferences';
 import {
   discardTestFrames,
   windowTestOptions,
@@ -60,10 +60,7 @@ export function createControlWindow(
     backgroundColor: BACKGROUND,
     ...testOptions,
     webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
+      ...APP_PAGE,
       spellcheck: false,
       enableBlinkFeatures: 'CanvasDrawElement',
       ...testPreferences,

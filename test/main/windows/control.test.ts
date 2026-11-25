@@ -48,7 +48,6 @@ vi.mock('@main/base/renderers/audioPolicy', () => ({
   audioMutedByDefault: vi.fn(() => true),
 }));
 vi.mock('@main/base/renderers/page', () => ({
-  preloadPath: 'preload.js',
   loadPage: vi.fn(),
   blockNavigation: vi.fn(),
 }));

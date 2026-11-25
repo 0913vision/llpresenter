@@ -109,7 +109,6 @@ vi.mock('@main/windows/controlClose', () => ({
   },
 }));
 vi.mock('@main/base/renderers/page', () => ({
-  preloadPath: 'preload.js',
   loadPage: vi.fn(),
   blockNavigation: vi.fn(),
 }));

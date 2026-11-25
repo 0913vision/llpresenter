@@ -4,11 +4,8 @@ import {
 } from '@core/schema/screens/screens';
 import {BrowserWindow, type UtilityProcess} from 'electron';
 import type {Logger} from '../../base/log';
-import {
-  blockNavigation,
-  preloadPath,
-  startLoading,
-} from '../../base/renderers/page';
+import {blockNavigation, startLoading} from '../../base/renderers/page';
+import {APP_PAGE} from '../../base/renderers/pagePreferences';
 import type {OutputScreen} from '../screens';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import {ndiSettingsChange} from './ndiSettings';
@@ -47,10 +44,7 @@ export function createNdiWindow(
     transparent: true,
     backgroundColor: '#00000000',
     webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
+      ...APP_PAGE,
       backgroundThrottling: false,
       offscreen: sharedTexture ? {useSharedTexture: true} : true,
     },
