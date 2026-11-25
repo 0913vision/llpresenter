@@ -1,10 +1,4 @@
-import {
-  app,
-  utilityProcess,
-  type UtilityProcess,
-  type OffscreenSharedTexture,
-} from 'electron';
-import {join} from 'node:path';
+import {app, type OffscreenSharedTexture} from 'electron';
 import type {Logger} from '../../base/log';
 import type {Rect} from '../../displays/rect';
 import type {OutputScreen} from '../screens';
@@ -14,12 +8,13 @@ import {
   publishNativeMirror,
   setNativeMirror,
 } from '../previews/nativeMirror';
+import {GPU_TIMEOUT_MS, GpuUtilityProcess} from './gpuUtilityProcess';
 import {
   applyNdiSettings,
   createNdiWindow,
   ndiOutputHandle,
-  ndiSenderEnv,
-  stopSender,
+  type NdiSender,
+  type NdiWindow,
 } from './ndiWindow';
 import {
   TextureQueue,
@@ -28,8 +23,7 @@ import {
   type TextureFrame,
 } from './textureQueue';
 
-const GPU_TIMEOUT_MS = 5000;
-const GPU_STOP_TIMEOUT_MS = 2000;
+/** How long paints may come without a texture after the first one, in milliseconds. */
 const GPU_MISSING_TIMEOUT_MS = 2000;
 
 type GpuTextureFrame = TextureFrame & {
@@ -61,159 +55,274 @@ export type GpuSender = OutputWindowHandle & {
   activateMirror(): void;
 };
 
-/** A message of the GPU utility process. */
-interface UtilityMessage {
-  readonly type: string;
-  readonly message?: string;
-  readonly data?: Uint8Array;
-  readonly frame?: Uint8Array;
-}
+/**
+ * How the window's paints have gone since the sender started: how many came,
+ * how many without a texture, and since when textures stopped coming after the
+ * first one, for the diagnostics of a capture that never starts.
+ */
+class CaptureHealth {
+  paintEvents = 0;
+  bitmapPaints = 0;
+  private seenTexture = false;
+  private missingSince: number | null = null;
 
-const MIRROR_FRAME_BYTES = 640 * 360 * 4;
-const FRAME_BYTES = NDI_FRAME_WIDTH * NDI_FRAME_HEIGHT * 4;
+  /** Starts counting again, as for a new sender. */
+  restart(): void {
+    this.paintEvents = 0;
+    this.bitmapPaints = 0;
+  }
+
+  /** The sender stopped: nothing was seen yet. */
+  reset(): void {
+    this.seenTexture = false;
+    this.missingSince = null;
+  }
+
+  textureCame(): void {
+    this.paintEvents++;
+    this.missingSince = null;
+  }
+
+  textureSent(): void {
+    this.seenTexture = true;
+  }
+
+  /**
+   * A paint came without a texture.
+   *
+   * @returns Whether textures stopped coming for too long after the first one.
+   */
+  textureMissing(watching: boolean, now: number): boolean {
+    this.paintEvents++;
+    this.bitmapPaints++;
+    if (!watching || !this.seenTexture) return false;
+    if (this.missingSince === null) {
+      this.missingSince = now;
+      return false;
+    }
+    return now - this.missingSince >= GPU_MISSING_TIMEOUT_MS;
+  }
+}
 
 /**
  * Sends one screen's page to NDI through shared textures: an offscreen window
- * paints into GPU textures, and a utility process copies each one and sends
- * it. Paints without a texture, a stalled copy or a utility that exits are
- * failures, and the caller falls back to the bitmap output.
+ * paints into GPU textures, and a {@link GpuUtilityProcess} copies each one and
+ * sends it, one at a time through a {@link TextureQueue}. Paints without a
+ * texture, a capture that never starts, a stalled copy or a utility that exits
+ * are failures, and the caller falls back to the bitmap output.
  */
-export function createGpuSender(
-  initial: OutputScreen,
-  events: OutputWindowEvents,
-  {log, fallback, runtimeMissing, live, pixels}: GpuSenderOptions,
-): GpuSender {
-  const ndiWindow = createNdiWindow(initial, events, {
-    sharedTexture: true,
-    onLoadError: error => fail(error),
+class SharedTextureSender implements NdiSender {
+  private screen: OutputScreen;
+  private utility: GpuUtilityProcess | null = null;
+  private ready = false;
+  private closed = false;
+  /** A full frame must come first after a capture (re)starts. */
+  private requireFullFrame = false;
+  private captureTimeout: ReturnType<typeof setTimeout> | null = null;
+  private readonly health = new CaptureHealth();
+  private readonly queue = new TextureQueue<GpuTextureFrame>({
+    send: frame => this.send(frame),
   });
-  const {win} = ndiWindow;
-  let current = initial;
-  let child: UtilityProcess | null = null;
-  const postMirror = (message: object): void => {
-    try {
-      child?.postMessage(message);
-    } catch (error) {
-      log.warn('could not update NDI preview', error);
+  private readonly mirrorPump = {
+    enable: (enabled: boolean): void =>
+      this.postMirror({type: 'mirror', enabled}),
+    ack: (): void => this.postMirror({type: 'mirror-ack'}),
+  };
+
+  readonly window: NdiWindow;
+
+  constructor(
+    screen: OutputScreen,
+    events: OutputWindowEvents,
+    private readonly options: GpuSenderOptions,
+  ) {
+    this.screen = screen;
+    this.window = createNdiWindow(screen, events, {
+      sharedTexture: true,
+      onLoadError: error => this.fail(error),
+    });
+    this.window.win.webContents.on('paint', (event, dirty) => {
+      this.painted(event, dirty);
+    });
+  }
+
+  readonly configure = (next: OutputScreen): void => {
+    const restart = applyNdiSettings(this.window.win, this.screen, next);
+    this.screen = next;
+    if (restart && this.utility !== null) {
+      this.clear();
+      this.begin();
     }
   };
-  const mirrorPump = {
-    enable: (enabled: boolean): void => postMirror({type: 'mirror', enabled}),
-    ack: (): void => postMirror({type: 'mirror-ack'}),
+
+  readonly begin = (): void => {
+    if (this.closed || this.utility !== null) return;
+    this.health.restart();
+    if (app.getGPUFeatureStatus().gpu_compositing.startsWith('disabled')) {
+      this.fail('GPU compositing is unavailable');
+      return;
+    }
+    try {
+      this.utility = this.startUtility();
+    } catch (error) {
+      this.fail(error);
+    }
   };
-  const activateMirror = (): void => setNativeMirror(current.id, mirrorPump);
-  let ready = false;
-  let seenTexture = false;
-  let requireFullFrame = false;
-  let paintEvents = 0;
-  let bitmapPaints = 0;
-  let closed = false;
-  let timeout: ReturnType<typeof setTimeout> | null = null;
-  let captureTimeout: ReturnType<typeof setTimeout> | null = null;
-  let missingSince: number | null = null;
-  const clear = (destroyWindow = false): void => {
-    clearNativeMirror(current.id, mirrorPump);
-    if (timeout !== null) clearTimeout(timeout);
-    if (captureTimeout !== null) clearTimeout(captureTimeout);
-    captureTimeout = null;
+
+  readonly stop = (): void => this.clear();
+
+  readonly requestFrame = (): void => this.restartCapture();
+
+  readonly destroy = (): void => {
+    this.closed = true;
+    this.clear(true);
+  };
+
+  /** Makes this sender's frames the screen's preview. */
+  readonly activateMirror = (): void => {
+    setNativeMirror(this.screen.id, this.mirrorPump);
+  };
+
+  private startUtility(): GpuUtilityProcess {
+    const {log, live, runtimeMissing, pixels} = this.options;
+    const utility = new GpuUtilityProcess(
+      this.screen,
+      {probe: pixels !== undefined},
+      {
+        nativeLoaded: () => log.info('NDI native module loaded'),
+        ready: () => {
+          this.ready = true;
+          this.restartCapture();
+        },
+        live: () => {
+          live();
+          if (!pixels) this.activateMirror();
+        },
+        mirrorFrame: frame => {
+          if (frame === null) this.mirrorPump.ack();
+          else publishNativeMirror(this.screen.id, frame);
+        },
+        copied: () => {
+          if (!pixels) this.queue.acknowledge();
+        },
+        pixels: data => {
+          pixels?.(data, () => {
+            this.queue.acknowledge();
+          });
+        },
+        runtimeMissing: () => {
+          this.clear();
+          runtimeMissing();
+        },
+        failed: reason => this.fail(reason),
+        exited: code => {
+          if (this.utility !== utility) return;
+          this.utility = null;
+          this.fail(`utility exited ${code}`);
+        },
+      },
+    );
+    return utility;
+  }
+
+  private postMirror(message: object): void {
+    try {
+      this.utility?.post(message);
+    } catch (error) {
+      this.options.log.warn('could not update NDI preview', error);
+    }
+  }
+
+  /**
+   * Stops the utility and lets go of every texture; the window goes too when
+   * `destroyWindow`, once the utility is gone.
+   */
+  private clear(destroyWindow = false): void {
+    const {win} = this.window;
+    clearNativeMirror(this.screen.id, this.mirrorPump);
+    if (this.captureTimeout !== null) clearTimeout(this.captureTimeout);
+    this.captureTimeout = null;
     if (!win.isDestroyed()) win.webContents.stopPainting();
-    missingSince = null;
-    timeout = null;
-    const old = child;
-    child = null;
-    ready = false;
-    seenTexture = false;
-    requireFullFrame = false;
-    const outstanding = queue.clear();
+    this.health.reset();
+    const utility = this.utility;
+    this.utility = null;
+    this.ready = false;
+    this.requireFullFrame = false;
+    const outstanding = this.queue.clear();
     const finish = (): void => {
       outstanding?.texture.release();
       if (destroyWindow && !win.isDestroyed()) win.destroy();
     };
-    if (!old) {
-      finish();
+    if (utility === null) finish();
+    else utility.stop({now: outstanding !== null, exited: finish});
+  }
+
+  private fail(reason: unknown): void {
+    if (!this.closed) this.options.fallback(reason);
+  }
+
+  /**
+   * Paints the whole page again into a new texture; a capture that paints no
+   * texture within {@link GPU_TIMEOUT_MS} fails.
+   */
+  private restartCapture(): void {
+    const {win} = this.window;
+    if (
+      this.closed ||
+      this.utility === null ||
+      !this.ready ||
+      win.isDestroyed()
+    ) {
       return;
     }
-    stopSender(old, {
-      timeoutMs: GPU_STOP_TIMEOUT_MS,
-      now: outstanding !== null,
-      exited: finish,
-    });
-  };
-  const fail = (reason: unknown): void => {
-    if (!closed) fallback(reason);
-  };
-  const startWatchdog = (reason: string): void => {
-    if (timeout !== null) clearTimeout(timeout);
-    timeout = setTimeout(() => fail(reason), GPU_TIMEOUT_MS);
-  };
-  const restartCapture = (): void => {
-    if (closed || !child || !ready || win.isDestroyed()) return;
     win.webContents.stopPainting();
-    requireFullFrame = true;
-    captureTimeout ??= setTimeout(() => {
-      captureTimeout = null;
+    this.requireFullFrame = true;
+    this.captureTimeout ??= setTimeout(() => {
+      this.captureTimeout = null;
       if (win.isDestroyed() || !win.webContents.isPainting()) return;
-      log.warn('NDI shared texture diagnostics', {
-        paintEvents,
-        bitmapPaints,
+      this.options.log.warn('NDI shared texture diagnostics', {
+        paintEvents: this.health.paintEvents,
+        bitmapPaints: this.health.bitmapPaints,
         gpuCompositing: app.getGPUFeatureStatus().gpu_compositing,
       });
-      fail('no shared texture paint');
+      this.fail('no shared texture paint');
     }, GPU_TIMEOUT_MS);
     win.webContents.startPainting();
-  };
-  const send = (frame: GpuTextureFrame): void => {
-    if (!child) {
-      queue.clear()?.texture.release();
+  }
+
+  private send(frame: GpuTextureFrame): void {
+    if (this.utility === null) {
+      this.queue.clear()?.texture.release();
       return;
     }
     const info = frame.texture.textureInfo;
     const handle = info.handle.ntHandle;
     if (handle?.length !== 8) {
-      fail('unsupported texture handle');
+      this.fail('unsupported texture handle');
       return;
     }
-    try {
-      child.postMessage({
-        type: 'frame',
-        pid: process.pid,
-        handle: handle.readBigUInt64LE(0).toString(16),
-        dirty: frame.dirty,
-        format: info.pixelFormat,
-      });
-      startWatchdog('GPU copy timeout');
-    } catch (error) {
-      fail(error);
-    }
-  };
-  const queue = new TextureQueue<GpuTextureFrame>({send});
-  const onPaint = (
+    this.utility.send({handle, dirty: frame.dirty, format: info.pixelFormat});
+  }
+
+  private painted(
     event: {texture?: OffscreenSharedTexture},
     dirty: Rect,
-  ): void => {
-    paintEvents++;
+  ): void {
     const texture = event.texture;
+    const sending = this.utility !== null && this.ready;
     if (!texture) {
-      bitmapPaints++;
-      if (
-        child &&
-        ready &&
-        app.getGPUFeatureStatus().gpu_compositing !== 'enabled'
-      ) {
-        fail('GPU compositing is unavailable');
+      if (sending && app.getGPUFeatureStatus().gpu_compositing !== 'enabled') {
+        this.health.textureMissing(false, Date.now());
+        this.fail('GPU compositing is unavailable');
         return;
       }
-      if (child && ready && seenTexture) {
-        const now = Date.now();
-        if (missingSince === null) missingSince = now;
-        else if (now - missingSince >= GPU_MISSING_TIMEOUT_MS) {
-          fail('shared textures stopped arriving');
-        }
+      if (this.health.textureMissing(sending, Date.now())) {
+        this.fail('shared textures stopped arriving');
       }
       return;
     }
-    missingSince = null;
-    if (!child || !ready || closed) {
+    this.health.textureCame();
+    if (!sending || this.closed) {
       texture.release();
       return;
     }
@@ -223,136 +332,41 @@ export function createGpuSender(
       (info.pixelFormat !== 'bgra' && info.pixelFormat !== 'rgba')
     ) {
       texture.release();
-      fail('unsupported texture handle or pixel format');
+      this.fail('unsupported texture handle or pixel format');
       return;
     }
-    if (
-      requireFullFrame &&
-      (dirty.x !== 0 ||
-        dirty.y !== 0 ||
-        dirty.width !== NDI_FRAME_WIDTH ||
-        dirty.height !== NDI_FRAME_HEIGHT)
-    ) {
+    if (this.requireFullFrame && !isFullFrame(dirty)) {
       texture.release();
-      restartCapture();
+      this.restartCapture();
       return;
     }
-    if (!queue.busy && timeout !== null) {
-      clearTimeout(timeout);
-      timeout = null;
-    }
-    seenTexture = true;
-    requireFullFrame = false;
-    if (captureTimeout !== null) clearTimeout(captureTimeout);
-    captureTimeout = null;
-    queue.push({texture, dirty});
-  };
-  win.webContents.on('paint', onPaint);
-  const onMessage = (m: UtilityMessage): void => {
-    switch (m.type) {
-      case 'native-loaded':
-        log.info('NDI native module loaded');
-        return;
-      case 'ready':
-        if (timeout !== null) clearTimeout(timeout);
-        ready = true;
-        timeout = null;
-        restartCapture();
-        return;
-      case 'live':
-        live();
-        if (!pixels) activateMirror();
-        return;
-      case 'mirror-frame':
-        if (
-          m.frame instanceof Uint8Array &&
-          m.frame.length === MIRROR_FRAME_BYTES
-        ) {
-          publishNativeMirror(current.id, m.frame);
-        } else mirrorPump.ack();
-        return;
-      case 'pixels':
-        if (!pixels) return;
-        if (
-          !(m.data instanceof Uint8Array) ||
-          m.data.byteLength !== FRAME_BYTES
-        ) {
-          fail('invalid GPU frame');
-          return;
-        }
-        pixels(m.data, () => {
-          queue.acknowledge();
-        });
-        return;
-      case 'copied':
-        if (timeout !== null) clearTimeout(timeout);
-        timeout = null;
-        if (!pixels) queue.acknowledge();
-        return;
-      case 'error':
-        if (m.message?.includes('NDI_RUNTIME_MISSING')) {
-          clear();
-          runtimeMissing();
-        } else fail(m.message);
-        return;
-      default:
-        // NOTE(0913vision): gpu-utility.cjs sends no other message.
-        return;
-    }
-  };
-  const begin = (): void => {
-    if (closed || child) return;
-    paintEvents = 0;
-    bitmapPaints = 0;
-    if (app.getGPUFeatureStatus().gpu_compositing.startsWith('disabled')) {
-      fail('GPU compositing is unavailable');
-      return;
-    }
-    let worker: UtilityProcess;
-    try {
-      worker = forkGpuUtility(current, pixels !== undefined);
-    } catch (error) {
-      fail(error);
-      return;
-    }
-    child = worker;
-    startWatchdog('GPU utility startup timeout');
-    worker.on('message', (m: UtilityMessage) => {
-      if (child === worker) onMessage(m);
-    });
-    worker.on('exit', code => {
-      if (child === worker) {
-        child = null;
-        fail(`utility exited ${code}`);
-      }
-    });
-  };
-  return {
-    ...ndiOutputHandle(ndiWindow, {
-      configure: next => {
-        const restart = applyNdiSettings(win, current, next);
-        current = next;
-        if (restart && child) {
-          clear();
-          begin();
-        }
-      },
-      begin,
-      stop: () => clear(),
-      requestFrame: restartCapture,
-      destroy: () => {
-        closed = true;
-        clear(true);
-      },
-    }),
-    activateMirror,
-  };
+    if (!this.queue.busy) this.utility?.idle();
+    this.health.textureSent();
+    this.requireFullFrame = false;
+    if (this.captureTimeout !== null) clearTimeout(this.captureTimeout);
+    this.captureTimeout = null;
+    this.queue.push({texture, dirty});
+  }
 }
 
-/** Starts the GPU utility process of a screen, as a probe or a sender. */
-function forkGpuUtility(screen: OutputScreen, probe: boolean): UtilityProcess {
-  return utilityProcess.fork(join(__dirname, 'ndi/gpu-utility.cjs'), [], {
-    serviceName: 'GPU NDI output',
-    env: {...ndiSenderEnv(screen), LLP_NDI_PROBE: probe ? '1' : '0'},
-  });
+function isFullFrame(dirty: Rect): boolean {
+  return (
+    dirty.x === 0 &&
+    dirty.y === 0 &&
+    dirty.width === NDI_FRAME_WIDTH &&
+    dirty.height === NDI_FRAME_HEIGHT
+  );
+}
+
+/** The NDI output of one screen through shared textures, as a window handle. */
+export function createGpuSender(
+  initial: OutputScreen,
+  events: OutputWindowEvents,
+  options: GpuSenderOptions,
+): GpuSender {
+  const sender = new SharedTextureSender(initial, events, options);
+  return {
+    ...ndiOutputHandle(sender.window, sender),
+    activateMirror: sender.activateMirror,
+  };
 }
