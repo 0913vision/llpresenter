@@ -1,8 +1,4 @@
 import {
-  NDI_DEFAULT_SOURCE_NAME,
-  NDI_DEFAULT_FPS,
-} from '@core/schema/screens/screens';
-import {
   app,
   utilityProcess,
   type UtilityProcess,
@@ -12,14 +8,19 @@ import {join} from 'node:path';
 import type {Logger} from '../../base/log';
 import type {Rect} from '../../displays/rect';
 import type {OutputScreen} from '../screens';
-import {ndiSettingsChange} from './ndiSettings';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import {
   clearNativeMirror,
   publishNativeMirror,
   setNativeMirror,
 } from '../previews/nativeMirror';
-import {createNdiWindow, stopSender} from './ndiWindow';
+import {
+  applyNdiSettings,
+  createNdiWindow,
+  ndiOutputHandle,
+  ndiSenderEnv,
+  stopSender,
+} from './ndiWindow';
 import {
   TextureQueue,
   NDI_FRAME_WIDTH,
@@ -82,10 +83,11 @@ export function createGpuSender(
   events: OutputWindowEvents,
   {log, fallback, runtimeMissing, live, pixels}: GpuSenderOptions,
 ): GpuSender {
-  const {win, reload} = createNdiWindow(initial, events, {
+  const ndiWindow = createNdiWindow(initial, events, {
     sharedTexture: true,
     onLoadError: error => fail(error),
   });
+  const {win} = ndiWindow;
   let current = initial;
   let child: UtilityProcess | null = null;
   const postMirror = (message: object): void => {
@@ -326,39 +328,24 @@ export function createGpuSender(
     });
   };
   return {
+    ...ndiOutputHandle(ndiWindow, {
+      configure: next => {
+        const restart = applyNdiSettings(win, current, next);
+        current = next;
+        if (restart && child) {
+          clear();
+          begin();
+        }
+      },
+      begin,
+      stop: () => clear(),
+      requestFrame: restartCapture,
+      destroy: () => {
+        closed = true;
+        clear(true);
+      },
+    }),
     activateMirror,
-    previewContents: () => (win.isDestroyed() ? null : win.webContents),
-    configure: next => {
-      const change = ndiSettingsChange(current, next);
-      if (change.frameRate !== undefined) {
-        win.webContents.setFrameRate(change.frameRate);
-      }
-      current = next;
-      if (change.restart && child) {
-        clear();
-        begin();
-      }
-    },
-    prepare: () => undefined,
-    requestFrame: restartCapture,
-    contentSize: () => ({width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT}),
-    setAlwaysOnTop: () => undefined,
-    showFullScreen: () => undefined,
-    showWindowed: () => undefined,
-    showCapture: () => begin(),
-    prepareForMonitorRemoval: () => undefined,
-    bringToFront: () => undefined,
-    bounds: () => null,
-    hide: () => clear(),
-    reload,
-    crashRenderer: () => win.webContents.forcefullyCrashRenderer(),
-    ping: async () => {
-      await win.webContents.executeJavaScript('0');
-    },
-    destroy: () => {
-      closed = true;
-      clear(true);
-    },
   };
 }
 
@@ -366,12 +353,6 @@ export function createGpuSender(
 function forkGpuUtility(screen: OutputScreen, probe: boolean): UtilityProcess {
   return utilityProcess.fork(join(__dirname, 'ndi/gpu-utility.cjs'), [], {
     serviceName: 'GPU NDI output',
-    env: {
-      ...process.env,
-      LLP_NDI_PROBE: probe ? '1' : '0',
-      LLP_NDI_FPS: String(screen.ndi?.fps ?? NDI_DEFAULT_FPS),
-      LLP_NDI_DEFAULT_SOURCE_NAME: NDI_DEFAULT_SOURCE_NAME,
-      LLP_NDI_SOURCE_NAME: screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME,
-    },
+    env: {...ndiSenderEnv(screen), LLP_NDI_PROBE: probe ? '1' : '0'},
   });
 }
