@@ -30,6 +30,19 @@ function hasTypedReference(surface: HTMLElement | null): boolean {
   ).some(field => field.value !== '');
 }
 
+/**
+ * Whether the key belongs to a text field of the dialog's own, such as the
+ * 설교 제목: its arrows and Enter edit and move the caret there, and never
+ * choose a recent passage.
+ */
+function ownFieldTakes(event: KeyboardEvent<HTMLElement>): boolean {
+  return (
+    event.target instanceof HTMLInputElement &&
+    event.target.dataset.referencePart === undefined &&
+    event.key !== 'Escape'
+  );
+}
+
 /** Whether the open book list under the 책 field takes this key. */
 function bookListTakes(event: KeyboardEvent<HTMLElement>): boolean {
   return (
@@ -218,7 +231,11 @@ export function PassageDialog({
       close();
       return;
     }
-    if (event.target instanceof HTMLTextAreaElement || bookListTakes(event)) {
+    if (
+      event.target instanceof HTMLTextAreaElement ||
+      bookListTakes(event) ||
+      ownFieldTakes(event)
+    ) {
       return;
     }
     const typed = hasTypedReference(surface.current);

@@ -55,6 +55,40 @@ it('keeps the title on one line and moves on to the book with Enter', () => {
   expect(insert).not.toHaveBeenCalled();
 });
 
+it('keeps the arrows in the title and never picks a recent passage from it', async () => {
+  const fixture = panelApi();
+  const bible = await fixture.api.settings.get({name: 'bible'});
+  if (bible.name !== 'bible') throw new Error('Missing Bible settings');
+  await fixture.api.settings.edit({
+    type: 'settings.update',
+    name: 'bible',
+    baseRevision: bible.revision,
+    value: {
+      ...bible.value,
+      recents: [
+        {ref: '요한복음 3:16', translation: lookupRequest().translation},
+      ],
+    },
+  });
+  window.llp = fixture.api;
+  onTestFinished(() => {
+    delete window.llp;
+  });
+  const insert = vi.fn();
+  render(<SermonQuickAdd onClose={vi.fn()} onInsert={insert} />);
+  await screen.findByText('요한복음 3:16');
+  const title = screen.getByRole('textbox', {name: '설교 제목'});
+  title.focus();
+  fireEvent.change(title, {target: {value: 'Title'}});
+  for (const key of ['ArrowDown', 'ArrowUp']) {
+    expect(fireEvent.keyDown(title, {key})).toBe(true);
+    expect(document.activeElement).toBe(title);
+  }
+  fireEvent.keyDown(title, {key: 'ArrowDown'});
+  fireEvent.keyDown(title, {key: 'Enter'});
+  expect(insert).not.toHaveBeenCalled();
+});
+
 it('ignores a delayed chapter lookup after Escape closes the sermon dialog', async () => {
   const fixture = panelApi();
   window.llp = fixture.api;
