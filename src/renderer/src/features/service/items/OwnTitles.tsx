@@ -10,10 +10,21 @@ import {
 } from '@renderer/ui/menus/contextMenu';
 import {editorTask} from '@renderer/platform/editorTask';
 import {ELEMENT_DRAG_MIME, ownTitleKey} from './newItems';
+import {titlesAfter} from './ownTitleList';
+import {logFailure} from '@renderer/platform/logFailure';
+import {failureReasonLines} from '@renderer/platform/problemReasons';
 import styles from './PrepPalette.module.css';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 const NO_TITLES: readonly SavedTitle[] = [];
+
+/** What the title dialog says when a save failed, and why when main said. */
+function saveFailure(reason?: string): string {
+  return [
+    '타이틀을 저장할 수 없습니다.',
+    ...(reason === undefined ? [] : failureReasonLines(reason)),
+  ].join(' ');
+}
 
 /** The titles the operator keeps, stored with the themes. */
 export function OwnTitles({
@@ -43,24 +54,29 @@ export function OwnTitles({
     try {
       const latest = await api.settings.get({name: 'themes'});
       if (latest.name !== 'themes') throw new Error('Unexpected settings');
-      const current = latest.value.titles;
-      const next =
-        section === null
-          ? current.filter(entry => entry.id !== id)
-          : current.some(entry => entry.id === id)
-            ? current.map(entry => (entry.id === id ? section : entry))
-            : [...current, section];
       const result = await api.settings.edit({
         type: 'settings.update',
         name: 'themes',
         baseRevision: latest.revision,
-        value: {...latest.value, titles: next},
+        value: {
+          ...latest.value,
+          titles: titlesAfter(latest.value.titles, id, section),
+        },
       });
-      if (!result.ok) throw new Error(result.error.message);
+      if (!result.ok) {
+        logFailure(
+          api,
+          'Saving the kept titles was refused',
+          new Error(result.error.message),
+        );
+        setError(saveFailure(result.error.reason));
+        return;
+      }
       setEditing(null);
       setMenu(null);
-    } catch {
-      setError('타이틀을 저장하지 못했습니다. 다시 시도해 주세요.');
+    } catch (error) {
+      logFailure(api, 'Could not save the kept titles', error);
+      setError(saveFailure());
     } finally {
       setBusy(false);
     }

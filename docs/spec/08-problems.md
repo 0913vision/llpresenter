@@ -21,7 +21,10 @@ elsewhere first; `대상을 찾을 수 없습니다.`;
 `새 버전의 파일이라 바꿀 수 없습니다.`; `같은 이름이 이미 있습니다.`;
 `올바르지 않은 값입니다.`; `저장을 기다리는 변경이 너무 많습니다.` and
 `이전 작업이 진행 중입니다.`, each with `잠시 후 다시 시도하세요.`. A card whose
-request itself failed keeps its title alone; the cause is in the log.
+request itself failed keeps its title alone; the cause is in the log. Every
+message of the app that asks the operator to do something ends in the plain
+request form (`다시 시도하세요.`, `16:9로 바꾸세요.`), never `~해 주세요`, and
+says what cannot be done as `~할 수 없습니다.`
 
 Live media playback failures, audio playback failures, and audio output device
 failures appear in the control window's existing warning cards and the 출력
