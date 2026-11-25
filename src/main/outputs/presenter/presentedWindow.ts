@@ -3,7 +3,6 @@ import {
   BrowserWindow,
   screen as displays,
   utilityProcess,
-  type OffscreenSharedTexture,
   type UtilityProcess,
   type WebContents,
 } from 'electron';
@@ -28,17 +27,12 @@ import {
   type PlaybackProblemBoard,
 } from '../health/playbackProblems';
 import {publishNativeMirror, setNativeMirror} from '../previews/nativeMirror';
+import {PRESENTER_STALL_MS, PresenterFrames} from './presenterFrames';
 
 const PING_SCRIPT = '0';
 const DEFAULT_SIZE: Size = THEME_CANVAS;
 const UTILITY_TIMEOUT_MS = 5000;
 const FIRST_TEXTURE_TIMEOUT_MS = 5000;
-/**
- * How long a frame may wait for the presenter to take it. A presenter that
- * waits longer has stopped, and the screen falls back to its output window
- * instead of staying dark while its status says it runs (church, Nov 25).
- */
-export const PRESENTER_STALL_MS = 3000;
 
 // NOTE(0913vision): Chromium paces every window by the primary display's
 // vblank on Windows. A full screen output on a monitor with another refresh
@@ -258,24 +252,10 @@ function createPresenterPart(
   let openKey = '';
   let shown: Rect | null = null;
   let onTop = true;
-  // NOTE(0913vision): At most one page frame is with the presenter at a time,
-  // under an id; it is freed when the presenter gives that id back as
-  // 'copied', also when it dropped the frame with a window that went away.
-  let frameId = 0;
-  let outstanding: {
-    readonly id: number;
-    readonly texture: OffscreenSharedTexture;
-  } | null = null;
-  let waiting: OffscreenSharedTexture | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let stall: ReturnType<typeof setTimeout> | null = null;
   const stopTimer = (): void => {
     if (timer !== null) clearTimeout(timer);
     timer = null;
-  };
-  const stopStall = (): void => {
-    if (stall !== null) clearTimeout(stall);
-    stall = null;
   };
   const failWith = (reason: unknown): void => {
     if (closed) return;
@@ -304,40 +284,19 @@ function createPresenterPart(
     win.webContents.stopPainting();
     win.webContents.startPainting();
   };
-  const send = (texture: OffscreenSharedTexture): void => {
-    const handle = texture.textureInfo.handle.ntHandle;
-    if (handle?.length !== 8) {
-      texture.release();
-      failWith('unsupported texture handle');
-      return;
-    }
-    frameId += 1;
-    outstanding = {id: frameId, texture};
-    post({
-      type: 'frame',
-      pid: process.pid,
-      handle: handle.readBigUInt64LE(0).toString(16),
-      id: frameId,
-    });
-    stall ??= setTimeout(() => {
-      stall = null;
+  const frames = new PresenterFrames({
+    post: message => post({...message}),
+    failed: failWith,
+    stalled: () => {
       log.warn('output presenter stopped taking frames', {
         screen: current.id,
         waitedMs: PRESENTER_STALL_MS,
       });
       failWith('presenter stalled');
-    }, PRESENTER_STALL_MS);
-  };
-  /** The presenter is done with frame `id`; the next waiting one goes. */
-  const copied = (id: unknown): void => {
-    if (outstanding === null || outstanding.id !== id) return;
-    stopStall();
-    outstanding.texture.release();
-    outstanding = null;
-    const next = waiting;
-    waiting = null;
-    if (next !== null) send(next);
-  };
+    },
+  });
+  // NOTE(0913vision): A still page paints once; its latest frame waits until
+  // the presenter is ready instead of being dropped.
   win.webContents.on('paint', event => {
     const texture = event.texture;
     if (!texture) return;
@@ -345,16 +304,8 @@ function createPresenterPart(
       texture.release();
       return;
     }
-    // NOTE(0913vision): A still page paints once; keep its latest frame until
-    // the presenter is ready instead of dropping it.
-    if (child === null || !ready || outstanding !== null) {
-      waiting?.release();
-      waiting = texture;
-      if (shown !== null && timer !== null && ready) stopTimer();
-      return;
-    }
-    if (shown !== null && timer !== null) stopTimer();
-    send(texture);
+    if (shown !== null && timer !== null && ready) stopTimer();
+    frames.take(texture, child !== null && ready);
   });
   const start = (): void => {
     if (child !== null || closed) return;
@@ -394,12 +345,7 @@ function createPresenterPart(
         if (message.type === 'ready') {
           ready = true;
           stopTimer();
-          if (outstanding === null) {
-            const held = waiting;
-            waiting = null;
-            if (held !== null) send(held);
-            else repaint();
-          }
+          if (!frames.sendWaiting()) repaint();
           if (shown !== null) {
             timer = setTimeout(
               () => failWith('no shared texture paint'),
@@ -407,7 +353,7 @@ function createPresenterPart(
             );
           }
         }
-        if (message.type === 'copied') copied(message.id);
+        if (message.type === 'copied') frames.copied(message.id);
         if (message.type === 'shown') {
           stopTimer();
           if (shown !== null) setNativeMirror(current.id, mirrorPump);
@@ -433,7 +379,7 @@ function createPresenterPart(
           // NOTE(0913vision): The new window shows once it has a frame; the
           // page paints one for it, and a window that never gets one falls
           // back like a presenter that never paints.
-          if (outstanding === null && waiting === null) repaint();
+          if (frames.idle) repaint();
           if (shown !== null && timer === null) {
             timer = setTimeout(
               () => failWith('no shared texture paint'),
@@ -533,12 +479,8 @@ function createPresenterPart(
       closed = true;
       setNativeMirror(current.id, null);
       stopTimer();
-      stopStall();
       releaseProblems?.();
-      outstanding?.texture.release();
-      waiting?.release();
-      outstanding = null;
-      waiting = null;
+      frames.close();
       const old = child;
       child = null;
       if (old !== null) {
