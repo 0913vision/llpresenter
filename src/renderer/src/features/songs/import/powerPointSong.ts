@@ -14,6 +14,7 @@ import {
   requestLeaveSong,
   type ImportPictures,
 } from '../draft';
+import {powerPointFailureCard} from './powerPointFailure';
 import {
   exportPowerPointBackgrounds,
   storePowerPointBackgrounds,
@@ -28,28 +29,14 @@ interface Reports {
   readonly dismiss: (key: string) => void;
 }
 
-/**
- * What the card says when backgrounds are missing: what to do when PowerPoint
- * is not installed or does not answer (church Nov 25: a hung PowerPoint until
- * a reboot), and where they came from otherwise.
- */
+/** What the card says when backgrounds are missing, and why when PowerPoint failed. */
 function missingBackgrounds(
   failure: PowerPointBackgrounds['failure'],
 ): readonly [title: string, meta: string] {
-  switch (failure) {
-    case 'unresponsive':
-      return [
-        'PowerPoint가 응답하지 않아 배경을 가져오지 못했습니다.',
-        'PowerPoint를 모두 닫거나 PC를 다시 시작한 뒤 다시 가져오세요.',
-      ];
-    case 'unavailable':
-      return [
-        'PowerPoint가 없어 배경을 가져오지 못했습니다.',
-        '가사는 그대로 가져왔습니다.',
-      ];
-    case undefined:
-      return ['배경을 모두 가져오지 못했습니다.', 'PowerPoint'];
-  }
+  if (failure === undefined)
+    return ['배경을 모두 가져오지 못했습니다.', 'PowerPoint'];
+  const {title, meta} = powerPointFailureCard(failure, 'backgrounds');
+  return [title, meta];
 }
 
 function warn({report}: Reports, title: string, meta?: string): void {

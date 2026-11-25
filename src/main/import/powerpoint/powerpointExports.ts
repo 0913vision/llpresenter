@@ -4,6 +4,7 @@ import {basename, extname, join} from 'node:path';
 import {
   POWERPOINT_PICTURE_LIMITS,
   type PowerPointBackgroundsResult,
+  type PowerPointFailure,
   type PowerPointImageExportProgress,
   type PowerPointImageExportResult,
 } from '@core/schema/songs/powerpointImport';
@@ -13,6 +14,7 @@ import {
   isLegacyPowerPoint,
   POWERPOINT_BUSY,
   PowerPointError,
+  powerPointFailureOf,
   powerPointMessage,
   unsupportedSlideSize,
 } from './powerpointFile';
@@ -56,9 +58,6 @@ const BUSY: PowerPointImageExportResult = {
   message: POWERPOINT_BUSY,
 };
 const NOTHING: PowerPointImageExportResult = {ok: true, value: null};
-/** Why PowerPoint could not draw: it is not installed, or it does not answer. */
-type PowerPointFailure = 'unavailable' | 'unresponsive';
-
 const UNREADABLE = 'PowerPoint 파일을 읽을 수 없습니다.';
 const NUMBER_DIGITS = 4;
 
@@ -89,7 +88,12 @@ export class PowerPointExports {
     } catch (error) {
       if (this.isStopped()) return NOTHING;
       log.warn('could not export PowerPoint images', error);
-      return {ok: false, message: powerPointMessage(error, UNREADABLE)};
+      const failure = powerPointFailureOf(error);
+      return {
+        ok: false,
+        message: powerPointMessage(error, UNREADABLE),
+        ...(failure === undefined ? {} : {failure}),
+      };
     }
   }
 

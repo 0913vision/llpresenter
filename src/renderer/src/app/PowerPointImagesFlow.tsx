@@ -8,6 +8,7 @@ import type {OpenServiceResult} from '@renderer/session/service/openService';
 import {insertItems} from '@renderer/session/service/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {useShow} from '@renderer/session/show/showStore';
+import {powerPointFailureCard} from '@renderer/features/songs/import/powerPointFailure';
 
 const STORE_FAILED = '그림을 미디어에 저장하지 못했습니다.';
 const SERVICE_CHANGED = '가져오는 동안 열린 예배가 바뀌었습니다.';
@@ -109,8 +110,14 @@ export function PowerPointImagesFlow({
         const result = await api.powerpoint.images();
         unsubscribe();
         if (!result.ok) {
-          if (!stopped()) {
-            notify(result.message, 'warning');
+          if (stopped()) return;
+          if (result.failure === undefined) notify(result.message, 'warning');
+          else {
+            const {title, meta} = powerPointFailureCard(
+              result.failure,
+              'slides',
+            );
+            notify(title, 'warning', {meta});
           }
           return;
         }

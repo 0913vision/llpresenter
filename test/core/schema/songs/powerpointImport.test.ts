@@ -3,6 +3,7 @@ import {
   POWERPOINT_PICTURE_LIMITS,
   parsePowerPointBackgroundsRequest,
   parsePowerPointBackgroundsResult,
+  parsePowerPointImageExportResult,
   parsePowerPointReadResult,
   parsePowerPointReleaseRequest,
 } from '@core/schema/songs/powerpointImport';
@@ -105,4 +106,18 @@ describe('the release of a read file', () => {
     expect(parsePowerPointReleaseRequest({path: ''}).ok).toBe(false);
     expect(parsePowerPointReleaseRequest({}).ok).toBe(false);
   });
+});
+
+it('lets a failed image export say which PowerPoint failure it was', () => {
+  expect(
+    parsePowerPointImageExportResult({
+      ok: false,
+      message: 'x',
+      failure: 'unresponsive',
+    }).ok,
+  ).toBe(true);
+  expect(
+    parsePowerPointImageExportResult({ok: false, message: 'x', failure: 'hung'})
+      .ok,
+  ).toBe(false);
 });

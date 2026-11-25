@@ -121,3 +121,30 @@ describe('PowerPoint image failures', () => {
     expect(logged.some(entry => entry.includes('Copy failed'))).toBe(true);
   });
 });
+
+it('names the PowerPoint failure and what to do when the slides could not be drawn', async () => {
+  const api = mockLlpApi({
+    powerpoint: {
+      images: async () => ({
+        ok: false,
+        message: 'PowerPoint가 응답하지 않습니다.',
+        failure: 'unresponsive',
+      }),
+    },
+  });
+  const report = vi.fn<(notice: Notice) => void>();
+  render(
+    <PowerPointImagesFlow api={api} onDone={vi.fn()} onProblem={report} />,
+  );
+  await waitFor(() =>
+    expect(report).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        title:
+          'PowerPoint가 응답하지 않아 슬라이드 그림을 가져오지 못했습니다.',
+        meta: [
+          '열린 PowerPoint의 대화 상자를 닫거나 PowerPoint를 모두 닫은 뒤 다시 가져오세요.',
+        ],
+      }),
+    ),
+  );
+});

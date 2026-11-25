@@ -8,6 +8,7 @@ import {pickerFolder, rememberPickerFile} from '../../uiState/pickerFolder';
 import type {PowerPointImagesJob} from './powerpointImages';
 import type {PowerPointImagesResult} from './powerpointRun';
 import {isPowerPointFourThree} from '../pptx/powerpointSize';
+import type {PowerPointFailure} from '@core/schema/songs/powerpointImport';
 import {TEST_IMPORT_FILE_VARIABLE} from '../testImportFile';
 
 const EXTENSIONS = ['pptx', 'pptm', 'ppt'];
@@ -98,6 +99,16 @@ export async function convertLegacyPowerPoint(
 
 /** Why a PowerPoint file cannot be read now: another one is being read. */
 export const POWERPOINT_BUSY = 'PowerPoint 파일을 읽는 중입니다.';
+
+/** Why PowerPoint could not do its part, when that was PowerPoint itself. */
+export function powerPointFailureOf(
+  error: unknown,
+): PowerPointFailure | undefined {
+  if (!(error instanceof PowerPointError)) return undefined;
+  return error.reason === 'unavailable' || error.reason === 'unresponsive'
+    ? error.reason
+    : undefined;
+}
 
 /** Says what went wrong with a file, or `fallback` when nothing is known. */
 export function powerPointMessage(error: unknown, fallback: string): string {

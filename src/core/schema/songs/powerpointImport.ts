@@ -81,6 +81,15 @@ const backgroundsRequest = payloadObject({
     v.check(indices => new Set(indices).size === indices.length),
   ),
 });
+/**
+ * Why PowerPoint could not draw: it is not installed, or it does not answer
+ * (it hangs, or a dialog of the operator's waits in it).
+ */
+export const POWERPOINT_FAILURES = ['unavailable', 'unresponsive'] as const;
+const powerPointFailure = v.picklist(POWERPOINT_FAILURES);
+/** Why PowerPoint could not draw. */
+export type PowerPointFailure = (typeof POWERPOINT_FAILURES)[number];
+
 const backgroundsResult = v.union([
   v.null(),
   v.pipe(
@@ -95,7 +104,7 @@ const backgroundsResult = v.union([
   ),
   // NOTE(0913vision): Why PowerPoint drew none, so the card can say what to do
   // (church Nov 25: a hung PowerPoint blocked a hymn until a reboot).
-  payloadObject({failure: v.picklist(['unavailable', 'unresponsive'])}),
+  payloadObject({failure: powerPointFailure}),
 ]);
 /**
  * The slides of the PowerPoint file read last, by position, whose backgrounds
@@ -192,7 +201,11 @@ const imageExportResult = v.variant('ok', [
       }),
     ),
   }),
-  v.object({ok: v.literal(false), message: v.string()}),
+  v.object({
+    ok: v.literal(false),
+    message: v.string(),
+    failure: v.exactOptional(powerPointFailure),
+  }),
 ]);
 
 function positiveSlideNumber() {
