@@ -203,3 +203,50 @@ describe('createElectronOutputWindow normal', () => {
     expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(true, 'screen-saver');
   });
 });
+
+describe('a close request', () => {
+  function closeEvent() {
+    return {preventDefault: vi.fn()};
+  }
+
+  it('turns a window placement off, as its close button does', () => {
+    const onCloseRequested = vi.fn();
+    const output = createElectronOutputWindow(
+      SCREEN,
+      {onRendererGone: vi.fn(), onCloseRequested},
+      {log: mockLog(), mode: 'normal', control: mockControl()},
+    );
+    onTestFinished(() => output.destroy());
+    const win = lastWindow();
+    win.isFullScreen.mockReturnValue(false);
+    const event = closeEvent();
+
+    win.emit('close', event);
+
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(onCloseRequested).toHaveBeenCalledOnce();
+  });
+
+  it('is ignored and logged in full screen, where no close button exists', () => {
+    const onCloseRequested = vi.fn();
+    const log = mockLog();
+    const output = createElectronOutputWindow(
+      SCREEN,
+      {onRendererGone: vi.fn(), onCloseRequested},
+      {log, mode: 'normal', control: mockControl()},
+    );
+    onTestFinished(() => output.destroy());
+    const win = lastWindow();
+    win.isFullScreen.mockReturnValue(true);
+    const event = closeEvent();
+
+    win.emit('close', event);
+
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+    expect(onCloseRequested).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledWith(
+      'output window close request ignored in full screen',
+      {screen: SCREEN.id},
+    );
+  });
+});

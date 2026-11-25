@@ -105,9 +105,23 @@ function enterFullScreen(win: BrowserWindow, monitorBounds: Rect): void {
   win.setFullScreen(true);
 }
 
-function listen(win: BrowserWindow, events: OutputWindowEvents): () => void {
+function listen(
+  win: BrowserWindow,
+  events: OutputWindowEvents,
+  {log, screenId}: {readonly log: Logger; readonly screenId: string},
+): () => void {
   win.on('close', event => {
     event.preventDefault();
+    // NOTE(0913vision): A full screen output has no close button, so a close
+    // there is not the operator's: Windows or another program sent it (a
+    // presenter window vanished that way at a monitor dropout, church Nov 25).
+    // Only a window placement turns the output off.
+    if (win.isFullScreen()) {
+      log.warn('output window close request ignored in full screen', {
+        screen: screenId,
+      });
+      return;
+    }
     events.onCloseRequested();
   });
   win.on('page-title-updated', event => event.preventDefault());
@@ -334,7 +348,7 @@ export function createElectronOutputWindow(
         });
   win.removeMenu();
   blockNavigation(win);
-  const releaseSize = listen(win, events);
+  const releaseSize = listen(win, events, {log, screenId: screen.id});
   loadPage(win, page, log);
   const releaseKeys = forwardOutputKeys(win.webContents, options.control, log);
   const {dispose: releasePresentation, ...presentation} = presentationFor(
