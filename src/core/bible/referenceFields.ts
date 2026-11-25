@@ -37,6 +37,44 @@ function positiveNumber(input: string): number | undefined {
   return Number.isSafeInteger(value) && value > 0 ? value : undefined;
 }
 
+type Book = NonNullable<ReturnType<typeof selectedBook>>;
+
+/** What is wrong with the 장: none, out of the book, not loaded, or not in the translation. */
+function chapterError(
+  book: Book | undefined,
+  chapter: number | undefined,
+  counts: readonly number[] | undefined,
+): string | undefined {
+  if (!chapter || (book && chapter > book.chapters))
+    return '장을 확인해야 합니다.';
+  if (!counts) return LOADING_CHAPTER;
+  return counts[chapter - 1] ? undefined : '역본에 없는 장';
+}
+
+/** What is wrong with the 시작절: none, or past the chapter's last verse. */
+function startError(
+  start: number | undefined,
+  verseCount: number | undefined,
+): string | undefined {
+  if (!start || (verseCount !== undefined && start > verseCount)) {
+    return '시작절을 확인해야 합니다.';
+  }
+  return verseCount === undefined ? LOADING_CHAPTER : undefined;
+}
+
+/** What is wrong with the 끝절: none, before the start, or past the last verse. */
+function endError(
+  start: number | undefined,
+  end: number | undefined,
+  verseCount: number | undefined,
+): string | undefined {
+  if (end === undefined || (start !== undefined && end < start)) {
+    return '끝절을 확인해야 합니다.';
+  }
+  if (verseCount === undefined) return LOADING_CHAPTER;
+  return end > verseCount ? '끝절을 확인해야 합니다.' : undefined;
+}
+
 /** Tab validates the literal endpoint; lookup can clamp only its upper bound. */
 export function referenceFieldsState(
   fields: ReferenceFields,
@@ -51,28 +89,9 @@ export function referenceFieldsState(
   const verseCount = chapter === undefined ? undefined : counts?.[chapter - 1];
   const errors: Record<ReferencePart, string | undefined> = {
     book: book ? undefined : '성경 책을 골라야 합니다.',
-    chapter:
-      !chapter || (book && chapter > book.chapters)
-        ? '장을 확인해야 합니다.'
-        : !counts
-          ? LOADING_CHAPTER
-          : !verseCount
-            ? '역본에 없는 장'
-            : undefined,
-    start:
-      !start || (verseCount !== undefined && start > verseCount)
-        ? '시작절을 확인해야 합니다.'
-        : verseCount === undefined
-          ? LOADING_CHAPTER
-          : undefined,
-    end:
-      end === undefined || (start !== undefined && end < start)
-        ? '끝절을 확인해야 합니다.'
-        : verseCount === undefined
-          ? LOADING_CHAPTER
-          : end > verseCount
-            ? '끝절을 확인해야 합니다.'
-            : undefined,
+    chapter: chapterError(book, chapter, counts),
+    start: startError(start, verseCount),
+    end: endError(start, end, verseCount),
   };
   const clampedEnd =
     end !== undefined && verseCount !== undefined
