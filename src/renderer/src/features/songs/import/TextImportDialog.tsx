@@ -19,10 +19,9 @@ import {slideMaking, useThemes} from '@renderer/platform/documents/themes';
 import {newSongSlides, songSlides, songTiles} from '@core/slides';
 import {SlidePreviewGrid} from './SlidePreviewGrid';
 import {
-  DUPLICATE_TITLE_REASON,
-  normalizeSongTitle,
   importLimitReason,
   applyImportLabelMapping,
+  songTitleReason,
 } from '@core/songs';
 import {ImportLabelMappingDialog} from './ImportLabelMappingDialog';
 import {useImportLabelMapping} from './useImportLabelMapping';
@@ -101,11 +100,9 @@ export function TextImportDialog({
   const mappingOpen =
     options.labels === 'bracketLine' && mapping.asking && draft !== null;
   const shownTitle = title ?? preview.draft?.title ?? '';
-  const reason = library.some(
-    song => normalizeSongTitle(song.title) === normalizeSongTitle(shownTitle),
-  )
-    ? DUPLICATE_TITLE_REASON
-    : undefined;
+  // NOTE(0913vision): A new song has no id yet, so every song of the
+  // 라이브러리 counts as another one.
+  const reason = songTitleReason(shownTitle, '', library);
   const song = useMemo(
     () =>
       draft === null || themes === null ? null : songOf(draft, shownTitle),
