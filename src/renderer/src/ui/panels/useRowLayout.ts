@@ -150,6 +150,74 @@ function rowElements(parent: HTMLElement): HTMLElement[] {
   );
 }
 
+/** Whether each gap can move: the rows around it are taller than their minimums. */
+function movableGaps(rows: readonly Row[]): boolean[] {
+  return rows.slice(0, -1).map((_, index) => {
+    const [before, after] = rowPair(rows, index);
+    const top = rows[before];
+    const bottom = rows[after];
+    return (
+      top !== undefined &&
+      bottom !== undefined &&
+      top.element.getBoundingClientRect().height +
+        bottom.element.getBoundingClientRect().height >
+        top.minimum + bottom.minimum + 1
+    );
+  });
+}
+
+/**
+ * The height each row asks for: its saved height, or its height now when
+ * none is saved; a fixed row keeps its minimum.
+ */
+function preferredHeights(rows: readonly Row[], saved: PanelRows): number[] {
+  return rows.map(row =>
+    row.id === undefined
+      ? row.minimum
+      : (saved[row.id] ?? row.element.getBoundingClientRect().height),
+  );
+}
+
+/**
+ * The height the rows share: the column's, less its gaps and padding. With
+ * `preserveCollapsed`, it is at least what the 진행 workspace gives a column
+ * below one panel header, so a collapsed panel keeps the rows' heights.
+ */
+function availableHeight(
+  parent: HTMLElement,
+  count: number,
+  preserveCollapsed: boolean,
+): number {
+  const style = getComputedStyle(parent);
+  const gap = parseFloat(style.getPropertyValue('--panel-gap')) || 0;
+  const workspace = preserveCollapsed
+    ? parent.closest<HTMLElement>('[data-workspace-layout="show"]')
+    : null;
+  const collapsedHeight =
+    workspace === null
+      ? 0
+      : workspace.clientHeight -
+        (parseFloat(style.getPropertyValue('--size-panel-header')) || 0) -
+        gap;
+  return (
+    Math.max(parent.clientHeight, collapsedHeight) -
+    (count - 1) * gap -
+    (parseFloat(style.paddingTop) || 0) -
+    (parseFloat(style.paddingBottom) || 0)
+  );
+}
+
+/** The rows' heights as they are shown, rounded, by row id. */
+function shownHeights(rows: readonly Row[]): PanelRows {
+  return Object.fromEntries(
+    rows.flatMap(row =>
+      row.id === undefined
+        ? []
+        : [[row.id, Math.round(row.element.getBoundingClientRect().height)]],
+    ),
+  );
+}
+
 interface AppliedRows {
   readonly parent: HTMLElement;
   readonly rows: readonly Row[];
@@ -221,18 +289,7 @@ export function useRowLayout({
     const lifetime: DragLifetime = {active: false, alive: true};
     const frame = workspaceFrame(parent);
     const updateMovable = (): void => {
-      const next = rows.slice(0, -1).map((_, index) => {
-        const [before, after] = rowPair(rows, index);
-        const top = rows[before];
-        const bottom = rows[after];
-        return (
-          top !== undefined &&
-          bottom !== undefined &&
-          top.element.getBoundingClientRect().height +
-            bottom.element.getBoundingClientRect().height >
-            top.minimum + bottom.minimum + 1
-        );
-      });
+      const next = movableGaps(rows);
       setMovable(previous =>
         previous.length === next.length &&
         previous.every((value, index) => value === next[index])
@@ -252,36 +309,14 @@ export function useRowLayout({
         updateMovable();
         return;
       }
-      const preferred = rows.map(row =>
-        row.id === undefined
-          ? row.minimum
-          : (saved[row.id] ?? row.element.getBoundingClientRect().height),
-      );
-      const style = getComputedStyle(parent);
-      const gap = parseFloat(style.getPropertyValue('--panel-gap')) || 0;
-      const workspace = preserveCollapsed
-        ? parent.closest<HTMLElement>('[data-workspace-layout="show"]')
-        : null;
-      const collapsedHeight =
-        workspace === null
-          ? 0
-          : workspace.clientHeight -
-            (parseFloat(style.getPropertyValue('--size-panel-header')) || 0) -
-            gap;
-      const available =
-        Math.max(parent.clientHeight, collapsedHeight) -
-        (rows.length - 1) * gap -
-        (parseFloat(style.paddingTop) || 0) -
-        (parseFloat(style.paddingBottom) || 0);
-      const fillIndex = fill === 'first' ? 0 : rows.length - 1;
       writeRows(
         parent,
         rows,
         fitRows({
-          preferred,
+          preferred: preferredHeights(rows, saved),
           minimums: rows.map(row => row.minimum),
-          available,
-          fill: fillIndex,
+          available: availableHeight(parent, rows.length, preserveCollapsed),
+          fill: fill === 'first' ? 0 : rows.length - 1,
         }),
       );
       updateMovable();
@@ -307,19 +342,7 @@ export function useRowLayout({
       });
     reset.current = () => {
       clearRows(parent, rows);
-      const values: PanelRows = Object.fromEntries(
-        rows.flatMap(row =>
-          row.id === undefined
-            ? []
-            : [
-                [
-                  row.id,
-                  Math.round(row.element.getBoundingClientRect().height),
-                ],
-              ],
-        ),
-      );
-      store.saveRows?.(sizeClass, values);
+      store.saveRows?.(sizeClass, shownHeights(rows));
       refit();
     };
     return () => {
