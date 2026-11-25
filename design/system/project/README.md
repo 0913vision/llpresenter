@@ -319,7 +319,7 @@ remaining space.
 - A confirmation dialog's title is one question in 합니다체, and the buttons
   answer it: "‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓰시겠습니까?"
 - Every sentence on screen is 합니다체: a statement ends in ~니다, a request in
-  ~해야 합니다 ("잠시 후 다시 시도해야 합니다."), a question in ~하시겠습니까?.
+  ~하십시오 ("잠시 후 다시 시도하십시오."), a question in ~하시겠습니까?.
   Never ~요 (~하세요, ~할까요?).
 - No explanatory text on screen, such as "넣을 위치", "방금 실행", "같은 제목",
   "원본을 따름", or "파일 없음 1". State shows as shape and color, and reasons

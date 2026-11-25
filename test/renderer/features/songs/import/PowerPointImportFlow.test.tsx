@@ -373,7 +373,7 @@ it('says what to do when PowerPoint does not answer', async () => {
     [
       'PowerPoint가 응답하지 않아 배경을 가져오지 못했습니다.',
       [
-        '열린 PowerPoint의 대화 상자를 닫거나 PowerPoint를 모두 닫은 뒤 다시 가져와야 합니다.',
+        '열린 PowerPoint의 대화 상자를 닫거나 PowerPoint를 모두 닫은 뒤 다시 가져오십시오.',
       ],
     ],
   ]);

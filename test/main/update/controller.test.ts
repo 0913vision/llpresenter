@@ -195,7 +195,7 @@ describe('UpdateController', () => {
           visible: true,
           status: {
             kind: 'error',
-            reason: '인터넷 연결을 확인한 뒤 다시 시도해야 합니다.',
+            reason: '인터넷 연결을 확인한 뒤 다시 시도하십시오.',
           },
         }),
       );
@@ -258,11 +258,11 @@ describe('updateErrorReason', () => {
   it.each([
     [
       'getaddrinfo ENOTFOUND github.com',
-      '인터넷 연결을 확인한 뒤 다시 시도해야 합니다.',
+      '인터넷 연결을 확인한 뒤 다시 시도하십시오.',
     ],
     [
       'net::ERR_INTERNET_DISCONNECTED',
-      '인터넷 연결을 확인한 뒤 다시 시도해야 합니다.',
+      '인터넷 연결을 확인한 뒤 다시 시도하십시오.',
     ],
     [
       'HttpError: 404 Not Found latest.yml',
@@ -271,7 +271,7 @@ describe('updateErrorReason', () => {
     ['ENOSPC: no space left on device', '저장 공간이 부족합니다.'],
     [
       'sha512 checksum mismatch',
-      '설치 파일을 확인할 수 없습니다. 다시 내려받아야 합니다.',
+      '설치 파일을 확인할 수 없습니다. 다시 내려받으십시오.',
     ],
     [
       'EPERM: operation not permitted',
@@ -279,7 +279,7 @@ describe('updateErrorReason', () => {
     ],
     [
       'Invented failure',
-      '업데이트를 완료할 수 없습니다. 잠시 후 다시 시도해야 합니다.',
+      '업데이트를 완료할 수 없습니다. 잠시 후 다시 시도하십시오.',
     ],
   ])('tells the operator what to do about %s', (message, reason) => {
     expect(updateErrorReason(new Error(message))).toBe(reason);
@@ -287,7 +287,7 @@ describe('updateErrorReason', () => {
 
   it('reads a thrown value that is not an Error by its text', () => {
     expect(updateErrorReason('ETIMEDOUT')).toBe(
-      '인터넷 연결을 확인한 뒤 다시 시도해야 합니다.',
+      '인터넷 연결을 확인한 뒤 다시 시도하십시오.',
     );
   });
 });

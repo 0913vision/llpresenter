@@ -118,7 +118,7 @@ export function MacroActionDialog({
       primary={{
         label: '적용',
         disabled: locked || !action,
-        title: action ? undefined : '동작 설정을 확인해야 합니다.',
+        title: action ? undefined : '동작 설정을 확인하십시오.',
         onSelect: () => {
           if (action) onSave(action);
         },

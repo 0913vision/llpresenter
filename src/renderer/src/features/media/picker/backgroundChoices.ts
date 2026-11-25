@@ -37,5 +37,5 @@ export function backgroundPicture(id: MediaId | undefined) {
 
 /** Missing catalog entries cannot recover a filename from a saved media ID. */
 export function missingBackgroundTip(name?: string): string {
-  return `배경 파일을 찾을 수 없습니다: ${name === undefined ? MISSING_BACKGROUND_NAME : name || UNNAMED_MEDIA}. 다른 배경을 선택해야 합니다.`;
+  return `배경 파일을 찾을 수 없습니다: ${name === undefined ? MISSING_BACKGROUND_NAME : name || UNNAMED_MEDIA}. 다른 배경을 선택하십시오.`;
 }

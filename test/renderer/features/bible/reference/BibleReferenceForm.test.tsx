@@ -683,7 +683,7 @@ describe('shared Bible reference form', () => {
       const description = document.getElementById(
         view[part].getAttribute('aria-describedby') ?? '',
       );
-      expect(description?.textContent).toContain('확인해야 합니다');
+      expect(description?.textContent).toContain('확인하십시오');
       await view.user.keyboard('{Enter}');
       expect(view.onSubmit).not.toHaveBeenCalled();
     },

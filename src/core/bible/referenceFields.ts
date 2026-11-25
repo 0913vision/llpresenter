@@ -46,7 +46,7 @@ function chapterError(
   counts: readonly number[] | undefined,
 ): string | undefined {
   if (!chapter || (book && chapter > book.chapters)) {
-    return '장을 확인해야 합니다.';
+    return '장을 확인하십시오.';
   }
   if (!counts) return LOADING_CHAPTER;
   return counts[chapter - 1] ? undefined : '역본에 없는 장';
@@ -58,7 +58,7 @@ function startError(
   verseCount: number | undefined,
 ): string | undefined {
   if (!start || (verseCount !== undefined && start > verseCount)) {
-    return '시작절을 확인해야 합니다.';
+    return '시작절을 확인하십시오.';
   }
   return verseCount === undefined ? LOADING_CHAPTER : undefined;
 }
@@ -70,10 +70,10 @@ function endError(
   verseCount: number | undefined,
 ): string | undefined {
   if (end === undefined || (start !== undefined && end < start)) {
-    return '끝절을 확인해야 합니다.';
+    return '끝절을 확인하십시오.';
   }
   if (verseCount === undefined) return LOADING_CHAPTER;
-  return end > verseCount ? '끝절을 확인해야 합니다.' : undefined;
+  return end > verseCount ? '끝절을 확인하십시오.' : undefined;
 }
 
 /** Tab validates the literal endpoint; lookup can clamp only its upper bound. */

@@ -34,18 +34,18 @@ export const ON_SCREEN_REASON = '화면에 나가는 중입니다.';
 const FAILURE_REASON_LINES: Readonly<Record<string, readonly string[]>> = {
   'write-failed': [
     '변경 내용을 파일에 저장할 수 없습니다.',
-    '디스크 공간과 폴더 권한을 확인해야 합니다.',
+    '디스크 공간과 폴더 권한을 확인하십시오.',
   ],
-  stale: ['다른 곳에서 먼저 변경되었습니다.', '다시 시도해야 합니다.'],
+  stale: ['다른 곳에서 먼저 변경되었습니다.', '다시 시도하십시오.'],
   'not-found': ['대상을 찾을 수 없습니다.'],
   'read-only': [NEWER_FILE_REASON],
   'duplicate-title': ['같은 이름이 이미 있습니다.'],
   invalid: ['올바르지 않은 값입니다.'],
   'saves-full': [
     '저장을 기다리는 변경이 너무 많습니다.',
-    '잠시 후 다시 시도해야 합니다.',
+    '잠시 후 다시 시도하십시오.',
   ],
-  busy: ['이전 작업이 진행 중입니다.', '잠시 후 다시 시도해야 합니다.'],
+  busy: ['이전 작업이 진행 중입니다.', '잠시 후 다시 시도하십시오.'],
 };
 
 /** The lines that say why a refused or unsaved change failed; none for an unknown reason. */

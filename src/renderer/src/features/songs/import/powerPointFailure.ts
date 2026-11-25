@@ -24,7 +24,7 @@ export function powerPointFailureCard(
     case 'unresponsive':
       return {
         title: `PowerPoint가 응답하지 않아 ${name}을 가져오지 못했습니다.`,
-        meta: '열린 PowerPoint의 대화 상자를 닫거나 PowerPoint를 모두 닫은 뒤 다시 가져와야 합니다.',
+        meta: '열린 PowerPoint의 대화 상자를 닫거나 PowerPoint를 모두 닫은 뒤 다시 가져오십시오.',
       };
     case 'unavailable':
       return {
@@ -32,7 +32,7 @@ export function powerPointFailureCard(
         meta:
           work === 'backgrounds'
             ? '가사는 그대로 가져왔습니다.'
-            : 'PowerPoint가 설치된 PC에서 가져와야 합니다.',
+            : 'PowerPoint가 설치된 PC에서 가져오십시오.',
       };
   }
 }
