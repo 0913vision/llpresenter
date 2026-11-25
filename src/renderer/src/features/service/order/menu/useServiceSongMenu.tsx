@@ -15,7 +15,9 @@ import {openInPrep} from '@renderer/session/prepTarget';
 import {
   openSongDraftWithItem,
   requestLeaveSong,
+  useSongDraft,
 } from '@renderer/features/songs/songDraft';
+import {focusSlides, openDeckAt} from '@renderer/features/slides/deckSelection';
 
 interface SongMenuTarget {
   readonly id: string;
@@ -78,7 +80,13 @@ async function openItemInSongEditor(
   }
   requestLeaveSong(() => {
     openSongDraftWithItem(latest.document, latest.item.slides);
+    // NOTE(0913vision): The first slide takes the selection and the slides
+    // take the focus once the editor is drawn, so 실행 취소 goes to this song
+    // and never to the 예배 순서 the menu was opened on (church, Nov 25).
+    const first = useSongDraft.getState().draft?.song.slides[0];
+    openDeckAt(latest.document.song.id, first?.id);
     openInPrep({kind: 'song'});
+    requestAnimationFrame(() => requestAnimationFrame(focusSlides));
   });
 }
 
