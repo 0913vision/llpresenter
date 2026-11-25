@@ -1,6 +1,6 @@
 import {CommandScope} from '@renderer/ui/keys/commandDispatcher';
 import type {SongId} from '@core/schema/common/ids';
-import {Suspense, useEffect, useState, type JSX} from 'react';
+import {Suspense, useEffect, useState, type JSX, type ReactNode} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
 import type {MediaApi} from '@renderer/features/media/mediaLibrary';
 import {
@@ -39,6 +39,56 @@ import type {SizeClass} from '@core/schema/app/appConfig';
 
 function ignoreProblem(): void {
   return undefined;
+}
+
+/**
+ * 실행 취소 follows the workspace on screen: it is off in 진행, which sends
+ * what is on the screens, so a step run back there would change them behind
+ * the operator; and each tab runs back only its own steps (USER Nov 25), with
+ * 라이브러리 being 준비 with a song open.
+ */
+function useWorkspaceUndo(visible: WorkspaceId, songOpen: boolean): void {
+  const showVisible = visible === 'show';
+  useEffect(() => {
+    undoTimeline.block(showVisible ? NO_UNDO_IN_SHOW : undefined);
+  }, [showVisible]);
+  const tab = workspaceTabOf(visible, songOpen);
+  useEffect(() => {
+    undoTimeline.showTab(tab);
+  }, [tab]);
+}
+
+/**
+ * A workspace's frame that stays built while another workspace shows: hidden,
+ * out of the focus order, and with its commands' keys off, so going back
+ * shows it in the next frame instead of building it again.
+ */
+function KeptFrame({
+  workspace,
+  visible,
+  data,
+  children,
+}: {
+  readonly workspace: 'show' | 'prep';
+  readonly visible: boolean;
+  readonly data?: Readonly<
+    Record<`data-${string}`, string | boolean | undefined>
+  >;
+  readonly children: ReactNode;
+}): JSX.Element {
+  return (
+    <div
+      className={classNames(styles.frameSlot, !visible && styles.hiddenFrame)}
+      data-workspace-frame={workspace}
+      {...data}
+      inert={!visible}
+      aria-hidden={!visible}
+    >
+      <CommandScope value={visible ? 'visible' : 'hidden'}>
+        {children}
+      </CommandScope>
+    </div>
+  );
 }
 
 /**
@@ -102,17 +152,7 @@ export function Workspace({
     onProblem ?? logPanelProblem,
   );
   useUndoReveal(onShowInLibrary);
-  // NOTE(0913vision): 진행 sends what is on the screens, so 실행 취소 there
-  // would change it behind the operator; edits are run back in 준비.
-  useEffect(() => {
-    undoTimeline.block(showVisible ? NO_UNDO_IN_SHOW : undefined);
-  }, [showVisible]);
-  // NOTE(0913vision): Each tab runs back only its own steps (USER Nov 25):
-  // 라이브러리 is 준비 with a song open.
-  const undoTab = workspaceTabOf(visibleId, prepTarget?.kind === 'song');
-  useEffect(() => {
-    undoTimeline.showTab(undoTab);
-  }, [undoTab]);
+  useWorkspaceUndo(visibleId, prepTarget?.kind === 'song');
   // NOTE(0913vision): 진행 stays built, hidden, while another workspace
   // shows, so going back to 진행 shows its panels in the next frame instead of
   // building them again.
@@ -182,35 +222,22 @@ export function Workspace({
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
       <div data-resize-panel="media.upper" className={styles.frames}>
-        <div
-          className={classNames(
-            styles.frameSlot,
-            !showVisible && styles.hiddenFrame,
-          )}
-          data-workspace-frame="show"
-          inert={!showVisible}
-          aria-hidden={!showVisible}
-        >
-          <CommandScope value={showVisible ? 'visible' : 'hidden'}>
-            <Suspense fallback={null}>
-              {columnFrame('show', show, {
-                collapsed: toggle.collapsed,
-                visible: showVisible,
-              })}
-            </Suspense>
-          </CommandScope>
-        </div>
-        <div
-          className={classNames(
-            styles.frameSlot,
-            visibleId !== 'prep' && styles.hiddenFrame,
-          )}
-          data-workspace-frame="prep"
-          data-prep-frame
-          data-prep-item={prepPanels.shownItem ?? prepItemId ?? undefined}
-          data-prep-editing={prepPanels.editing === true ? 'true' : 'false'}
-          inert={visibleId !== 'prep'}
-          aria-hidden={visibleId !== 'prep'}
+        <KeptFrame workspace="show" visible={showVisible}>
+          <Suspense fallback={null}>
+            {columnFrame('show', show, {
+              collapsed: toggle.collapsed,
+              visible: showVisible,
+            })}
+          </Suspense>
+        </KeptFrame>
+        <KeptFrame
+          workspace="prep"
+          visible={visibleId === 'prep'}
+          data={{
+            'data-prep-frame': true,
+            'data-prep-item': prepPanels.shownItem ?? prepItemId ?? undefined,
+            'data-prep-editing': prepPanels.editing === true ? 'true' : 'false',
+          }}
         >
           <ShownItemProvider
             shownItem={
@@ -219,11 +246,9 @@ export function Workspace({
                 : prepPanels.shownItem
             }
           >
-            <CommandScope value={visibleId === 'prep' ? 'visible' : 'hidden'}>
-              {columnFrame('prep', prepPanels, {visible: visibleId === 'prep'})}
-            </CommandScope>
+            {columnFrame('prep', prepPanels, {visible: visibleId === 'prep'})}
           </ShownItemProvider>
-        </div>
+        </KeptFrame>
         {visibleId === 'screens' ? (
           <div className={styles.frameSlot}>
             {columnFrame('screens', screens)}
