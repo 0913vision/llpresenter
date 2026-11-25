@@ -38,6 +38,7 @@ import {
   mediaImportFailureNotice,
   requestMediaImport,
 } from './import/mediaImport';
+import {withFailureReason} from '@renderer/platform/problemReasons';
 
 /** What the media view uses of the window API. */
 export type MediaApi = Pick<LlpApi, 'media' | 'log'>;
@@ -401,7 +402,12 @@ export class MediaLibrary {
     this.forgetHistory();
     this.update({});
     this.refused('Changing media history was refused', result.error.message);
-    this.onProblem(warningNotice('media-view:history', '미디어 변경 실패'));
+    this.onProblem(
+      withFailureReason(
+        warningNotice('media-view:history', '미디어 변경 실패'),
+        result.error.reason,
+      ),
+    );
     return false;
   }
 
@@ -641,8 +647,12 @@ export class MediaLibrary {
   ): Promise<MediaEditOutcome | null> {
     const result = await this.api.media.edit(edit).catch(rejected);
     if (accepted(result)) return result;
-    if (!result.ok) this.refused(refusal.log, result.error.message);
-    this.onProblem(refusal.notice);
+    if (result.ok) {
+      this.onProblem(refusal.notice);
+      return null;
+    }
+    this.refused(refusal.log, result.error.message);
+    this.onProblem(withFailureReason(refusal.notice, result.error.reason));
     return null;
   }
 

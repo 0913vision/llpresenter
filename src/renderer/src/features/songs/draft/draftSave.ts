@@ -18,6 +18,7 @@ import {
   songProblem as problem,
   useSongDraft,
 } from './draftStore';
+import {failureReasonLines} from '@renderer/platform/problemReasons';
 
 async function send(edit: ContentEdit): Promise<EditResult | null> {
   const api = songDraftApi();
@@ -28,6 +29,11 @@ async function send(edit: ContentEdit): Promise<EditResult | null> {
     logFailure(api, 'Could not save a song', error);
     return null;
   }
+}
+
+/** Why a save was refused or not written; none when the request itself failed. */
+function why(result: EditResult | null): readonly string[] {
+  return result?.ok === false ? failureReasonLines(result.error.reason) : [];
 }
 
 /** The song a save made or changed, even when its file is not written yet. */
@@ -78,14 +84,12 @@ export function overwriteSong(): Promise<boolean> {
     });
     const id = savedId(result);
     if (id === undefined) {
-      problem(
-        result?.ok === false && result.error.reason === 'duplicate-title'
-          ? DUPLICATE_TITLE_REASON
-          : '곡 저장 실패',
-      );
+      if (result?.ok === false && result.error.reason === 'duplicate-title') {
+        problem(DUPLICATE_TITLE_REASON);
+      } else problem('곡 저장 실패', why(result));
       return false;
     }
-    if (result?.ok === false) problem('곡 파일 저장 실패');
+    if (result?.ok === false) problem('곡 파일 저장 실패', why(result));
     return reopen(id);
   });
 }
@@ -113,10 +117,10 @@ export function saveNewSong(
     });
     const id = savedId(result);
     if (id === undefined) {
-      problem('곡 저장 실패');
+      problem('곡 저장 실패', why(result));
       return false;
     }
-    if (result?.ok === false) problem('곡 파일 저장 실패');
+    if (result?.ok === false) problem('곡 파일 저장 실패', why(result));
     return reopen(id);
   });
 }
@@ -137,7 +141,7 @@ export function saveSongAs(title: string): Promise<boolean> {
     });
     const id = savedId(result);
     if (id === undefined) {
-      problem('다른 이름으로 저장 실패');
+      problem('다른 이름으로 저장 실패', why(result));
       return false;
     }
     return reopen(id);

@@ -1,12 +1,8 @@
 import {logFailure} from '@renderer/platform/logFailure';
 import {useRef, useState} from 'react';
-import {
-  type Notice,
-  noticeTime,
-  warningNotice,
-} from '@renderer/ui/popups/notices';
+import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import type {OpenServiceResult} from './openService';
-import {orderFailureTitle} from './serviceProblem';
+import {orderFailureNotice} from './serviceProblem';
 import {useAlive} from '@renderer/ui/useAlive';
 
 type Operation = () => Promise<OpenServiceResult>;
@@ -31,16 +27,13 @@ export function useServiceOrderEditing(onProblem: (notice: Notice) => void) {
         result = persisted.ok ? {ok: true, value: true} : persisted;
       }
       if (!result.ok) {
-        onProblem({
-          key: `service-order:${result.error.reason}`,
-          kind: 'warning',
-          icon: 'warning',
-          title:
-            result.error.reason === 'write-failed'
-              ? '예배 저장 실패'
-              : orderFailureTitle(result.error, '예배 변경 실패'),
-          time: noticeTime(),
-        });
+        onProblem(
+          orderFailureNotice(
+            `service-order:${result.error.reason}`,
+            result.error,
+            '예배 변경 실패',
+          ),
+        );
       }
       return result.ok;
     } catch (cause) {

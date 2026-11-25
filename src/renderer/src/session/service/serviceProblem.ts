@@ -1,5 +1,6 @@
 import type {Result} from '@core/common/result';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import {failureReasonLines} from '@renderer/platform/problemReasons';
 
 interface Refusal {
   readonly reason: string;
@@ -11,15 +12,32 @@ export function orderFailureTitle(error: Refusal, fallback: string): string {
   return error.reason === 'full' ? error.message : fallback;
 }
 
+/**
+ * The notice of a refused or unsaved 예배 change: its title, and the lines
+ * that say why.
+ */
+export function orderFailureNotice(
+  key: string,
+  error: Refusal,
+  fallback: string,
+): Notice {
+  return warningNotice(
+    key,
+    error.reason === 'write-failed'
+      ? '예배 저장 실패'
+      : orderFailureTitle(error, fallback),
+    failureReasonLines(error.reason),
+  );
+}
+
 /** The notice of a refused change of the open service; null when it went through. */
 export function serviceEditNotice(
   result: Result<unknown, Refusal>,
 ): Notice | null {
   if (result.ok) return null;
-  return warningNotice(
+  return orderFailureNotice(
     `slides:${result.error.reason}`,
-    result.error.reason === 'write-failed'
-      ? '예배 저장 실패'
-      : orderFailureTitle(result.error, '슬라이드 변경 실패'),
+    result.error,
+    '슬라이드 변경 실패',
   );
 }

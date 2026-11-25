@@ -12,6 +12,17 @@ tools). See 01.
 
 ## Problem states
 
+A failure card that has a reason from main says it under its title, in the
+same standard words for the same reason wherever it comes from (user decision,
+November 26): `변경 내용을 파일에 저장할 수 없습니다.` with `디스크 공간과 폴더
+권한을 확인하세요.` for an unwritten file; `다른 곳에서 먼저 변경되었습니다.` with
+`다시 시도하세요.` for a change made elsewhere first; `대상을 찾을 수 없습니다.`;
+`새 버전의 파일이라 바꿀 수 없습니다.`; `같은 이름이 이미 있습니다.`;
+`올바르지 않은 값입니다.`; `저장을 기다리는 변경이 너무 많습니다.` and
+`이전 작업이 진행 중입니다.`, each with `잠시 후 다시 시도하세요.`. A card whose
+request itself failed keeps its title alone; the cause is in the log.
+
+
 Live media playback failures, audio playback failures, and audio output device
 failures appear in the control window's existing warning cards and the 출력
 menu. They never add text to an output. A missing selected audio device shows

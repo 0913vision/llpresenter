@@ -81,13 +81,14 @@ export function songDraftApi(): SongDraftApi | undefined {
 }
 
 /** Tells the operator that something about the song failed. */
-export function songProblem(title: string): void {
+export function songProblem(title: string, meta: readonly string[] = []): void {
   connection?.report({
     key: `song:${title}`,
     kind: 'warning',
     icon: 'warning',
     title,
     time: noticeTime(),
+    ...(meta.length === 0 ? {} : {meta}),
   });
 }
 

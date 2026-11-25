@@ -11,6 +11,7 @@ import type {EditResult} from '@core/schema/services/contentEdit';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import type {SettingsName} from '@core/schema/app/settingsDocuments';
 import {settingsDeleteHistory} from '@renderer/platform/undo/settingsDeleteHistory';
+import {failureReasonLines} from '@renderer/platform/problemReasons';
 
 const emptyHistory = {undo: 0, redo: 0, busy: false};
 function noSubscribe(): () => void {
@@ -78,25 +79,27 @@ export function useToolEditing<Edit>({
     if (api === undefined || pending.current || !isActive()) return false;
     pending.current = true;
     setBusy(true);
-    const report = (kind: 'save' | 'edit'): void => {
+    const report = (kind: 'save' | 'edit', reason?: string): void => {
       if (isActive()) {
+        const why = reason === undefined ? [] : failureReasonLines(reason);
         onProblem?.({
           key: `${area.key}:${kind}`,
           kind: 'warning',
           icon: 'warning',
           title: `${area.label} ${kind === 'save' ? '저장' : '변경'} 실패`,
           time: noticeTime(),
+          ...(why.length === 0 ? {} : {meta: why}),
         });
       }
     };
     try {
       const result = await write(api, edit);
-      if (!result.ok) {
-        if (result.error.reason !== 'write-failed') {
-          throw new Error(result.error.message);
-        }
-        report('save');
+      if (!result.ok && result.error.reason !== 'write-failed') {
+        logFailure(api, area.log, new Error(result.error.message));
+        report('edit', result.error.reason);
+        return false;
       }
+      if (!result.ok) report('save', result.error.reason);
       if (area.deletions?.of(edit) === true) {
         // NOTE(0913vision): A deletion that was applied but could not be
         // written still happened, so it can be undone too.

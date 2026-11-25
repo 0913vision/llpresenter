@@ -8,6 +8,7 @@ import type {
 } from '@core/schema/app/settingsDocuments';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
+import {failureReasonLines} from '@renderer/platform/problemReasons';
 
 type LabelApi = Pick<LlpApi, 'settings' | 'content'>;
 /** The labels file as a settings document, with its revision and access. */
@@ -184,12 +185,18 @@ export class LabelCatalog {
           ? result.error.applied
           : null;
       if (outcome === null) {
-        this.problem('이름표 변경 실패');
+        this.problem(
+          '이름표 변경 실패',
+          undefined,
+          result.ok ? undefined : result.error.reason,
+        );
         return false;
       }
       applied({revision: outcome.revision, saved: result.ok});
       await this.read();
-      if (!result.ok) this.problem('이름표 파일 저장 실패');
+      if (!result.ok) {
+        this.problem('이름표 파일 저장 실패', undefined, result.error.reason);
+      }
       return result.ok || edit.type !== 'labels.rename';
     });
   }
@@ -262,14 +269,16 @@ export class LabelCatalog {
     for (const listener of this.listeners) listener();
   }
 
-  private problem(title: string, retry?: () => void): void {
+  private problem(title: string, retry?: () => void, reason?: string): void {
     if (this.disposed) return;
+    const why = reason === undefined ? [] : failureReasonLines(reason);
     this.report({
       key: `labels:${title}`,
       kind: 'warning',
       icon: 'warning',
       title,
       time: noticeTime(),
+      ...(why.length === 0 ? {} : {meta: why}),
       ...(retry === undefined
         ? {}
         : {

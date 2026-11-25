@@ -19,6 +19,7 @@ import {
   renameSong,
   type SongCommandContext,
 } from './songCommands';
+import {failureReasonLines} from '@renderer/platform/problemReasons';
 
 /** The parts of the app API that the library uses. */
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
@@ -56,19 +57,26 @@ type LibraryProblem = keyof typeof problemTitles;
 /** Reports a library problem as a warning card, with an action when given. */
 function useLibraryReport(
   onProblem: (notice: Notice) => void,
-): (cause: LibraryProblem, action?: NoticeAction) => void {
+): (cause: LibraryProblem, action?: NoticeAction, reason?: string) => void {
   const problemHandler = useRef(onProblem);
   useEffect(() => {
     problemHandler.current = onProblem;
   }, [onProblem]);
-  return useCallback((cause: LibraryProblem, action?: NoticeAction) => {
-    // NOTE(0913vision): The handler belongs to the app, not to this panel, so
-    // a failure that ends after the panel is gone still gets its card.
-    const notice = warningNotice(`library:${cause}`, problemTitles[cause]);
-    problemHandler.current(
-      action === undefined ? notice : {...notice, actions: [action]},
-    );
-  }, []);
+  return useCallback(
+    (cause: LibraryProblem, action?: NoticeAction, reason?: string) => {
+      // NOTE(0913vision): The handler belongs to the app, not to this panel,
+      // so a failure that ends after the panel is gone still gets its card.
+      const notice = warningNotice(
+        `library:${cause}`,
+        problemTitles[cause],
+        reason === undefined ? undefined : failureReasonLines(reason),
+      );
+      problemHandler.current(
+        action === undefined ? notice : {...notice, actions: [action]},
+      );
+    },
+    [],
+  );
 }
 
 /**
@@ -239,10 +247,10 @@ export function useLibrary(
   const appliedId = (result: EditResult): string | null => {
     if (result.ok) return result.value.id;
     if (result.error.reason === 'write-failed') {
-      report('save');
+      report('save', undefined, result.error.reason);
       return result.error.applied.id;
     }
-    report('change');
+    report('change', undefined, result.error.reason);
     return null;
   };
 
