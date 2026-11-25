@@ -27,6 +27,16 @@ export interface UndoOwner {
 }
 
 /**
+ * A history that takes every 실행 취소 of the window while it is open, cut off
+ * from the timeline as a modal window would be: the song editor (USER Nov 25:
+ * "이게 끊겨야한다").
+ */
+export interface IsolatedHistory extends UndoOwner {
+  /** How many steps it can run back and forward now. */
+  readonly steps: () => {readonly undo: number; readonly redo: number};
+}
+
+/**
  * How many steps the window can undo and redo, and whether one is running now.
  */
 export interface UndoTimelineState {
@@ -46,6 +56,7 @@ class UndoTimeline {
   private undo: UndoOwner[] = [];
   private redo: UndoOwner[] = [];
   private blockedBy: string | undefined;
+  private isolated: IsolatedHistory | undefined;
   private state: UndoTimelineState = {undo: 0, redo: 0, busy: false};
   private readonly listeners = new Set<() => void>();
   private readonly placeListeners = new Set<(place: UndoPlace) => void>();
@@ -93,6 +104,21 @@ class UndoTimeline {
     return this.blockedBy;
   }
 
+  /**
+   * Gives every 실행 취소 and 다시 실행 to `history` while it is open, or back
+   * to the timeline with undefined. The timeline's steps wait meanwhile.
+   */
+  isolate(history: IsolatedHistory | undefined): void {
+    if (this.isolated === history) return;
+    this.isolated = history;
+    this.publish(this.state.busy);
+  }
+
+  /** The isolated history's steps changed. */
+  changed(): void {
+    this.publish(this.state.busy);
+  }
+
   /** Drops the steps of an owner whose history is gone, such as a closed service. */
   forget(owner: UndoOwner): void {
     this.undo = this.undo.filter(entry => entry !== owner);
@@ -100,11 +126,18 @@ class UndoTimeline {
     this.publish(this.state.busy);
   }
 
-  /** Runs back, or forward again, the latest step of any history. */
+  /**
+   * Runs back, or forward again, the latest step of any history; only the
+   * isolated history's while one is open.
+   */
   async replay(
     kind: 'undo' | 'redo',
     report: (notice: Notice) => void,
   ): Promise<boolean> {
+    if (this.isolated !== undefined) {
+      if (this.blockedBy !== undefined || this.state.busy) return false;
+      return this.isolated.replay(kind, report);
+    }
     const owner = (kind === 'undo' ? this.undo : this.redo).at(-1);
     if (
       this.blockedBy !== undefined ||
@@ -132,7 +165,11 @@ class UndoTimeline {
   }
 
   private publish(busy: boolean): void {
-    this.state = {undo: this.undo.length, redo: this.redo.length, busy};
+    const steps = this.isolated?.steps() ?? {
+      undo: this.undo.length,
+      redo: this.redo.length,
+    };
+    this.state = {undo: steps.undo, redo: steps.redo, busy};
     for (const listener of this.listeners) listener();
   }
 }

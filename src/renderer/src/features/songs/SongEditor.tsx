@@ -11,6 +11,7 @@ import {useLabelColors} from '@renderer/features/labels/labels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {slideMaking} from '@renderer/platform/documents/themes';
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
+import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import type {Report} from '@renderer/session/service/serviceEdit';
 import {Button} from '@renderer/ui/buttons/Button';
 import {Icon} from '@renderer/ui/Icon';
@@ -30,14 +31,13 @@ import {
   ask,
   editSong,
   editSongTitle,
-  replaySong,
   requestSave,
   useSongDraft,
 } from './songDraft';
 import {isUnsaved, songTitleProblem} from './songDraftModel';
 
 /** The slides of the library song that is open. */
-export function useSongDeck(): SlideDeck | null {
+export function useSongDeck(report: Report): SlideDeck | null {
   const draft = useSongDraft(view => view.draft);
   return useMemo(() => {
     if (draft === null) return null;
@@ -54,9 +54,16 @@ export function useSongDeck(): SlideDeck | null {
           const slides = change(song.slides);
           return slides === song.slides ? song : {...song, slides};
         }, key),
-      replay: replaySong,
+      // NOTE(0913vision): Through the window's 실행 취소, which gives every
+      // step to the song while its editor shows, the same as the menu, the
+      // title bar button and the keys elsewhere.
+      replay: kind => {
+        undoTimeline.replay(kind, report).catch((error: unknown) => {
+          console.error('Could not undo', error);
+        });
+      },
     };
-  }, [draft]);
+  }, [draft, report]);
 }
 
 const PICTURES_REASON = '배경을 가져오는 중입니다.';
@@ -170,7 +177,7 @@ export function useSongEditor({
   readonly onBack: () => void;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
 }): {readonly editor: ReactNode; readonly inspector: ReactNode} | null {
-  const deck = useSongDeck();
+  const deck = useSongDeck(report);
   const colors = useLabelColors();
   const tiles = useDeckTiles(
     deck ?? {slides: [], source: {kind: 'song', title: ''}},

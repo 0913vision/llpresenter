@@ -1,4 +1,8 @@
 import {logFailure} from '@renderer/platform/logFailure';
+import {
+  undoTimeline,
+  type IsolatedHistory,
+} from '@renderer/platform/undo/undoTimeline';
 import {create} from 'zustand';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
@@ -106,6 +110,22 @@ function problem(title: string): void {
 function view() {
   return useSongDraft.getState();
 }
+
+/**
+ * The open song's 실행 취소 history, cut off from the window's timeline while
+ * the song editor shows (USER Nov 25: "이게 끊겨야한다"). Its steps go with
+ * the draft: a song opened, saved or closed starts anew.
+ */
+export const songUndoHistory: IsolatedHistory = {
+  replay: kind => Promise.resolve(replaySong(kind)),
+  steps: () => {
+    const {draft} = view();
+    return {undo: draft?.past.length ?? 0, redo: draft?.future.length ?? 0};
+  },
+};
+useSongDraft.subscribe((state, before) => {
+  if (state.draft !== before.draft) undoTimeline.changed();
+});
 
 function show(
   song: Song,
@@ -279,13 +299,16 @@ export function editSongTitle(title: string): void {
 }
 
 /**
- * Steps the draft back or forward through its history; nothing when there is no
- * step.
+ * Steps the draft back or forward through its history.
+ *
+ * @returns Whether there was a step.
  */
-export function replaySong(kind: 'undo' | 'redo'): void {
+export function replaySong(kind: 'undo' | 'redo'): boolean {
   const {draft} = view();
   const replayed = draft === null ? null : replayedDraft(draft, kind);
-  if (replayed !== null) useSongDraft.setState({draft: replayed});
+  if (replayed === null) return false;
+  useSongDraft.setState({draft: replayed});
+  return true;
 }
 
 async function send(edit: ContentEdit): Promise<EditResult | null> {
