@@ -288,6 +288,23 @@ describe('a full screen output drawn by a presenter', () => {
     handle.destroy();
   });
 
+  it('asks the presenter again when the monitor of a fallen back output went away and came back', () => {
+    const {handle, fallbacks} = setup();
+    handle.showFullScreen(monitor, false);
+    spawned().emitter.emit('message', {type: 'error', message: 'no device'});
+
+    handle.showWindowed({x: 480, y: 270, width: 960, height: 540}, false);
+    handle.showFullScreen(monitor, false);
+    expect(mocks.children).toHaveLength(2);
+
+    spawned().emitter.emit('message', {type: 'error', message: 'no device'});
+    handle.prepareForMonitorRemoval();
+    handle.showFullScreen(monitor, false);
+    expect(mocks.children).toHaveLength(3);
+    expect(fallbacks.length).toBeGreaterThan(0);
+    handle.destroy();
+  });
+
   it('falls back to the output window when the presenter stops taking frames', () => {
     vi.useFakeTimers();
     const {handle, fallbacks, log} = setup();

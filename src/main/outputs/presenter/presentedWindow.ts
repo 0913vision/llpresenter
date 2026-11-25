@@ -23,7 +23,8 @@ export interface PresentedWindowOptions {
  * The output of one screen. In full screen it is drawn by a presenter at the
  * monitor's refresh; in window and capture placements, or when the presenter
  * cannot run, it is the ordinary Electron output window. After a fallback the
- * presenter is asked again once the output has been off.
+ * presenter is asked again once the output has left full screen: turned off,
+ * in a window, or its monitor gone and back.
  */
 export function createPresentedOutputWindow(
   screen: OutputScreen,
@@ -73,6 +74,14 @@ export function createPresentedOutputWindow(
     presenter = part;
     return part;
   };
+  // NOTE(0913vision): A fallback lasts only while the output stays in full
+  // screen. Once it leaves (turned off, a window, or its monitor gone in a TV
+  // dropout), the next full screen asks the presenter again, so a TV that
+  // comes back gets the presenter at once (USER Nov 25).
+  const leaveFullScreen = (): void => {
+    lastFullScreen = null;
+    failed = false;
+  };
   const active = (): OutputWindowHandle | PresenterPart | null =>
     presenter ?? window;
   return {
@@ -106,16 +115,19 @@ export function createPresentedOutputWindow(
       ensureWindow().showFullScreen(bounds, onTop);
     },
     showWindowed: (bounds, onTop) => {
-      lastFullScreen = null;
+      leaveFullScreen();
       closePresenter();
       ensureWindow().showWindowed(bounds, onTop);
     },
     showCapture: (bounds, onTop) => {
-      lastFullScreen = null;
+      leaveFullScreen();
       closePresenter();
       ensureWindow().showCapture(bounds, onTop);
     },
-    prepareForMonitorRemoval: () => window?.prepareForMonitorRemoval(),
+    prepareForMonitorRemoval: () => {
+      failed = false;
+      window?.prepareForMonitorRemoval();
+    },
     bringToFront: () => {
       if (presenter !== null && lastFullScreen !== null) {
         presenter.setOnTop(lastFullScreen.onTop);
@@ -123,13 +135,9 @@ export function createPresentedOutputWindow(
     },
     bounds: () => active()?.bounds() ?? null,
     hide: () => {
-      lastFullScreen = null;
+      leaveFullScreen();
       presenter?.hide();
       window?.hide();
-      // NOTE(0913vision): Turning the output off and on is how an operator
-      // tries again, so the next full screen asks the presenter once more
-      // instead of keeping the output window until the app restarts.
-      failed = false;
     },
     reload: () => active()?.reload() ?? Promise.resolve(),
     crashRenderer: () => active()?.crashRenderer(),
