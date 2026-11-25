@@ -24,6 +24,7 @@ import {
 } from './ThemePropertyFields';
 import {type ThemeModel} from '../useThemeEditor';
 import {themeCanvasBounds} from '../elements/useThemeElements';
+import {fitAfter, sizeSteps, type TextFitUpdate} from './themeTextFit';
 
 const NO_OUTLINE: TextOutline = {on: false, width: 2, color: '#000000'};
 const NO_SHADOW: TextShadow = {
@@ -34,8 +35,6 @@ const NO_SHADOW: TextShadow = {
   opacity: 60,
   color: '#000000',
 };
-
-type Fit = NonNullable<ThemeGroupedText['fit']>;
 
 function changeText(
   model: ThemeModel,
@@ -343,14 +342,6 @@ export function ThemeTextProperties({
   );
 }
 
-function sizesOf(text: string): number[] | undefined {
-  const sizes = text
-    .split(',')
-    .map(part => Number(part.trim()))
-    .filter(size => size > 0);
-  return sizes.length === 0 ? undefined : sizes;
-}
-
 /** How a text gets smaller, and how its rows are kept, when it is long. */
 export function ThemeFitProperties({
   model,
@@ -361,15 +352,11 @@ export function ThemeFitProperties({
 }): JSX.Element {
   const reason = model.elementReason;
   const fit = element.fit ?? {};
-  const change = (update: Partial<Record<keyof Fit, unknown>>): void =>
+  const change = (update: TextFitUpdate): void =>
     changeText(model, element.id, current => {
       const {fit: before, ...rest} = current;
-      const next = Object.fromEntries(
-        Object.entries({...before, ...update}).filter(
-          ([, value]) => value !== undefined && value !== false,
-        ),
-      );
-      return Object.keys(next).length === 0 ? rest : {...rest, fit: next};
+      const fit = fitAfter(before, update);
+      return fit === undefined ? rest : {...rest, fit};
     });
   return (
     <PropertyGroup title="긴 글">
@@ -378,7 +365,7 @@ export function ThemeFitProperties({
         value={fit.sizes?.join(', ') ?? ''}
         reason={reason}
         placeholder="없음"
-        commit={text => change({sizes: sizesOf(text)})}
+        commit={text => change({sizes: sizeSteps(text)})}
       />
       <ThemeOptionalNumber
         label="최소 크기"

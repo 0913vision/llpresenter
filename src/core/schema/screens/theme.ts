@@ -48,6 +48,8 @@ export const THEME_FILE_LIMITS = {
   tracking: {min: -20, max: 200},
   rows: 20,
   gradientStops: 6,
+  /** The most size steps a long text tries. */
+  sizeSteps: 8,
 } as const;
 
 /** What a slide is for; a theme is offered only to slides of its purpose. */
@@ -136,7 +138,11 @@ const textStyleSchema = jsonObject({
 const fitSchema = jsonObject({
   /** The sizes tried before shrinking, largest first. */
   sizes: v.exactOptional(
-    v.pipe(v.array(positiveNumber), v.minLength(1), v.maxLength(8)),
+    v.pipe(
+      v.array(positiveNumber),
+      v.minLength(1),
+      v.maxLength(THEME_FILE_LIMITS.sizeSteps),
+    ),
   ),
   /** The most rows the text takes. */
   rows: v.exactOptional(

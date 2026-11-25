@@ -123,9 +123,10 @@ The user's needs (October 30 and November 22):
   is not letter spaced there. An operator who changes 청중 changes 무대 too. A
   label has the size of the 글 it labels.
 - **Fit.** A text is drawn at its size, or at the first of its listed sizes that
-  fits, and shrinks to its smallest size. It can keep its typed rows while it
-  shrinks, take at most some rows, and be sized together with every 슬라이드 of
-  the item that has the same 테마.
+  fits, and shrinks to its smallest size. 크기 단계 keeps what is typed largest
+  first, each size once, only font sizes, and at most 8. It can keep its typed
+  rows while it shrinks, take at most some rows, and be sized together with
+  every 슬라이드 of the item that has the same 테마.
 - **Stacks.** Texts of a stack stand one under another around a place, so a
   title without a subtitle stays centered.
 - **Splits.** A split puts 미리 보여줄 내용 under the 슬라이드's own text. The
