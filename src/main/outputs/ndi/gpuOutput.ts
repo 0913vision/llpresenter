@@ -4,6 +4,7 @@ import type {OutputScreen} from '../screens';
 import type {BitmapSender} from './output';
 import type {OutputWindowEvents, OutputWindowHandle} from '../outputWindow';
 import {createGpuSender} from './gpuSender';
+import {forwardingHandle} from './forwardingHandle';
 import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
 
 interface Options {
@@ -165,17 +166,13 @@ export function createGpuOutput(
   };
   delegate = makeGpu(false);
   return {
-    previewContents: () => delegate.previewContents?.() ?? null,
+    ...forwardingHandle(() => delegate),
     configure: next => {
       current = next;
       delegate.configure(next);
       if (sink && sink !== delegate) sink.configure(next);
       probe?.configure(next);
     },
-    prepare: (bounds, kind) => delegate.prepare(bounds, kind),
-    requestFrame: () => delegate.requestFrame(),
-    contentSize: () => delegate.contentSize(),
-    setAlwaysOnTop: value => delegate.setAlwaysOnTop(value),
     showFullScreen: (bounds, top) => {
       active = true;
       delegate.showFullScreen(bounds, top);
@@ -194,9 +191,6 @@ export function createGpuOutput(
       delegate.showCapture(bounds, top);
       if (mode === 'bitmap') scheduleProbe();
     },
-    prepareForMonitorRemoval: () => delegate.prepareForMonitorRemoval(),
-    bringToFront: () => delegate.bringToFront(),
-    bounds: () => delegate.bounds(),
     hide: () => {
       active = false;
       clearTimers();
@@ -206,9 +200,6 @@ export function createGpuOutput(
       if (sink && sink !== delegate) sink.hide();
       delegate.hide();
     },
-    reload: () => delegate.reload(),
-    crashRenderer: () => delegate.crashRenderer(),
-    ping: () => delegate.ping(),
     destroy: () => {
       active = false;
       closed = true;
