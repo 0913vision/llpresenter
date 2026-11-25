@@ -105,7 +105,7 @@ export class BibleLibrary {
             error: {
               code: 'translation',
               message:
-                '성경 본문을 받지 못했습니다. 인터넷 연결을 확인해 주십시오.',
+                '성경 본문을 받지 못했습니다. 인터넷 연결을 확인하세요.',
             },
           };
         }

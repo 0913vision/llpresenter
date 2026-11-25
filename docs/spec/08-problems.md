@@ -23,8 +23,8 @@ elsewhere first; `대상을 찾을 수 없습니다.`;
 `이전 작업이 진행 중입니다.`, each with `잠시 후 다시 시도하세요.`. A card whose
 request itself failed keeps its title alone; the cause is in the log. Every
 message of the app that asks the operator to do something ends in the plain
-request form (`다시 시도하세요.`, `16:9로 바꾸세요.`), never `~해 주세요`, and
-says what cannot be done as `~할 수 없습니다.`
+request form (`다시 시도하세요.`, `16:9로 바꾸세요.`), never `~해 주세요` or
+`~해 주십시오`.
 
 Live media playback failures, audio playback failures, and audio output device
 failures appear in the control window's existing warning cards and the 출력
