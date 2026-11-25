@@ -12,7 +12,10 @@ import {openItem} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {SlideGrid} from '@renderer/features/presentation/grid/SlideGrid';
 import {NumberJumpOverlay} from '@renderer/features/presentation/keyboard/NumberJumpOverlay';
-import {useNumberJumpKeys} from '@renderer/features/presentation/keyboard/numberJump';
+import {
+  numberJumpStep,
+  useNumberJumpKeys,
+} from '@renderer/features/presentation/keyboard/numberJump';
 import {useSlideHotKeys} from '@renderer/features/presentation/keyboard/useSlideHotKeys';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {
@@ -144,4 +147,40 @@ it('recalculates positions when service order and tile counts change', () => {
   };
   expect(serviceSlideAt(changed, 3)).toEqual({itemId: 'countdown', index: 0});
   expect(serviceSlideOffset(changed, 'song-morning')).toBe(3);
+});
+
+it('decides each key from the typed digits alone', () => {
+  const plain = {modified: false, onGrid: true};
+  expect(numberJumpStep('1', {...plain, key: '2'})).toEqual({
+    kind: 'type',
+    value: '12',
+  });
+  expect(numberJumpStep('12', {...plain, key: 'Enter'})).toEqual({
+    kind: 'go',
+    number: 12,
+  });
+  expect(numberJumpStep('', {...plain, key: 'Enter'})).toEqual({
+    kind: 'next-slide',
+  });
+  expect(numberJumpStep('', {...plain, key: 'Enter', onGrid: false})).toEqual({
+    kind: 'none',
+  });
+  expect(numberJumpStep('12', {...plain, key: 'Backspace'})).toEqual({
+    kind: 'erase',
+    value: '1',
+  });
+  expect(numberJumpStep('12', {...plain, key: 'Escape'})).toEqual({
+    kind: 'drop',
+    consumed: true,
+  });
+  expect(numberJumpStep('12', {...plain, key: 'a'})).toEqual({
+    kind: 'drop',
+    consumed: false,
+  });
+  expect(numberJumpStep('12', {...plain, key: 'Shift'})).toEqual({
+    kind: 'none',
+  });
+  expect(
+    numberJumpStep('12', {key: '3', modified: true, onGrid: true}),
+  ).toEqual({kind: 'drop', consumed: false});
 });

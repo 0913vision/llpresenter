@@ -14,10 +14,15 @@ function clear(): void {
   useNumberJump.setState({value: ''});
 }
 
-/** Runs before focused slide grids and numeric slide hotkeys. */
-export function handleNumberJump(event: KeyboardEvent): void {
-  const value = useNumberJump.getState().value;
-  if (
+const MODIFIERS = ['Shift', 'Control', 'Alt', 'Meta'];
+const SURFACES = '[role="menu"], [role="dialog"], [role="alertdialog"]';
+
+/**
+ * Whether the number jump hears this key: not while Korean is composing, a
+ * text box has the focus, a column is dragged, or a menu or dialog is open.
+ */
+function hearsKey(event: KeyboardEvent): boolean {
+  return !(
     event.defaultPrevented ||
     isColumnDragActive() ||
     event.isComposing ||
@@ -25,64 +30,109 @@ export function handleNumberJump(event: KeyboardEvent): void {
     textBoxHasKey(event.target) ||
     modalStack.isOpen ||
     (event.target instanceof Element &&
-      event.target.closest(
-        '[role="menu"], [role="dialog"], [role="alertdialog"]',
-      )) ||
-    [
-      ...document.querySelectorAll(
-        '[role="menu"], [role="dialog"], [role="alertdialog"]',
-      ),
-    ].some(surface => surface.closest('[inert]') === null)
-  ) {
+      event.target.closest(SURFACES) !== null) ||
+    [...document.querySelectorAll(SURFACES)].some(
+      surface => surface.closest('[inert]') === null,
+    )
+  );
+}
+
+/** What a key does to the digits typed so far. */
+type NumberJumpStep =
+  | {readonly kind: 'type'; readonly value: string}
+  | {readonly kind: 'go'; readonly number: number}
+  | {readonly kind: 'next-slide'}
+  | {readonly kind: 'erase'; readonly value: string}
+  | {readonly kind: 'drop'; readonly consumed: boolean}
+  | {readonly kind: 'none'};
+
+/**
+ * What a key does to the typed digits `value`: a digit adds to them, Enter
+ * goes to that slide (or, with no digits and the grid or nothing focused, to
+ * the next slide, as in a PowerPoint show), Backspace erases one, Delete and
+ * Esc drop them, and any other key drops them without taking the key.
+ */
+export function numberJumpStep(
+  value: string,
+  {
+    key,
+    modified,
+    onGrid,
+  }: {
+    readonly key: string;
+    /** Ctrl, Alt, Meta or Shift is down. */
+    readonly modified: boolean;
+    /** The slide grid, or nothing, has the focus. */
+    readonly onGrid: boolean;
+  },
+): NumberJumpStep {
+  const modifierOnly = MODIFIERS.includes(key);
+  if (modified) {
+    return value !== '' && !modifierOnly
+      ? {kind: 'drop', consumed: false}
+      : {kind: 'none'};
+  }
+  if (/^\d$/u.test(key)) {
+    return {kind: 'type', value: (value + key).slice(0, 15)};
+  }
+  if (value === '') {
+    return key === 'Enter' && onGrid ? {kind: 'next-slide'} : {kind: 'none'};
+  }
+  if (key === 'Enter') return {kind: 'go', number: Number(value)};
+  if (key === 'Delete' || key === 'Escape') {
+    return {kind: 'drop', consumed: true};
+  }
+  if (key === 'Backspace') return {kind: 'erase', value: value.slice(0, -1)};
+  return modifierOnly ? {kind: 'none'} : {kind: 'drop', consumed: false};
+}
+
+function onSlideGrid(target: EventTarget | null): boolean {
+  return (
+    target === document.body ||
+    (target instanceof Element &&
+      target.closest('[data-show-slide-grid="true"]') !== null)
+  );
+}
+
+/** Runs before focused slide grids and numeric slide hotkeys. */
+export function handleNumberJump(event: KeyboardEvent): void {
+  const value = useNumberJump.getState().value;
+  if (!hearsKey(event)) {
     if (value) clear();
     return;
   }
-  if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
-    if (value && !['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) {
+  const step = numberJumpStep(value, {
+    key: event.key,
+    modified: event.ctrlKey || event.altKey || event.metaKey || event.shiftKey,
+    onGrid: onSlideGrid(event.target),
+  });
+  if (step.kind === 'none') return;
+  if (step.kind === 'drop' && !step.consumed) {
+    clear();
+    return;
+  }
+  event.preventDefault();
+  event.stopPropagation();
+  switch (step.kind) {
+    case 'type':
+    case 'erase':
+      useNumberJump.setState({value: step.value});
+      return;
+    case 'drop':
       clear();
-    }
-    return;
-  }
-  if (/^\d$/u.test(event.key)) {
-    event.preventDefault();
-    event.stopPropagation();
-    useNumberJump.setState({value: (value + event.key).slice(0, 15)});
-    return;
-  }
-  if (!value) {
-    // NOTE(0913vision): Like a PowerPoint show, Enter and the keypad Enter
-    // output the next slide while the slide grid or nothing has focus.
-    if (
-      event.key === 'Enter' &&
-      (event.target === document.body ||
-        (event.target instanceof Element &&
-          event.target.closest('[data-show-slide-grid="true"]') !== null))
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
+      return;
+    case 'next-slide':
       if (!event.repeat) outputNext();
+      return;
+    case 'go': {
+      const cursor = serviceSlideAt(useShow.getState(), step.number);
+      clear();
+      if (cursor !== null) {
+        outputTile(cursor);
+        focusSlideGrid();
+      }
+      return;
     }
-    return;
-  }
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    event.stopPropagation();
-    const cursor = serviceSlideAt(useShow.getState(), Number(value));
-    clear();
-    if (cursor !== null) {
-      outputTile(cursor);
-      focusSlideGrid();
-    }
-  } else if (event.key === 'Delete' || event.key === 'Escape') {
-    event.preventDefault();
-    event.stopPropagation();
-    clear();
-  } else if (event.key === 'Backspace') {
-    event.preventDefault();
-    event.stopPropagation();
-    useNumberJump.setState({value: value.slice(0, -1)});
-  } else if (!['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) {
-    clear();
   }
 }
 
