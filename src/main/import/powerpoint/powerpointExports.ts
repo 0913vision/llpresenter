@@ -19,6 +19,7 @@ import {
 import type {PowerPointImagesJob} from './powerpointImages';
 import type {PowerPointJobs} from '../pptx/powerpointJob';
 import type {ReadDeck} from './powerpointReader';
+import {PowerPointExportScope} from './powerpointExportScope';
 import type {PowerPointTurns} from './powerpointTurns';
 import {
   readBoundedPicture,
@@ -76,23 +77,19 @@ export class PowerPointExports {
 
   /** Draws every slide of a file that the operator chooses. */
   async slides(listener: ExportListener): Promise<PowerPointImageExportResult> {
-    const {choose, turns, pictures, log} = this.options;
-    await turns.lastExport();
-    if (this.disposed || !turns.startExport()) return BUSY;
+    const {choose, log} = this.options;
+    if (this.disposed) return BUSY;
+    await using scope = await PowerPointExportScope.take(this.options);
+    if (scope === null) return BUSY;
     this.cancelled = false;
-    let folder: string | null = null;
     try {
       const path = await choose();
       if (path === null) return NOTHING;
-      folder = await pictures.openFolder();
-      return await this.drawSlides(path, folder, listener);
+      return await this.drawSlides(path, await scope.folder(), listener);
     } catch (error) {
       if (this.isStopped()) return NOTHING;
       log.warn('could not export PowerPoint images', error);
       return {ok: false, message: powerPointMessage(error, UNREADABLE)};
-    } finally {
-      if (folder !== null) await pictures.closeFolder(folder);
-      turns.endExport();
     }
   }
 
@@ -106,14 +103,14 @@ export class PowerPointExports {
     indices: readonly number[],
     listener: ExportListener,
   ): Promise<PowerPointBackgroundsResult> {
-    const {turns, pictures, log} = this.options;
-    await turns.lastExport();
+    const {pictures, log} = this.options;
+    if (this.disposed) return null;
+    await using scope = await PowerPointExportScope.take(this.options);
     const deck = deckOf();
     if (
+      scope === null ||
       deck === null ||
-      this.disposed ||
-      indices.some(index => deck.source.slides[index] === undefined) ||
-      !turns.startExport()
+      indices.some(index => deck.source.slides[index] === undefined)
     ) {
       return null;
     }
@@ -130,11 +127,9 @@ export class PowerPointExports {
         picture: {index, path},
       });
     };
-    let folder: string | null = null;
-    let closed = Promise.resolve();
     let failure: PowerPointFailure | undefined;
     try {
-      folder = await pictures.openFolder();
+      const folder = await scope.folder();
       const plain = await this.copyPictures(deck, folder, indices);
       for (const [index, path] of plain) onPicture(index, path);
       if (!isStopped()) {
@@ -143,7 +138,7 @@ export class PowerPointExports {
           indices: rest,
           onPicture,
         });
-        closed = drawn.closed;
+        scope.closeAfter(drawn.closed);
         failure = drawn.failure;
       }
       if (isStopped()) return null;
@@ -154,8 +149,6 @@ export class PowerPointExports {
     } catch (error) {
       log.warn('could not export PowerPoint backgrounds', error);
       return null;
-    } finally {
-      turns.endExport(this.whenClosed(closed, folder));
     }
   }
 
@@ -177,24 +170,6 @@ export class PowerPointExports {
   private stopJobs(): void {
     this.options.images.cancel();
     this.options.converter.cancel();
-  }
-
-  private async whenClosed(
-    closed: Promise<void>,
-    folder: string | null,
-  ): Promise<void> {
-    const {pictures, log} = this.options;
-    try {
-      await closed;
-    } catch (error) {
-      log.warn('could not close PowerPoint', error);
-    }
-    if (folder === null) return;
-    try {
-      await pictures.closeFolder(folder);
-    } catch (error) {
-      log.warn('could not remove PowerPoint pictures', error);
-    }
   }
 
   /** Copies a file for PowerPoint, so it never opens or locks the original. */
