@@ -46,6 +46,10 @@ The user's needs (October 30 and November 22):
   the same wherever that slide stands in its item.
 - **Separate 테마.** 찬양 제목, 찬양 가사, 설교 제목, and 말씀 본문 are four
   테마. A 테마 has a purpose and is offered only for 슬라이드 of that purpose.
+- **설교 제목 on 방송.** The built-in 설교 제목 테마 runs the title on one line
+  on 방송 (its 제목 text has 한 줄로 잇기 1): a title broken into two lines for
+  청중 shows as one line over the camera, and a title too long for one line
+  wraps by the box width (user decision, November 26).
 - **Hymns.** 찬송가 제목 is a second 테마 for 찬양 제목. Its 슬라이드 says only
   which hymn it is, and its boxes fill themselves: 찬송가 with the number
   (새찬송가 91장), and 제목 under it with the title in the hymnal.

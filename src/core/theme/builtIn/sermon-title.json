@@ -211,6 +211,7 @@
             "h": 154
           },
           "content": ["{제목}"],
+          "joinRows": 1,
           "style": {
             "font": "NanumSquare",
             "weight": 700,
