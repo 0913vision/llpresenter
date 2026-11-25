@@ -1,7 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {MediaLayer} from '@core/schema/live/live';
 import {installMockClock} from '@fixtures/mockClock';
-import {BACKGROUND_RELEASE_DELAY_MS} from '@renderer/rendering/media/backgroundLayer';
+import {BACKGROUND_RELEASE_DELAY_MS} from '@renderer/rendering/media/backgroundTiming';
 import {
   WARM_LIGHT,
   urlOf,

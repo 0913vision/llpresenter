@@ -3,7 +3,7 @@ import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_RELEASE_DELAY_MS,
   VIDEO_FRAME_DEADLINE_MS,
-} from '@renderer/rendering/media/backgroundLayer';
+} from '@renderer/rendering/media/backgroundTiming';
 import {setPlaybackProblem} from '@renderer/rendering/media/playbackProblem';
 
 vi.mock('@renderer/rendering/media/playbackProblem', () => ({

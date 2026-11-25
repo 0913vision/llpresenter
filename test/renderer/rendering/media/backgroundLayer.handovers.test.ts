@@ -4,7 +4,7 @@ import {
   BACKGROUND_RELEASE_DELAY_MS,
   MIN_SEEK_SECONDS,
   startOffsetSeconds,
-} from '@renderer/rendering/media/backgroundLayer';
+} from '@renderer/rendering/media/backgroundTiming';
 import {
   WARM_LIGHT,
   STILL_WATER,
