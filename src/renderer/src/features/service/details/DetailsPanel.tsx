@@ -15,7 +15,6 @@ import {
 import {outputSlideOf} from '@renderer/session/show/show';
 import {Button} from '@renderer/ui/buttons/Button';
 import {GridFooter} from '@renderer/ui/lists/GridFooter';
-import {warningNotice} from '@renderer/ui/popups/notices';
 import {Spinner} from '@renderer/ui/tiles/Spinner';
 import {ThumbnailSizeControl} from '@renderer/ui/choices/ThumbnailSizeControl';
 import {sectionItemCount} from './sectionItemCount';
@@ -29,7 +28,8 @@ import {
 import {SlideSidePanel} from '../../slides/SlideSidePanel';
 import styles from './DetailsPanel.module.css';
 import type {SizeClass} from '@core/schema/app/appConfig';
-import {logFailure} from '@renderer/platform/logFailure';
+import {readLibrarySong} from '@renderer/features/songs/library/readLibrarySong';
+import {editorTask} from '@renderer/platform/editorTask';
 
 /**
  * What the 세부정보 panel describes: an item of the service, or a song of the
@@ -51,15 +51,14 @@ function useLibrarySong(
   useEffect(() => {
     if (songId === null) return undefined;
     let active = true;
-    api.library.showSong({songId}).then(
-      value => {
-        if (active) setSong(value);
-      },
-      (cause: unknown) => {
-        logFailure(api, `Could not show library song ${songId}`, cause);
-        if (!active) return;
-        report(warningNotice('details:library', '곡 불러오기 실패'));
-      },
+    editorTask(
+      readLibrarySong(api, songId, {
+        key: 'details:library',
+        report,
+        wanted: () => active,
+      }).then(value => {
+        if (active && value !== undefined) setSong(value);
+      }),
     );
     return () => {
       active = false;

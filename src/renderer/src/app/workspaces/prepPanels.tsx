@@ -33,7 +33,7 @@ import {serviceItem} from '@renderer/session/service/openService';
 import {LIBRARY_TAB_ONLY} from '@renderer/platform/problemReasons';
 import {SearchResultsPanel} from '@renderer/app/shell/toolbar/SearchResultsPanel';
 import {useShownSearch} from '@renderer/app/shell/toolbar/searchResults';
-import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
+import type {Notice} from '@renderer/ui/popups/notices';
 import {
   logPanelProblem,
   type PanelParts,
@@ -42,7 +42,8 @@ import {
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 import {useShow} from '@renderer/session/show/showStore';
 import type {SizeClass} from '@core/schema/app/appConfig';
-import {logFailure} from '@renderer/platform/logFailure';
+import {readLibrarySong} from '@renderer/features/songs/library/readLibrarySong';
+import {editorTask} from '@renderer/platform/editorTask';
 
 const COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;
 const ITEM_COLUMNS = [[SERVICE_ORDER], ['편집'], ['슬라이드 속성']] as const;
@@ -82,20 +83,18 @@ function Library({
   const selectSong = (songId: SongId): void => {
     const turn = ++request.current;
     const before = useShow.getState().openItemId;
-    prep.api.library.showSong({songId}).then(
-      song => {
-        if (
-          turn === request.current &&
-          before === useShow.getState().openItemId &&
-          song !== null
-        ) {
-          openLibrarySong(song);
-        }
-      },
-      (cause: unknown) => {
-        logFailure(prep.api, `Could not show library song ${songId}`, cause);
-        report(warningNotice('details:library', '곡 불러오기 실패'));
-      },
+    editorTask(
+      readLibrarySong(prep.api, songId, {key: 'details:library', report}).then(
+        song => {
+          if (
+            song &&
+            turn === request.current &&
+            before === useShow.getState().openItemId
+          ) {
+            openLibrarySong(song);
+          }
+        },
+      ),
     );
   };
   return (

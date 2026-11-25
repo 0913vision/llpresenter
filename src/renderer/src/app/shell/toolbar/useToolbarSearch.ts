@@ -6,6 +6,10 @@ import {openLibrarySong} from '@renderer/session/show/showLibrary';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useShow} from '@renderer/session/show/showStore';
 import {withinLookupTimeout} from '@renderer/session/lookupTimeout';
+import {
+  SONG_LOAD_FAILED,
+  SONG_NOT_FOUND,
+} from '@renderer/features/songs/library/readLibrarySong';
 
 /** The most matches the toolbar search shows at once. */
 export const TOOLBAR_SEARCH_LIMIT = 20;
@@ -140,7 +144,7 @@ function useResultChooser(
       );
       if (!isCurrent()) return;
       if (song === null) {
-        onProblem(problem('곡을 찾을 수 없습니다.', match.title));
+        onProblem(problem(SONG_NOT_FOUND, match.title));
       } else {
         openLibrarySong(song);
       }
@@ -150,7 +154,7 @@ function useResultChooser(
         'Could not open the toolbar library result',
         cause,
       );
-      if (isCurrent()) onProblem(problem('곡 불러오기 실패', match.title));
+      if (isCurrent()) onProblem(problem(SONG_LOAD_FAILED, match.title));
     }
   };
   const supersede = (): void => {

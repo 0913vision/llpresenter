@@ -15,6 +15,7 @@ import {selectionLabel} from '@renderer/ui/lists/drag/selectionDrag';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import type {ServiceRow} from '@core/presentation';
 import {fixedKeyText} from '@renderer/ui/keys/fixedKeys';
+import {SONG_NOT_FOUND} from '@renderer/features/songs/library/readLibrarySong';
 
 /** What the 예배 순서 item menu can ask the list to do. */
 export interface ServiceOrderMenuInput {
@@ -75,9 +76,7 @@ function songEditRows({
       label: windowCommandLabels.editSong,
       ...menuAvailability(
         song?.reason ??
-          (editSong.editSong === undefined
-            ? '곡을 찾을 수 없습니다.'
-            : undefined),
+          (editSong.editSong === undefined ? SONG_NOT_FOUND : undefined),
       ),
       onSelect: editSong.editSong,
     },

@@ -20,6 +20,7 @@ import {
   type SongCommandContext,
 } from './songCommands';
 import {failureReasonLines} from '@renderer/platform/problemReasons';
+import {SONG_NOT_FOUND} from './readLibrarySong';
 
 /** The parts of the app API that the library uses. */
 export type LibraryApi = Pick<LlpApi, 'songs' | 'content' | 'services'> & {
@@ -41,7 +42,7 @@ const problemTitles = {
   load: '라이브러리 불러오기 실패',
   search: '라이브러리 검색 실패',
   open: '곡 열기 실패',
-  missing: '곡을 찾을 수 없습니다.',
+  missing: SONG_NOT_FOUND,
   create: '새 곡 만들기 실패',
   delete: '곡 삭제 실패',
   save: '곡 파일 저장 실패',

@@ -19,6 +19,7 @@ import {LiturgyVersion} from '../editor/ItemTools';
 import {useServiceSongMenu} from '../order/menu/useServiceSongMenu';
 import styles from './DetailsInfo.module.css';
 import {useShow} from '@renderer/session/show/showStore';
+import {SONG_NOT_FOUND} from '@renderer/features/songs/library/readLibrarySong';
 
 function SongSource({
   songId,
@@ -52,7 +53,7 @@ function SongSource({
           action={
             <Button
               disabled={song === undefined}
-              title={song === undefined ? '곡을 찾을 수 없습니다.' : undefined}
+              title={song === undefined ? SONG_NOT_FOUND : undefined}
               onClick={() => onOpenSong(songId)}
             >
               열기

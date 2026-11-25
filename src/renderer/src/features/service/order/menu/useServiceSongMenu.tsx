@@ -20,6 +20,7 @@ import {
   useSongDraft,
 } from '@renderer/features/songs/draft';
 import {focusSlides, openDeckAt} from '@renderer/features/slides/deckSelection';
+import {SONG_LOAD_FAILED} from '@renderer/features/songs/library/readLibrarySong';
 
 interface SongMenuTarget {
   readonly id: string;
@@ -162,7 +163,7 @@ export function useServiceSongMenu(
               isItemOfKind(item, 'song') ? {...item, slides} : null,
             );
       if (result?.ok === true) setQuestion(null);
-      else onProblem(warningNotice('song-transfer', '곡 불러오기 실패'));
+      else onProblem(warningNotice('song-transfer', SONG_LOAD_FAILED));
     } finally {
       writing.current = false;
       setBusy(false);

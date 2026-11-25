@@ -3,6 +3,7 @@ import {useEffect, useEffectEvent} from 'react';
 import {refreshLibrarySong} from '@renderer/session/show/showLibrary';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useShow} from '@renderer/session/show/showStore';
+import {SONG_LOAD_FAILED} from '@renderer/features/songs/library/readLibrarySong';
 
 /** Refreshes the single retained library projection and releases all feeds. */
 export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {
@@ -21,7 +22,7 @@ export function useLibrarySongSync(onProblem: (notice: Notice) => void): void {
       } catch (cause) {
         logFailure(api, 'Could not refresh the open library song', cause);
         if (active && request === version) {
-          report(warningNotice('library-song:refresh', '곡 불러오기 실패'));
+          report(warningNotice('library-song:refresh', SONG_LOAD_FAILED));
         }
       }
     };
