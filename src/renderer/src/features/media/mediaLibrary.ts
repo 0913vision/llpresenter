@@ -27,6 +27,7 @@ import {
   playlistRef,
   playlistUpdate,
   rejected,
+  UnsavedPlaylistName,
   written,
   type MediaEditOutcome,
   type PlaylistChange,
@@ -80,7 +81,7 @@ export class MediaLibrary {
 
   private onProblem: (notice: Notice) => void = () => undefined;
   private relinking = false;
-  private unsavedRenameRevision: number | null = null;
+  private readonly unsavedName = new UnsavedPlaylistName();
   private readonly deletes = new MediaDeleteHistory();
 
   constructor(private readonly api: MediaApi) {}
@@ -326,7 +327,7 @@ export class MediaLibrary {
     ) {
       return false;
     }
-    if (trimmed === current.name && this.unsavedRenameRevision === null) {
+    if (trimmed === current.name && !this.unsavedName.pending) {
       return true;
     }
     return this.updatePlaylist(document, playlist, {
@@ -458,27 +459,11 @@ export class MediaLibrary {
         baseRevision: document.revision,
       })
       .catch(rejected);
-    if (input.completion === 'saved') {
-      if (!result.ok) {
-        const revision =
-          result.error.reason === 'write-failed'
-            ? (result.error.applied.revision ?? document.revision)
-            : document.revision;
-        this.unsavedRenameRevision = Math.max(
-          this.unsavedRenameRevision ?? 0,
-          revision,
-        );
-      } else if (result.value === null) {
-        if (this.unsavedRenameRevision !== null) return false;
-      } else {
-        if (
-          this.unsavedRenameRevision !== null &&
-          (result.value.revision ?? document.revision) >=
-            this.unsavedRenameRevision
-        ) {
-          this.unsavedRenameRevision = null;
-        }
-      }
+    if (
+      input.completion === 'saved' &&
+      !this.unsavedName.follow(result, document.revision)
+    ) {
+      return false;
     }
     if (
       result.ok ||

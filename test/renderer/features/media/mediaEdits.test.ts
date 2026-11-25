@@ -2,6 +2,7 @@ import {expect, it} from 'vitest';
 import {
   createdId,
   rejected,
+  UnsavedPlaylistName,
   written,
   type MediaEditOutcome,
 } from '@renderer/features/media/mediaEdits';
@@ -35,4 +36,27 @@ it('reads a failed call as a refusal with its message', () => {
     ok: false,
     error: {reason: 'invalid', message: 'bad reply'},
   });
+});
+
+it('remembers a playlist name main took but could not save until a later rename is saved', () => {
+  const name = new UnsavedPlaylistName();
+  expect(name.follow(saved, 3)).toBe(true);
+  expect(name.pending).toBe(false);
+
+  expect(name.follow(unsaved, 3)).toBe(true);
+  expect(name.pending).toBe(true);
+  expect(name.follow({ok: true, value: null}, 5)).toBe(false);
+  expect(name.follow({ok: true, value: {id: 'p', revision: 4}}, 4)).toBe(true);
+  expect(name.pending).toBe(true);
+  expect(name.follow({ok: true, value: {id: 'p', revision: 6}}, 5)).toBe(true);
+  expect(name.pending).toBe(false);
+  expect(name.follow({ok: true, value: null}, 6)).toBe(true);
+});
+
+it('remembers the revision a refused rename was asked on', () => {
+  const name = new UnsavedPlaylistName();
+  name.follow(refused, 7);
+  expect(name.pending).toBe(true);
+  name.follow({ok: true, value: {id: 'p', revision: 7}}, 7);
+  expect(name.pending).toBe(false);
 });

@@ -67,3 +67,41 @@ export function playlistUpdate(
     ? null
     : ({kind: 'audio', value: {...found, ...change}} as const);
 }
+
+/**
+ * The newest playlist name main took but could not save. Until a later rename
+ * is saved, renaming to the same name writes again, and an answer that wrote
+ * nothing does not count as saved.
+ */
+export class UnsavedPlaylistName {
+  private revision: number | null = null;
+
+  /** Whether a name main took is not saved yet. */
+  get pending(): boolean {
+    return this.revision !== null;
+  }
+
+  /**
+   * Follows main's answer to a rename written on revision `base`.
+   *
+   * @returns Whether the rename counts as done so far.
+   */
+  follow(result: MediaEditOutcome, base: number): boolean {
+    if (!result.ok) {
+      const taken =
+        result.error.reason === 'write-failed'
+          ? (result.error.applied.revision ?? base)
+          : base;
+      this.revision = Math.max(this.revision ?? 0, taken);
+      return true;
+    }
+    if (result.value === null) return this.revision === null;
+    if (
+      this.revision !== null &&
+      (result.value.revision ?? base) >= this.revision
+    ) {
+      this.revision = null;
+    }
+    return true;
+  }
+}
