@@ -154,7 +154,7 @@ export function numberPlaceholder(
         : `1~${chapters}`;
     }
     if (chapter <= 0) return REFERENCE_LABELS[part];
-    if (lastVerse === undefined) return '불러오는 중...';
+    if (lastVerse === undefined) return '불러오는 중';
     return `${part === 'end' && start ? start : 1}~${lastVerse}`;
   }
   if (part !== 'chapter' && lastVerse !== undefined) {
