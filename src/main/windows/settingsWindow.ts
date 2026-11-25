@@ -437,10 +437,15 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (this.disposed) return;
     this.stopping = true;
     this.warmup.cancel();
-    if (!(await this.close())) {
-      this.stopping = false;
-      return;
+    let closed = false;
+    try {
+      closed = await this.close();
+    } finally {
+      // NOTE(0913vision): A close that failed or was refused leaves the
+      // window usable, never stuck as stopping.
+      if (!closed) this.stopping = false;
     }
+    if (!closed) return;
     this.disposed = true;
     this.ipc.close();
     const control = this.control;

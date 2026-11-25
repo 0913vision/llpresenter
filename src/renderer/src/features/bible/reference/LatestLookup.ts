@@ -44,17 +44,27 @@ export class LatestLookup {
 
   private async read(): Promise<void> {
     this.reading = true;
-    while (!this.closed && this.pending !== null) {
-      const request = this.pending;
-      const version = this.version;
-      this.pending = null;
-      try {
-        const reply = await this.api.lookup(request);
-        if (this.isCurrent(version)) this.accept(reply);
-      } catch (error: unknown) {
-        if (this.isCurrent(version)) this.fail(request, error);
+    try {
+      while (!this.closed && this.pending !== null) {
+        const request = this.pending;
+        this.pending = null;
+        await this.lookUp(request, this.version);
       }
+    } finally {
+      this.reading = false;
     }
-    this.reading = false;
+  }
+
+  /** Looks one request up, keeping its answer only while it is current. */
+  private async lookUp(
+    request: BibleLookupRequest,
+    version: number,
+  ): Promise<void> {
+    try {
+      const reply = await this.api.lookup(request);
+      if (this.isCurrent(version)) this.accept(reply);
+    } catch (error: unknown) {
+      if (this.isCurrent(version)) this.fail(request, error);
+    }
   }
 }

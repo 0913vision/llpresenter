@@ -25,16 +25,19 @@ export function recentWriter(
   let writing = false;
   const write = async (): Promise<void> => {
     writing = true;
-    while (pending.length > 0) {
-      const batch = pending;
-      pending = [];
-      try {
-        await saveBatch(api, batch);
-      } catch (error: unknown) {
-        console.error('Could not save recent Bible passages', error);
+    try {
+      while (pending.length > 0) {
+        const batch = pending;
+        pending = [];
+        try {
+          await saveBatch(api, batch);
+        } catch (error: unknown) {
+          console.error('Could not save recent Bible passages', error);
+        }
       }
+    } finally {
+      writing = false;
     }
-    writing = false;
   };
   return passage => {
     pending = rememberPassage(pending, passage);
