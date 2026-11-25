@@ -134,8 +134,8 @@ describe('Toolbar', () => {
     ).toEqual([
       ['진행', 'true'],
       ['준비', 'false'],
-      ['테마', 'false'],
       ['라이브러리', 'false'],
+      ['테마', 'false'],
     ]);
     await userEvent.click(screen.getByRole('tab', {name: '준비'}));
     expect(onWorkspace).toHaveBeenCalledWith('prep');

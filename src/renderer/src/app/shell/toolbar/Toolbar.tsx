@@ -16,8 +16,8 @@ import type {SizeClass} from '@core/schema/app/appConfig';
 const workspaceTabs: ReadonlyArray<ToolbarTab<WorkspaceTab>> = [
   {value: 'show', icon: 'slides', label: '진행'},
   {value: 'prep', icon: 'edit', label: '준비'},
-  {value: 'screens', icon: 'layers', label: '테마'},
   {value: 'library', icon: 'song', label: '라이브러리'},
+  {value: 'screens', icon: 'layers', label: '테마'},
 ];
 
 const INLINE_OUTPUT_LIMIT = 3;
