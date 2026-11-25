@@ -3,31 +3,26 @@ import {isAnyOutputOn} from '@core/schema/live/live';
 import type {LiveStore} from '../live/store';
 import {IpcHost, pushToWindow, type Caller} from '../base/ipcHost';
 import type {Logger} from '../base/log';
-import type {ShutdownCoordinator} from '../base/shutdown';
 import {UpdateController} from './controller';
 import {createUpdater} from './electronUpdater';
+import {
+  handOverToInstaller,
+  type InstallHandoffOptions,
+} from './installHandoff';
 import {contentsForLog} from '../base/renderers/pageUrl';
 
-interface RegisterOptions {
+interface RegisterOptions extends InstallHandoffOptions {
   readonly control: {
-    readonly webContents: {
+    readonly webContents: InstallHandoffOptions['control']['webContents'] & {
       readonly mainFrame: object;
-      isDestroyed(): boolean;
       send(channel: string, value: unknown): void;
-      executeJavaScript?(code: string): Promise<unknown>;
     };
   };
   readonly store: Pick<LiveStore, 'state' | 'subscribe'>;
   readonly log: Logger;
-  readonly shutdown: Pick<ShutdownCoordinator, 'quitForUpdate'>;
   readonly ready: Promise<boolean>;
   readonly enabled: boolean;
   readonly version: string;
-  readonly verifyClean: () => Promise<boolean>;
-  readonly savePending: () => Promise<boolean>;
-  readonly resumeAfterCancelledInstall: () => void;
-  readonly prepareRestart: (version: string) => Promise<boolean>;
-  readonly cancelRestart: () => Promise<void>;
 }
 
 /**
@@ -54,42 +49,8 @@ export function registerUpdates(options: RegisterOptions): () => void {
     changed: value => {
       pushToWindow(control.webContents, updateEndpoints.changed, {value, log});
     },
-    installAfterShutdown: async (install, version, onHandoff) => {
-      let cancelled = false;
-      const isCancelled = (): boolean => cancelled;
-      let accepted = false;
-      try {
-        accepted = await options.shutdown.quitForUpdate(install, () => true, {
-          savePending: async () => {
-            if (!(await options.savePending()) || isCancelled()) return false;
-            const prepared = await options.prepareRestart(version);
-            if (isCancelled()) {
-              await options.cancelRestart();
-              return false;
-            }
-            return prepared;
-          },
-          beforeShutdown: async () => {
-            onHandoff();
-            if (control.webContents.isDestroyed()) return;
-            await Promise.race([
-              control.webContents.executeJavaScript?.(
-                'new Promise(resolve => { requestAnimationFrame(() => requestAnimationFrame(resolve)); setTimeout(resolve, 250); })',
-              ),
-              new Promise<void>(resolve => setTimeout(resolve, 500)),
-            ]);
-          },
-          verifyClean: options.verifyClean,
-        });
-        return accepted;
-      } finally {
-        if (!accepted) {
-          cancelled = true;
-          await options.cancelRestart();
-          options.resumeAfterCancelledInstall();
-        }
-      }
-    },
+    installAfterShutdown: (install, version, onHandoff) =>
+      handOverToInstaller(options, {install, version, onHandoff}),
   });
   const ipc = new IpcHost(log);
   const isControl = ({contents, isMainFrame}: Caller): boolean =>
