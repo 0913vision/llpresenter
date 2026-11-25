@@ -5,8 +5,10 @@ import {shortcutCommands} from '@core/shortcuts/registry';
 import {
   allCommands,
   buildRows,
+  emptyRowsText,
   filterRows,
   groupRows,
+  sameBindings,
   shortcutCounts,
   withBinding,
   withoutShownOverrides,
@@ -232,5 +234,25 @@ describe('edits', () => {
         commands,
       ),
     ).toEqual({'future.cmd': [F1], [quick]: [CTRL_J], [unlisted]: [F1]});
+  });
+});
+
+describe('sameBindings', () => {
+  it('counts the same keys in the same order as the same', () => {
+    expect(
+      sameBindings([F1, CTRL_J], [F1, {code: 'KeyJ', mods: ['ctrl']}]),
+    ).toBe(true);
+    expect(sameBindings([F1, CTRL_J], [CTRL_J, F1])).toBe(false);
+    expect(sameBindings([F1], [F1, CTRL_J])).toBe(false);
+    expect(sameBindings([], [])).toBe(true);
+  });
+});
+
+describe('emptyRowsText', () => {
+  it('says why the list is empty for a search and for each filter', () => {
+    expect(emptyRowsText(' 찬양 ', 'all')).toBe('검색 결과 없음');
+    expect(emptyRowsText('', 'changed')).toBe('바꾼 단축키 없음');
+    expect(emptyRowsText('', 'conflict')).toBe('겹친 단축키 없음');
+    expect(emptyRowsText('  ', 'all')).toBeUndefined();
   });
 });
