@@ -155,3 +155,25 @@ it('keeps 복제, 이름 바꾸기 and 삭제 off where the library is not chang
     expect(rows.find(row => row.id === id)?.disabled).toBeFalsy();
   }
 });
+
+it('names a newer file before the tab, as it can be changed in no tab', () => {
+  const song = libraryFixture().list()[0];
+  if (!song) throw new Error('Missing fixture');
+  const rows = menuItems(
+    libraryMenuEntries({
+      song: {...song, access: 'readOnly'},
+      appendDisabledReason: undefined,
+      busy: false,
+      append: vi.fn(),
+      open: vi.fn(),
+      duplicate: vi.fn(),
+      remove: vi.fn(),
+      rename: vi.fn(),
+      reveal: vi.fn(),
+      editReason: '라이브러리 탭에서만 바꿀 수 있습니다.',
+    }),
+  );
+  expect(rows.find(row => row.id === 'delete')?.title).toBe(
+    '새 버전의 파일이라 바꿀 수 없습니다.',
+  );
+});

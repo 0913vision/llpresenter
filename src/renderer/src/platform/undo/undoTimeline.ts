@@ -84,11 +84,11 @@ class UndoTimeline {
   }
 
   /**
-   * A new step of an owner in the tab on screen: it comes last there, and
-   * nothing of that tab or that owner can be redone.
+   * A new step of an owner, in the tab on screen unless the owner's steps
+   * always belong to one tab: it comes last there, and nothing of that tab or
+   * that owner can be redone.
    */
-  record(owner: UndoOwner): void {
-    const {tab} = this;
+  record(owner: UndoOwner, tab: UndoTab = this.tab): void {
     this.undo = [
       ...this.undo.filter(entry => entry.owner !== owner || entry.tab === tab),
       {owner, tab},

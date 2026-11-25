@@ -58,6 +58,17 @@ it('runs back the song in the 라이브러리 tab and the 예배 순서 in 준�
   expect(slides()).toEqual(itemLyrics);
 });
 
+it('keeps a song step in the 라이브러리 tab even when the song opens from 준비', async () => {
+  undoTimeline.showTab('prep');
+  openSongDraftWithItem(document, [lyricsSlide(12, '항목 가사')]);
+  expect(undoTimeline.get().undo).toBe(0);
+
+  undoTimeline.showTab('library');
+  expect(undoTimeline.get().undo).toBe(1);
+  await undoTimeline.replay('undo', vi.fn());
+  expect(slides()).toEqual(libraryLyrics);
+});
+
 it('forgets the song steps once the song is closed', () => {
   undoTimeline.showTab('library');
   openSongDraftWithItem(document, [lyricsSlide(12, '항목 가사')]);

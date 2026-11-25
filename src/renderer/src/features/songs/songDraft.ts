@@ -291,7 +291,9 @@ export function editSong(change: (song: Song) => Song, key?: string): void {
   const goesOn =
     next.past.length === draft.past.length &&
     next.past.at(-1)?.before === draft.past.at(-1)?.before;
-  if (!goesOn) undoTimeline.record(songUndoHistory);
+  // NOTE(0913vision): A song opens into the 라이브러리 tab from anywhere, and
+  // its first step can come before that tab shows.
+  if (!goesOn) undoTimeline.record(songUndoHistory, 'library');
 }
 
 /** Renames the song, and the title slide that shows its name. */

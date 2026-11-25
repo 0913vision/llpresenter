@@ -6,16 +6,16 @@ import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 
 /**
  * Why a song can't be copied, renamed or deleted now, for its menu rows and
- * for Ctrl D: not in this tab, a file of a newer version, or another job
- * running.
+ * for Ctrl D: a file of a newer version (in any tab), not in this tab, or
+ * another job running.
  */
 export function songChangeReason(
   song: Pick<LibrarySong, 'access'>,
   busy: boolean,
   editReason: string | undefined,
 ): string | undefined {
-  if (editReason !== undefined) return editReason;
   if (song.access === 'readOnly') return NEWER_FILE_REASON;
+  if (editReason !== undefined) return editReason;
   return busy ? '작업 중' : undefined;
 }
 
