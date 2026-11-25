@@ -84,12 +84,6 @@ export {
   splitPassage,
 } from './splitPassage';
 export {
-  type TextEdit,
-  joinSlide,
-  pasteSlideText,
-  splitSlide,
-} from './textEdits';
-export {
   type SlideSource,
   itemTiles,
   itemTitle,

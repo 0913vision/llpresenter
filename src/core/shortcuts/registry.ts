@@ -262,13 +262,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['ctrl KeyY', 'ctrl shift KeyZ'],
     ],
     [
-      'editor.splitSlide',
-      '슬라이드 나누기',
-      '준비 편집',
-      ['song'],
-      ['ctrl Enter'],
-    ],
-    [
       'editor.newSlide',
       '새 슬라이드',
       '준비 편집',

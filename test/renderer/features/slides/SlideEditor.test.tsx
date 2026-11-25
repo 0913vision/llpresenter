@@ -96,45 +96,43 @@ it('keeps the first text of an empty box out of the file', async () => {
   expect(current.slides[2]?.texts).toEqual({});
 });
 
-it('joins a slide to the one before with Backspace at its start', () => {
+it('never joins a slide to the one before with Backspace at its start', () => {
   const {current} = renderEditor(song());
-  const input = field(2, '가사');
-  caretAt(input, 0);
-  fireEvent.keyDown(input, {key: 'Backspace'});
-  expect(textsOf(current.slides)).toEqual([
-    '새 노래',
-    '새 아침을 노래해요\n함께 걸어요\n빛을 따라가요',
-  ]);
-});
-
-it('does not join lyrics to a title', () => {
-  const {current} = renderEditor(song());
-  const input = field(1, '가사');
-  caretAt(input, 0);
-  fireEvent.keyDown(input, {key: 'Backspace'});
+  for (const index of [1, 2]) {
+    const input = field(index, '가사');
+    caretAt(input, 0);
+    fireEvent.keyDown(input, {key: 'Backspace'});
+  }
   expect(current.slides).toHaveLength(3);
 });
 
-it('starts a slide at every blank row of a pasted text', () => {
+it('takes a pasted text with blank rows into the same slide', () => {
   const {current} = renderEditor(song());
   const input = field(2, '가사');
   caretAt(input, input.value.length);
   fireEvent.paste(input, {
-    clipboardData: {getData: () => '\n첫째 줄\n\n둘째 줄\r\n셋째 줄'},
+    clipboardData: {getData: () => '\n첫째 줄\n\n둘째 줄'},
   });
-  expect(textsOf(current.slides).slice(2)).toEqual([
-    '빛을 따라가요\n첫째 줄',
-    '둘째 줄\n셋째 줄',
-  ]);
-  expect(current.slides[3]?.theme).toBe(BUILT_IN_THEME_IDS.lyrics);
+  expect(current.slides).toHaveLength(3);
 });
 
-it('goes on in the next slide from the last row of one', () => {
+it('does not split a slide with Ctrl Enter', async () => {
+  const {current} = renderEditor(song());
+  const input = field(2, '가사');
+  caretAt(input, 2);
+  await userEvent.keyboard('{Control>}{Enter}{/Control}');
+  expect(current.slides).toHaveLength(3);
+});
+
+it('keeps the caret in its text at the first and last row', () => {
   renderEditor(song());
   const input = field(1, '가사');
   caretAt(input, input.value.length);
   fireEvent.keyDown(input, {key: 'ArrowDown'});
-  expect(document.activeElement).toBe(field(2, '가사'));
+  expect(document.activeElement).toBe(input);
+  caretAt(input, 0);
+  fireEvent.keyDown(input, {key: 'ArrowUp'});
+  expect(document.activeElement).toBe(input);
 });
 
 it('selects with click, Shift, Ctrl, and the arrows', async () => {

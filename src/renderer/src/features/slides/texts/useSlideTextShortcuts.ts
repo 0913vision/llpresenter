@@ -6,7 +6,6 @@ import {
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {addSlide} from '../deckCommands';
 import {focusText} from '../deckSelection';
-import {splitAtCaret} from './deckTexts';
 import type {SlideDeck} from '../slideDeck';
 
 /** The field of a slide that a key goes to, in one list of slides. */
@@ -24,8 +23,7 @@ function fieldOf(
 
 /**
  * The keys of a slide's text field in a list of slides: undo and redo of the
- * list, a new slide after this one, splitting the slide at the caret, and the
- * 이름표 menu of the slide.
+ * list, a new slide after this one, and the 이름표 menu of the slide.
  */
 export function useSlideTextShortcuts(
   deck: SlideDeck,
@@ -40,13 +38,7 @@ export function useSlideTextShortcuts(
 ): void {
   useWindowShortcuts(
     (
-      [
-        'edit.undo',
-        'edit.redo',
-        'editor.newSlide',
-        'editor.splitSlide',
-        'editor.labelMenu',
-      ] as const
+      ['edit.undo', 'edit.redo', 'editor.newSlide', 'editor.labelMenu'] as const
     ).map(id => ({
       id,
       context: 'song' as const,
@@ -72,9 +64,6 @@ export function useSlideTextShortcuts(
             break;
           case 'edit.redo':
             deck.replay('redo');
-            break;
-          case 'editor.splitSlide':
-            splitAtCaret(deck, field);
             break;
           case 'editor.newSlide': {
             const added = addSlide(deck);
