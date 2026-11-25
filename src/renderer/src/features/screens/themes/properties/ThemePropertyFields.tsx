@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {Checkbox} from '@renderer/ui/choices/Checkbox';
 import type {PictureFit} from '@core/schema/media/picturePlace';
+import {THEME_FILE_LIMITS} from '@core/schema/screens/theme';
 import {NumberField} from '@renderer/ui/fields/NumberField';
 import {PICTURE_FIT_OPTIONS} from '@renderer/ui/choices/mediaChoices';
 import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
@@ -8,7 +9,10 @@ import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {TextArea} from '@renderer/ui/fields/TextArea';
 import {isComposing} from '@renderer/ui/fields/ime';
 
-/** A text that changes the picture while it is typed, as one undo step. */
+/**
+ * A text of a theme that changes the picture while it is typed, as one undo
+ * step, no longer than a theme file holds.
+ */
 export function ThemeTextArea({
   id,
   label,
@@ -40,6 +44,7 @@ export function ThemeTextArea({
       id={id}
       ref={area}
       aria-label={label}
+      maxLength={THEME_FILE_LIMITS.template}
       value={draft ?? value}
       readOnly={reason !== undefined}
       title={reason}
