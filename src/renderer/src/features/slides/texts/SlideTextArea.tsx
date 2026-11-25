@@ -14,7 +14,9 @@ import {
   withTypedText,
   changeSlides,
   joinSlide,
+  NEXT_BOX,
   pasteSlideText,
+  takesManyRows,
 } from '@core/slides';
 import {slideMaking} from '@renderer/platform/documents/themes';
 import {classNames} from '@renderer/ui/classNames';
@@ -134,14 +136,16 @@ export function SlideTextArea({
   const {deck, tile, theme, box} = place;
   const {slide} = tile;
   const value = ownText(slide, box);
-  const many = theme.boxes.find(entry => entry.name === box)?.rows === 'many';
+  const many = takesManyRows(theme, box);
   const readOnly = deck.readOnly || locked;
   const caret = useWantedCaret(place, inList);
   // NOTE(0913vision): A slide that says one thing goes over several slides when
-  // its text does; a slide with a title of its own keeps every row.
+  // its text does; a slide with a title of its own keeps every row. What the
+  // slide before shows stays on its own slide.
   const flowing = useFlowingText(
     place,
     many &&
+      box !== NEXT_BOX &&
       inList &&
       !readOnly &&
       theme.boxes.every(

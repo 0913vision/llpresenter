@@ -5,6 +5,7 @@ export {
   fillsItself,
   ownText,
   showsHymn,
+  takesManyRows,
   withOwnText,
   withTypedText,
 } from './boxes';

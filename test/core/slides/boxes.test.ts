@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {withTypedText} from '@core/slides';
+import {NEXT_BOX, takesManyRows, withTypedText} from '@core/slides';
 import {BUILT_IN_THEMES} from '@core/theme/builtIn';
 import {SONG_THEME_IDS} from '@core/theme/builtIn/ids';
 import {lyricsSlide} from '@fixtures/core/slides';
@@ -40,4 +40,12 @@ it('keeps other texts and other boxes as typed', () => {
   expect(
     withTypedText(hymnTheme, slide, {box: '제목', text: '새찬송가 7장'}).hymn,
   ).toBe(slide.hymn);
+});
+
+it('takes several lines in 미리 보여줄 내용 and in a box set to 여러 줄, one in others', () => {
+  if (hymnTheme === undefined) throw new Error('no hymn title theme');
+  expect(takesManyRows(hymnTheme, NEXT_BOX)).toBe(true);
+  for (const box of hymnTheme.boxes) {
+    expect(takesManyRows(hymnTheme, box.name)).toBe(box.rows === 'many');
+  }
 });

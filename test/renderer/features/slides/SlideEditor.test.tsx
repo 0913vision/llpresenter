@@ -329,6 +329,17 @@ describe('what fills itself', () => {
     expect(next().readOnly).toBe(true);
   });
 
+  it('breaks its line with Enter and keeps the lines it is given', async () => {
+    const {current} = renderEditor(song());
+    await userEvent.click(row(2));
+    await openTab('내용');
+    await userEvent.click(edit());
+    await userEvent.clear(next());
+    await userEvent.type(next(), '후렴으로{Enter}다시');
+    expect(current.slides[2]?.next).toBe('후렴으로\n다시');
+    expect(document.activeElement).toBe(next());
+  });
+
   it('is only shown for one slide', async () => {
     renderEditor(song());
     await userEvent.click(row(1));
