@@ -155,6 +155,13 @@ describe('a service file', () => {
     },
   );
 
+  it('takes an item name as long as a 설교 title, with line breaks, and refuses a longer one', () => {
+    const named = (name: string) => parse(service([{...ITEMS[0], name}])).ok;
+    expect(named('말씀을 먹고\n사명을 감당하는 신앙')).toBe(true);
+    expect(named('예'.repeat(SERVICE_LIMITS.itemName))).toBe(true);
+    expect(named('예'.repeat(SERVICE_LIMITS.itemName + 1))).toBe(false);
+  });
+
   it('refuses one item over the cap', () => {
     const many = (count: number) =>
       service(

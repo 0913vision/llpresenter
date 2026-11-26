@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {SLIDE_LIMITS} from '@core/schema/slides/slide';
-import {parseSong, serializeSong} from '@core/schema/songs/song';
+import {
+  parseSong,
+  serializeSong,
+  SONG_NAME_MAX_LENGTH,
+} from '@core/schema/songs/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {lyricsSlide, slideOf} from '@fixtures/core/slides';
 
@@ -119,6 +123,12 @@ describe('a song file', () => {
     expect(parse(song([{...lyricsSlide(1, ''), texts: {가사: 1}}])).ok).toBe(
       false,
     );
+  });
+
+  it('takes a title of the import cap, and refuses a longer one', () => {
+    const titled = (title: string) => parse({...song(), title}).ok;
+    expect(titled('예'.repeat(SONG_NAME_MAX_LENGTH))).toBe(true);
+    expect(titled('예'.repeat(SONG_NAME_MAX_LENGTH + 1))).toBe(false);
   });
 
   it('has at least one slide and at most the cap', () => {

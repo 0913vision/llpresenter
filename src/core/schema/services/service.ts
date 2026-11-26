@@ -27,7 +27,7 @@ import {
   positiveInteger,
   timeOfDay,
 } from '../common/primitives';
-import {slidesSchema} from '../slides/slide';
+import {SLIDE_LIMITS, slidesSchema} from '../slides/slide';
 
 const SERVICE_FORMAT = 'llservice';
 
@@ -46,7 +46,22 @@ export const serviceItemKinds = [
 /** One of the item kinds in `serviceItemKinds`. */
 export type ServiceItemKind = (typeof serviceItemKinds)[number];
 
-const itemFields = {id: serviceItemIdSchema, name: v.string()};
+/** Bounds for one 예배 순서 or 템플릿. */
+export const SERVICE_LIMITS = {
+  /** A long service is about 60 items; this leaves room for a very long one. */
+  items: 1000,
+  /**
+   * The longest name of an item: a 설교 is named by its title, which is slide
+   * text, and every other name (a song's title, a passage's address, a name
+   * typed in the order) is shorter. A name may hold line breaks.
+   */
+  itemName: SLIDE_LIMITS.text,
+} as const;
+
+const itemFields = {
+  id: serviceItemIdSchema,
+  name: v.pipe(v.string(), v.maxLength(SERVICE_LIMITS.itemName)),
+};
 
 const slidesFields = {
   ...itemFields,
@@ -91,12 +106,6 @@ const serviceItemSchema = kindsWithUnknown(
   itemSchemas,
   itemFields,
 );
-
-/** Bounds for one 예배 순서 or 템플릿. */
-export const SERVICE_LIMITS = {
-  /** A long service is about 60 items; this leaves room for a very long one. */
-  items: 1000,
-} as const;
 
 const orderSchema = v.pipe(
   listWithUniqueIds(serviceItemSchema),

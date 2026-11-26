@@ -33,7 +33,7 @@ export const songSchema = v.pipe(
     format: v.literal('llsong'),
     schemaVersion: positiveInteger,
     id: songIdSchema,
-    title: nonBlankText,
+    title: v.pipe(nonBlankText, v.maxLength(SONG_NAME_MAX_LENGTH)),
     titleSlide: v.exactOptional(slideSchema),
     slides: slidesSchema,
     updatedAt: v.exactOptional(timestamp),

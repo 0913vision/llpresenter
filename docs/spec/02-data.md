@@ -114,7 +114,7 @@ song, service, and template.
 | ------------------------- | ---------------------------- | -------------------------------------------- |
 | `format`, `schemaVersion` | `"llsong"`, positive integer | Version 2; newer known files stay read-only. |
 | `id`                      | UUID v4                      | Library song identity.                       |
-| `title`                   | Nonblank string              | Song title.                                  |
+| `title`                   | Nonblank string              | Song title, at most 512 characters.          |
 | `titleSlide`              | Optional 슬라이드            | The song's own title, without an 이름표.     |
 | `slides`                  | 0 to 10,000 슬라이드         | The other slides, in playback order.         |
 | `updatedAt`               | Optional timestamp           | Last update.                                 |
@@ -209,7 +209,9 @@ same limit. An add, a 복제, a 구역 copy, and an import past it are refused w
 "예배 순서 항목은 1000개까지 추가할 수 있습니다.".
 
 Every item has `id`, `kind`, and `name`. Every kind but 구역 also has `slides`
-and may have `overlays` (12).
+and may have `overlays` (12). A name has at most 4,000 characters
+(`SERVICE_LIMITS.itemName`, the slide text cap, since a 설교 is named by its
+title) and may hold line breaks.
 
 | `kind`    | Item                                      | Its own fields                                                |
 | --------- | ----------------------------------------- | ------------------------------------------------------------- |

@@ -4,7 +4,7 @@ import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {ItemRows, type RowContext} from './ItemRows';
 import type {RowGroup} from '../orderRows';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
-import {NAME_LIMIT} from '@core/schema/common/primitives';
+import {SERVICE_LIMITS} from '@core/schema/services/service';
 
 /**
  * A 구역 of the 예배 순서 and its items. In 준비 it is picked, dragged and
@@ -66,7 +66,7 @@ export function OrderSection({
         rename={
           renaming
             ? {
-                maxLength: NAME_LIMIT,
+                maxLength: SERVICE_LIMITS.itemName,
                 onCommit: onCommitName,
                 onClose: onCloseRename,
               }

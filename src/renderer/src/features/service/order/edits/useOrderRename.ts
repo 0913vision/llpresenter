@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import type {ServiceRow} from '@core/presentation';
 import {createServiceItemId} from '@core/schema/common/ids';
-import {SONG_NAME_MAX_LENGTH} from '@core/schema/songs/song';
+import {SERVICE_LIMITS} from '@core/schema/services/service';
 import {useHeaderRename} from '@renderer/session/service/headerRename';
 import type {OpenServiceResult} from '@renderer/session/service/openService';
 import {renameItem as renameOrderItem} from '@renderer/session/service/serviceOrderEdits';
@@ -61,7 +61,7 @@ export function useOrderRename({
     itemRename: (row: ServiceRow): RenameContract | undefined =>
       isNamed(row)
         ? {
-            maxLength: SONG_NAME_MAX_LENGTH,
+            maxLength: SERVICE_LIMITS.itemName,
             onCommit: name =>
               save(() => renameOrderItem(createServiceItemId(row.id), name)),
             onClose: stop,
