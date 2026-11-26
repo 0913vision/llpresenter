@@ -1,68 +1,105 @@
 import {mkdir, rename, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it, vi} from 'vitest';
-import {createMediaId, createMediaPlaylistId} from '@core/schema/common/ids';
-import {parseMediaDocument} from '@core/schema/media/mediaEdit';
+import {
+  createMediaId,
+  createMediaPlaylistId,
+  type MediaId,
+} from '@core/schema/common/ids';
+import {
+  parseMediaDocument,
+  type MediaEditResult,
+} from '@core/schema/media/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {makeTempDir} from '@fixtures/tempDir';
-import {MediaFolderSync, SETTLE_MS} from '@main/media/mediaFolderSync';
-import {MediaStore} from '@main/store/media/mediaStore';
+import {
+  MediaFolderSync,
+  SETTLE_MS,
+  type FolderSyncStore,
+} from '@main/media/mediaFolderSync';
 
 const VIDEO = createMediaId('00000000-0000-4000-8000-000000000001');
 const IMAGE = createMediaId('00000000-0000-4000-8000-000000000002');
 const LIST = createMediaPlaylistId('00000000-0000-4000-8000-000000000011');
+const FILES = new Map<string, string>([
+  [VIDEO, 'video.webm'],
+  [IMAGE, 'image.png'],
+]);
 
-async function setup({held = new Set<string>()} = {}) {
+const DOCUMENT = expectSuccess(
+  parseMediaDocument({
+    name: 'media',
+    access: 'editable',
+    revision: 1,
+    value: {
+      format: 'llmedia',
+      schemaVersion: 1,
+      items: [
+        {
+          id: VIDEO,
+          name: '따뜻한 빛',
+          kind: 'video',
+          file: 'video.webm',
+          size: 5,
+        },
+        {id: IMAGE, name: '십자가', kind: 'image', file: 'image.png', size: 5},
+      ],
+      playlists: [{id: LIST, name: '예배 전', items: [VIDEO, IMAGE]}],
+      audioPlaylists: [],
+    },
+  }),
+);
+
+/**
+ * A media store mock: items leave the list as records and come back by them,
+ * as the store does (its own tests hold how it keeps an item as it was).
+ */
+function mockStore(
+  folder: string,
+  {
+    held = new Set<string>(),
+    listed = [VIDEO, IMAGE],
+  }: {held?: ReadonlySet<string>; listed?: readonly MediaId[]} = {},
+) {
+  const shown = new Set<string>(listed);
+  const records = new Map<string, MediaId>();
+  const fileOf = (id: string): string => join(folder, FILES.get(id) ?? '');
+  const done = (): Promise<MediaEditResult> =>
+    Promise.resolve({ok: true, value: null});
+  return {
+    folder,
+    get: () => ({
+      ...DOCUMENT,
+      value: {
+        ...DOCUMENT.value,
+        items: DOCUMENT.value.items.filter(item => shown.has(item.id)),
+      },
+    }),
+    fileOf: (id: string) => (shown.has(id) ? fileOf(id) : null),
+    retire: vi.fn((ids: readonly MediaId[]) => {
+      for (const id of ids) {
+        shown.delete(id);
+        records.set(fileOf(id), id);
+      }
+      return done();
+    }),
+    revive: vi.fn((id: MediaId) => {
+      if (!records.delete(fileOf(id))) return null;
+      shown.add(id);
+      return done();
+    }),
+    removedFiles: () => records,
+    holdsDeleted: (file: string) => held.has(file),
+  } satisfies FolderSyncStore;
+}
+
+async function setup(options?: Parameters<typeof mockStore>[1]) {
   const folder = await makeTempDir();
   await writeFile(join(folder, 'video.webm'), 'video');
   await writeFile(join(folder, 'image.png'), 'image');
   const log = recordingLogger();
-  const store = new MediaStore({
-    file: join(folder, 'media.json'),
-    mediaFolder: folder,
-    log,
-    delayMs: 0,
-    files: {
-      write: () => Promise.resolve({ok: true, value: undefined}),
-      remove: () => Promise.resolve({ok: true, value: undefined}),
-    },
-    held: {
-      hold: () => Promise.resolve(),
-      holds: file => held.has(file),
-      restore: () => Promise.resolve(),
-    },
-    document: expectSuccess(
-      parseMediaDocument({
-        name: 'media',
-        access: 'editable',
-        revision: 1,
-        value: {
-          format: 'llmedia',
-          schemaVersion: 1,
-          items: [
-            {
-              id: VIDEO,
-              name: '따뜻한 빛',
-              kind: 'video',
-              file: 'video.webm',
-              size: 5,
-              props: {end: 'loop'},
-            },
-            {
-              id: IMAGE,
-              name: '십자가',
-              kind: 'image',
-              file: 'image.png',
-              size: 5,
-            },
-          ],
-          playlists: [{id: LIST, name: '예배 전', items: [VIDEO, IMAGE]}],
-          audioPlaylists: [],
-        },
-      }),
-    ),
-  });
+  const store = mockStore(folder, options);
   const adopt = vi.fn<(files: readonly string[]) => Promise<void>>(() =>
     Promise.resolve(),
   );
@@ -76,19 +113,22 @@ async function setup({held = new Set<string>()} = {}) {
   return {folder, store, adopt, sync, log};
 }
 
-it('takes an item whose file left the folder out of the list, and brings it back as it was when the file returns (USER Nov 26)', async () => {
-  const {folder, store, sync} = await setup();
-  const before = store.get().value;
-  await rename(join(folder, 'video.webm'), join(folder, '..', 'moved.webm'));
-  await sync.sync();
-  expect(store.get().value.items.map(item => item.id)).toEqual([IMAGE]);
-  expect(store.get().value.playlists[0]?.items).toEqual([IMAGE]);
+function listedIds(store: ReturnType<typeof mockStore>): string[] {
+  return store.get().value.items.map(item => item.id);
+}
 
-  await rename(join(folder, '..', 'moved.webm'), join(folder, 'video.webm'));
+it('takes an item whose file left the folder out of the list, and brings it back by its record when the file returns (USER Nov 26)', async () => {
+  const {folder, store, sync} = await setup();
+  const away = await makeTempDir();
+  await rename(join(folder, 'video.webm'), join(away, 'video.webm'));
   await sync.sync();
-  expect(store.get().value.items).toEqual(before.items);
-  expect(store.get().value.playlists).toEqual(before.playlists);
-  expect(store.get().value.removed).toBeUndefined();
+  expect(store.retire).toHaveBeenCalledExactlyOnceWith([VIDEO]);
+  expect(listedIds(store)).toEqual([IMAGE]);
+
+  await rename(join(away, 'video.webm'), join(folder, 'video.webm'));
+  await sync.sync();
+  expect(store.revive).toHaveBeenCalledExactlyOnceWith(VIDEO);
+  expect(listedIds(store)).toEqual([VIDEO, IMAGE]);
 });
 
 it('puts a media file dropped in the folder into the list, and leaves hidden, other, half-written and importing files alone', async () => {
@@ -122,24 +162,17 @@ it('waits for a file that just changed before it joins the list', async () => {
 });
 
 it('changes nothing when the folder can not be read', async () => {
-  const {store, adopt, log} = await setup();
-  const before = store.get();
+  const {folder, adopt, log} = await setup();
+  const store = mockStore(join(folder, 'gone'));
   const sync = new MediaFolderSync({
-    store: {
-      folder: join(store.folder, 'gone'),
-      get: () => store.get(),
-      fileOf: id => store.fileOf(id),
-      retire: ids => store.retire(ids),
-      revive: id => store.revive(id),
-      removedFiles: () => store.removedFiles(),
-      holdsDeleted: file => store.holdsDeleted(file),
-    },
+    store,
     adopt,
     log,
     watch: () => () => undefined,
   });
   await sync.sync();
-  expect(store.get()).toBe(before);
+  expect(store.retire).not.toHaveBeenCalled();
+  expect(adopt).not.toHaveBeenCalled();
   expect(log.messages('warn')).toContain('could not read the media folder');
   await sync.dispose();
 });
@@ -169,27 +202,24 @@ it('looks for a lost folder again, and brings the list to it when it is back', a
 
   missing = true;
   lost[0]?.(new Error('EPERM'));
-  await rename(join(folder, 'video.webm'), join(folder, '..', 'moved.webm'));
+  const away = await makeTempDir();
+  await rename(join(folder, 'video.webm'), join(away, 'video.webm'));
   await vi.waitFor(() => expect(watch.mock.calls.length).toBeGreaterThan(3));
   expect(log.messages('warn')).toEqual(['lost the media folder']);
-  expect(store.get().value.items).toHaveLength(2);
+  expect(store.retire).not.toHaveBeenCalled();
 
   missing = false;
-  await vi.waitFor(() =>
-    expect(store.get().value.items.map(item => item.id)).toEqual([IMAGE]),
-  );
+  await vi.waitFor(() => expect(listedIds(store)).toEqual([IMAGE]));
   expect(log.messages('info')).toContain('following the media folder again');
   await sync.dispose();
 });
 
 it('leaves the file of a deleted item that waits for the 휴지통 alone', async () => {
   const held = new Set<string>();
-  const {folder, store, adopt, sync} = await setup({held});
-  expect((await store.apply({type: 'media.delete', mediaId: IMAGE})).ok).toBe(
-    true,
-  );
+  const {folder, store, adopt, sync} = await setup({held, listed: [VIDEO]});
   held.add(join(folder, 'image.png'));
   await sync.sync();
   expect(adopt).not.toHaveBeenCalled();
-  expect(store.get().value.items.map(item => item.id)).toEqual([VIDEO]);
+  expect(store.revive).not.toHaveBeenCalled();
+  expect(listedIds(store)).toEqual([VIDEO]);
 });
