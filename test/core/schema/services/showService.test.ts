@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createSongId} from '@core/schema/common/ids';
+import {createMediaId, createSongId} from '@core/schema/common/ids';
 import {
   parseShowLibrarySong,
   parseShowLibrarySongReply,
@@ -10,6 +10,7 @@ import {SLIDE_LIMITS} from '@core/schema/slides/slide';
 import {lyricsSlide} from '@fixtures/core/slides';
 
 const SONG = createSongId('10000000-0000-4000-8000-000000000001');
+const MEDIA = createMediaId('10000000-0000-4000-8000-000000000002');
 function tile(number = 1) {
   return {
     slide: lyricsSlide(number, 'Invented lyric'),
@@ -29,6 +30,7 @@ function service(more: object = {}) {
       {kind: 'header', id: 'a', title: '찬양'},
       {kind: 'song', id: 'b', title: '빛의 길', song: SONG},
       {kind: 'unknown', id: 'c', title: '', problem: 'unknown-kind'},
+      {kind: 'blank', id: 'd', title: '광고', media: [MEDIA]},
     ],
     tiles: {b: [tile()]},
     ...more,
@@ -47,6 +49,10 @@ describe('the open service', () => {
     [
       'a problem it does not know',
       {rows: [{kind: 'song', id: 'a', title: '', problem: 'other'}]},
+    ],
+    [
+      'a background media that is not a media id',
+      {rows: [{kind: 'blank', id: 'd', title: '', media: ['배경']}]},
     ],
     ['a tile without a slide', {tiles: {b: [{...tile(), slide: undefined}]}}],
     ['a color that is none', {tiles: {b: [{...tile(), labelColor: 'red'}]}}],

@@ -3,7 +3,7 @@ import {labelColorSchema} from './labelColor';
 import type {Result} from '@core/common/result';
 import type {ReadonlyKnown} from '../common/fileFormat';
 import {biblePassageSchema} from '../bible/biblePassage';
-import {songIdSchema} from '../common/ids';
+import {mediaIdSchema, songIdSchema} from '../common/ids';
 import {autoValuesSchema} from '../live/liveState';
 import {liveItemKinds} from '../live/liveTheme';
 import {SLIDE_LIMITS, slideSchema} from '../slides/slide';
@@ -38,6 +38,13 @@ const showRowSchema = v.pipe(
       problem: v.exactOptional(v.picklist(showRowProblems)),
       song: v.exactOptional(songIdSchema),
       passage: v.exactOptional(biblePassageSchema),
+      /**
+       * The media of its slides' own backgrounds, each once, so a window marks
+       * the row when one of their files is missing.
+       */
+      media: v.exactOptional(
+        v.pipe(v.array(mediaIdSchema), v.maxLength(SLIDE_LIMITS.slides)),
+      ),
     }),
   ]),
 );

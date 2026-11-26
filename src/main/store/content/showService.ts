@@ -64,10 +64,14 @@ function rowOf(item: ServiceItem, sources: ShowServiceSources): ShowRow {
     return {kind: 'unknown', id, title, problem: 'unknown-kind'};
   }
   const song = item.kind === 'song' ? sources.songs.get(item.song) : undefined;
-  const missing = item.slides.some(
-    ({background}) =>
-      background?.kind === 'media' && !sources.hasMedia(background.media),
-  );
+  const media = [
+    ...new Set(
+      item.slides.flatMap(({background}) =>
+        background?.kind === 'media' ? [background.media] : [],
+      ),
+    ),
+  ];
+  const missing = media.some(id => !sources.hasMedia(id));
   const problem =
     item.kind === 'song' && song === undefined
       ? 'missing-song'
@@ -83,5 +87,6 @@ function rowOf(item: ServiceItem, sources: ShowServiceSources): ShowRow {
     ...(problem === undefined ? {} : {problem}),
     ...(item.kind === 'song' ? {song: item.song} : {}),
     ...('passage' in item ? {passage: item.passage} : {}),
+    ...(media.length === 0 ? {} : {media}),
   };
 }

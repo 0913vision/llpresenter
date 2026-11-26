@@ -12,6 +12,8 @@ import {serviceRowLabel} from './serviceRowLabel';
 import type {ServiceTableParts} from '../serviceTableParts';
 import styles from '../ServiceOrderList.module.css';
 import {useShow} from '@renderer/session/show/showStore';
+import {useMedia} from '@renderer/platform/documents/media';
+import type {MediaId} from '@core/schema/common/ids';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
@@ -20,6 +22,21 @@ const problemTips: Readonly<Record<RowProblem, string>> = {
   'unknown-kind': '아직 없는 기능',
   'newer-version': NEWER_FILE_REASON,
 };
+
+/**
+ * The warning of a row: the problem main found, or a background whose file
+ * this window knows is missing (spec 08, "Missing media file").
+ */
+export function problemTip(
+  row: ServiceRow,
+  missing: ReadonlySet<MediaId> | null,
+): string | undefined {
+  if (row.kind === 'header') return undefined;
+  if (row.problem !== undefined) return problemTips[row.problem];
+  return row.media?.some(id => missing?.has(id) === true) === true
+    ? problemTips['missing-media']
+    : undefined;
+}
 
 /** What every row of the list shows the same way. */
 export interface RowContext {
@@ -60,6 +77,7 @@ export function ItemRows({
   readonly context: RowContext;
 }): JSX.Element {
   const tiles = useShow(view => view.tiles);
+  const missing = useMedia(view => view.missing);
   const countOf = (row: ServiceRow): number => tiles[row.id]?.length ?? 0;
   return (
     <>
@@ -101,9 +119,7 @@ export function ItemRows({
                 row,
                 serviceRowLabel(row, numbers.get(row.id) ?? 1),
               )}
-              warning={
-                row.problem === undefined ? undefined : problemTips[row.problem]
-              }
+              warning={problemTip(row, missing)}
             />
           </div>
         ),
