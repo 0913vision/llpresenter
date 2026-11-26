@@ -76,6 +76,12 @@ export function createUpdater(log: Logger): UpdaterPort {
   };
 }
 
+// NOTE(0913vision): electron-updater logs a failed differential download as an
+// error and then downloads the whole installer, which the update then uses, so
+// that line is only a warning.
+const FULL_DOWNLOAD_FALLBACK =
+  'Cannot download differentially, fallback to full download';
+
 function configure(autoUpdater: AppUpdater, log: Logger): void {
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = false;
@@ -84,7 +90,11 @@ function configure(autoUpdater: AppUpdater, log: Logger): void {
   autoUpdater.logger = {
     info: (message: unknown) => log.info(String(message)),
     warn: (message: unknown) => log.warn(String(message)),
-    error: (message: unknown) => log.error(String(message)),
+    error: (message: unknown) => {
+      const text = String(message);
+      if (text.startsWith(FULL_DOWNLOAD_FALLBACK)) log.warn(text);
+      else log.error(text);
+    },
     debug: (message: unknown) => log.debug?.(String(message)),
   };
   const onError = (error: Error): void => log.warn('Update failed', error);

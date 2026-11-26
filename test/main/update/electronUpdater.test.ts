@@ -59,6 +59,26 @@ describe('electron updater adapter', () => {
     expect(autoUpdater.listenerCount('error')).toBe(0);
   });
 
+  it('logs the fall back from a differential download to the whole installer as a warning, other updater errors as errors', async () => {
+    const {autoUpdater} = electronUpdater;
+    const log = recordingLogger();
+    const port = createUpdater(log);
+    vi.mocked(autoUpdater.checkForUpdates).mockResolvedValue(null);
+    await expect(port.check()).rejects.toThrow('unavailable');
+    const {logger} = autoUpdater;
+    if (logger === null) throw new Error('No updater logger');
+    logger.error(
+      'Cannot download differentially, fallback to full download: Error: sha512 checksum mismatch',
+    );
+    logger.error('Error: net::ERR_CONNECTION_RESET');
+    expect(log.messages('warn')).toEqual([
+      expect.stringMatching(/^Cannot download differentially/),
+    ]);
+    expect(log.messages('error')).toEqual(['Error: net::ERR_CONNECTION_RESET']);
+    port.dispose();
+    app.emit('will-quit');
+  });
+
   it('rejects an installer launch error before the update handoff', async () => {
     const {autoUpdater} = electronUpdater;
     const port = createUpdater(recordingLogger());
