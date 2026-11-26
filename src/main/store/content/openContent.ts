@@ -135,7 +135,9 @@ function createContent(
         return library.labels;
       },
       content,
-      hasMedia: id => (media?.fileOf(id) ?? store.media.fileOf(id)) !== null,
+      // NOTE(0913vision): The media store follows the folder (USER Nov 26);
+      // the launch read of the list stands in only when it could not open.
+      hasMedia: id => (media ?? store.media).fileOf(id) !== null,
     },
     service => pushToWindows(serviceEndpoints.changed, service, log),
     error => log.error('could not refresh the open 예배 순서', error),

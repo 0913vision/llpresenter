@@ -5,6 +5,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/common/ids';
 import type {MediaDocument} from '@core/schema/media/mediaEdit';
 import type {MediaItem} from '@core/schema/media/mediaList';
+import {THEME_BACKGROUNDS, THEME_DECORATIONS} from '@core/theme';
 
 /** The media list, as every part of this window offers it. */
 export interface MediaView {
@@ -22,6 +23,27 @@ export const useMedia = create<MediaView>(() => ({
   missing: null,
   failed: false,
 }));
+
+const APP_PICTURES = new Set<string>(
+  [...THEME_BACKGROUNDS, ...THEME_DECORATIONS].map(picture => picture.id),
+);
+
+/**
+ * Whether a media id can't be shown: its file is missing, or the list, once
+ * read, has no item for it and it is not a picture that comes with the app,
+ * as when it was deleted or its file left the media folder (USER Nov 26).
+ */
+export function unavailableMedia(
+  {document, items, missing}: Pick<MediaView, 'document' | 'items' | 'missing'>,
+  mediaId: MediaId,
+): boolean {
+  if (missing?.has(mediaId) === true) return true;
+  return (
+    document !== null &&
+    !APP_PICTURES.has(mediaId) &&
+    !items.some(item => item.id === mediaId)
+  );
+}
 
 /** The pictures and videos a slide can have behind its texts. */
 export function pictureMedia(

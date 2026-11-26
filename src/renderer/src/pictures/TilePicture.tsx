@@ -1,7 +1,7 @@
 import {type JSX} from 'react';
 import type {ShowTile} from '@core/schema/services/showService';
 import type {Slide} from '@core/schema/slides/slide';
-import {useMedia} from '@renderer/platform/documents/media';
+import {unavailableMedia, useMedia} from '@renderer/platform/documents/media';
 import {useThemes} from '@renderer/platform/documents/themes';
 import {tileDrawing, type TileDrawingOptions} from './slideDrawing';
 import {SlidePicture} from './SlidePicture';
@@ -33,10 +33,12 @@ export function TilePicture({
 export function useMissingFileOf(): (
   slide: Pick<Slide, 'background'>,
 ) => string | undefined {
+  const document = useMedia(view => view.document);
   const missing = useMedia(view => view.missing);
   const items = useMedia(view => view.items);
   return ({background}) =>
-    background?.kind === 'media' && missing?.has(background.media) === true
+    background?.kind === 'media' &&
+    unavailableMedia({document, items, missing}, background.media)
       ? (items.find(item => item.id === background.media)?.file ??
         background.media)
       : undefined;

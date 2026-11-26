@@ -250,8 +250,19 @@ export function registerMediaBackend(
   const missing = watchMissingFiles(options, ipc);
   const stopFolderSync = followMediaFolder(options, importer);
   ipc.whenClosed(stopFolderSync);
+  let resolved: MediaBackendStore | null = null;
+  options.media.then(
+    store => {
+      resolved = store;
+    },
+    () => undefined,
+  );
+  // NOTE(0913vision): A media id that left the list (deleted, or its file
+  // left the media folder) is as unavailable to the screens as a missing file.
   const stopMissingLive = options.live?.connectMissingMedia(
-    mediaId => missing()?.isMissing(mediaId) ?? false,
+    mediaId =>
+      missing()?.isMissing(mediaId) === true ||
+      (resolved !== null && resolved.fileOf(mediaId) === null),
   );
   if (stopMissingLive !== undefined) ipc.whenClosed(stopMissingLive);
   listenForReveals(options, ipc);
