@@ -223,3 +223,47 @@ it('leaves the file of a deleted item that waits for the 휴지통 alone', async
   expect(store.revive).not.toHaveBeenCalled();
   expect(listedIds(store)).toEqual([VIDEO]);
 });
+
+it('follows a new folder made where the heard one was, as Windows tells a watch nothing when its folder moves away', async () => {
+  const {store, adopt, log} = await setup();
+  let identity = 'first';
+  const watch = vi.fn(() => () => undefined);
+  const sync = new MediaFolderSync({
+    store,
+    adopt,
+    log,
+    now: () => Date.now() + SETTLE_MS * 2,
+    watch,
+    refollowMs: 5,
+    checkMs: 5,
+    identify: () => Promise.resolve(identity),
+  });
+  sync.start();
+  await new Promise(resolve => setTimeout(resolve, 20));
+  expect(watch).toHaveBeenCalledTimes(1);
+
+  identity = 'second';
+  await vi.waitFor(() => expect(watch).toHaveBeenCalledTimes(2));
+  expect(log.messages('warn')).toEqual([
+    'the media folder went away or was replaced',
+  ]);
+  await vi.waitFor(() =>
+    expect(log.messages('info')).toContain('following the media folder again'),
+  );
+  await sync.dispose();
+});
+
+it('brings items back newest first, so items that left one after another come back in their order', async () => {
+  const {folder, store, sync} = await setup();
+  const away = await makeTempDir();
+  for (const name of ['image.png', 'video.webm']) {
+    await rename(join(folder, name), join(away, name));
+    await sync.sync();
+  }
+  expect(store.retire.mock.calls).toEqual([[[IMAGE]], [[VIDEO]]]);
+  for (const name of ['image.png', 'video.webm']) {
+    await rename(join(away, name), join(folder, name));
+  }
+  await sync.sync();
+  expect(store.revive.mock.calls.map(([id]) => id)).toEqual([VIDEO, IMAGE]);
+});

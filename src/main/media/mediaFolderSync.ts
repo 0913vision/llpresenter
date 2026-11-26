@@ -28,6 +28,13 @@ const ADOPT_TIMEOUT_MS = 120_000;
  */
 export const REFOLLOW_MS = 10_000;
 
+/**
+ * How often the folder is checked to still be the one heard. Windows tells a
+ * watch nothing when its folder is moved or sent to the 휴지통, so a new folder
+ * made at the same place would go unheard.
+ */
+export const FOLDER_CHECK_MS = 30_000;
+
 /** The folder where imports keep a note of the file each one is writing. */
 const IMPORT_NOTES = '.imports';
 
@@ -62,6 +69,13 @@ export interface MediaFolderSyncOptions {
   readonly delayMs?: number;
   /** How often a lost folder is looked for; {@link REFOLLOW_MS} by default. */
   readonly refollowMs?: number;
+  /** How often the folder is checked; {@link FOLDER_CHECK_MS} by default. */
+  readonly checkMs?: number;
+  /**
+   * Which folder is at the path now, or null when none is; the disk and file
+   * number by default.
+   */
+  readonly identify?: (folder: string) => Promise<string | null>;
 }
 
 /**
@@ -69,13 +83,16 @@ export interface MediaFolderSyncOptions {
  * a file in the folder is in the list, coming back as it was when the list
  * keeps a record of it; an item whose file left the folder leaves the list as
  * a record. It follows the folder at launch and whenever it changes. A folder
- * that can't be read changes nothing, and is looked for again every
- * {@link REFOLLOW_MS} until it is back.
+ * that can't be read, went away or was replaced by another changes nothing,
+ * and is looked for again every {@link REFOLLOW_MS} until it is back.
  */
 export class MediaFolderSync {
   private running: Promise<void> = Promise.resolve();
   private timer: ReturnType<typeof setTimeout> | undefined;
   private refollowTimer: ReturnType<typeof setTimeout> | undefined;
+  private checkTimer: ReturnType<typeof setTimeout> | undefined;
+  /** Which folder the watch hears, once known. */
+  private heard: string | null = null;
   private stopWatch: (() => void) | undefined;
   private disposed = false;
   /** Whether the folder is lost, so the loss is logged once, not every look. */
@@ -96,6 +113,7 @@ export class MediaFolderSync {
     this.disposed = true;
     clearTimeout(this.timer);
     clearTimeout(this.refollowTimer);
+    clearTimeout(this.checkTimer);
     this.stopWatch?.();
     return this.running;
   }
@@ -133,6 +151,31 @@ export class MediaFolderSync {
       return;
     }
     if (this.lost) this.schedule(0);
+    this.heard = null;
+    this.check();
+  }
+
+  /**
+   * Remembers which folder the watch hears, then checks now and then that the
+   * folder at the path is still that one.
+   */
+  private check(): void {
+    const {store, identify = folderIdentity} = this.options;
+    identify(store.folder).then(
+      now => {
+        if (this.disposed || this.stopWatch === undefined) return;
+        if (now === null || (this.heard !== null && now !== this.heard)) {
+          this.lose('the media folder went away or was replaced', {now});
+          return;
+        }
+        this.heard = now;
+        this.checkTimer = setTimeout(
+          () => this.check(),
+          this.options.checkMs ?? FOLDER_CHECK_MS,
+        );
+      },
+      (error: unknown) => this.lose('could not check the media folder', error),
+    );
   }
 
   /** Stops hearing a folder that went away and looks for it again later. */
@@ -146,6 +189,7 @@ export class MediaFolderSync {
     }
     this.stopWatch?.();
     this.stopWatch = undefined;
+    clearTimeout(this.checkTimer);
     if (this.disposed) return;
     clearTimeout(this.refollowTimer);
     this.refollowTimer = setTimeout(
@@ -187,8 +231,15 @@ export class MediaFolderSync {
         .value.items.map(item => store.fileOf(item.id))
         .flatMap(file => (file === null ? [] : [key(file)])),
     );
+    // NOTE(0913vision): Records are kept oldest first, each with its place in
+    // the list as it was when it left. Bringing them back newest first undoes
+    // the removals in reverse, so items that left together come back in their
+    // order.
     const records = new Map(
-      [...store.removedFiles()].map(([file, id]) => [key(file), id]),
+      [...store.removedFiles()].map(([file, id], order) => [
+        key(file),
+        {id, order},
+      ]),
     );
     const now = (this.options.now ?? Date.now)();
     for (const [file, since] of this.adopting) {
@@ -197,6 +248,7 @@ export class MediaFolderSync {
       }
     }
     const adopt: string[] = [];
+    const revive: Array<{id: MediaId; order: number}> = [];
     let waiting = false;
     for (const file of files) {
       if (
@@ -211,9 +263,13 @@ export class MediaFolderSync {
         continue;
       }
       const record = records.get(key(file.path));
-      const revived = record === undefined ? null : store.revive(record);
+      if (record === undefined) adopt.push(file.path);
+      else revive.push(record);
+    }
+    revive.sort((a, b) => b.order - a.order);
+    for (const {id} of revive) {
+      const revived = store.revive(id);
       if (revived !== null) await logged(revived, log);
-      else adopt.push(file.path);
     }
     for (const file of adopt) this.adopting.set(key(file), now);
     if (adopt.length > 0) await this.options.adopt(adopt);
@@ -308,6 +364,16 @@ async function logged(
   const done = await result;
   if (!done.ok && done.error.reason !== 'write-failed') {
     log.warn('could not bring the media list to the media folder', done.error);
+  }
+}
+
+/** The disk and file number of a folder, or null when there is none. */
+async function folderIdentity(folder: string): Promise<string | null> {
+  try {
+    const found = await stat(folder, {bigint: true});
+    return found.isDirectory() ? `${found.dev}:${found.ino}` : null;
+  } catch {
+    return null;
   }
 }
 
