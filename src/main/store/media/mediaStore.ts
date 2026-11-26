@@ -33,6 +33,7 @@ import {
   type MediaDeletion,
 } from './mediaDeletionHistory';
 import {isInside} from '../locations/locations';
+import type {DeletionHold} from '../files/heldDeletions';
 import {buildMediaLibrary, type MediaLibrary} from './mediaLibrary';
 import {SettingsPersistence} from '../settings/settingsPersistence';
 import {pushUndoStep} from '@core/common/undoHistory';
@@ -49,8 +50,8 @@ export interface MediaStoreOptions {
   readonly log: Logger;
   readonly delayMs?: number;
   readonly pictures?: readonly BundledPicture[] | undefined;
-  /** Throws a file away that deleted media had. */
-  readonly discard?: ((file: string) => Promise<void>) | undefined;
+  /** Holds the file of deleted media until the app closes, when it goes to the 휴지통. */
+  readonly held?: DeletionHold | undefined;
 }
 
 /** Hears the media document after each change. */
@@ -157,6 +158,11 @@ export class MediaStore implements MediaLibrary {
           ? step
           : (captureMediaDeletion(before, deletionEdit(step)) ?? step),
       );
+      if (step.kind === 'item') {
+        const file = this.deletedFiles.get(step.item.id);
+        if (undo && file !== undefined) this.releaseFile(file);
+        else if (!undo) this.holdFile(step.item.id);
+      }
     }
     return result;
   }
@@ -182,6 +188,7 @@ export class MediaStore implements MediaLibrary {
     const applied = this.document.revision !== revision;
     if (edit.type === 'media.delete' && file !== null && applied) {
       this.deletedFiles.set(edit.mediaId, file);
+      this.holdFile(edit.mediaId);
     }
     if (deleting && applied) {
       const step = captureMediaDeletion(before, edit);
@@ -310,9 +317,7 @@ export class MediaStore implements MediaLibrary {
 
   dispose(): Promise<void> {
     this.listeners.clear();
-    this.closing ??= this.flush()
-      .then(() => this.discardDeleted())
-      .finally(() => this.saves.dispose());
+    this.closing ??= this.flush().finally(() => this.saves.dispose());
     return this.closing;
   }
 
@@ -353,21 +358,30 @@ export class MediaStore implements MediaLibrary {
   }
 
   /**
-   * Throws away the files of media deleted in this session, once nothing can
-   * bring them back. Files outside the media folder are the operator's own.
+   * Holds the file of deleted media until the app closes. Files outside the
+   * media folder are the operator's own, and a file another item still uses
+   * stays.
    */
-  private async discardDeleted(): Promise<void> {
-    const {discard, mediaFolder, log} = this.options;
-    if (discard === undefined) return;
-    const used = new Set(
-      this.document.value.items.map(item => this.fileOf(item.id)),
-    );
-    for (const file of new Set(this.deletedFiles.values())) {
-      if (used.has(file) || !isInside(file, mediaFolder)) continue;
-      await discard(file).catch((error: unknown) =>
-        log.warn('could not throw away a deleted media file', error),
-      );
+  private holdFile(mediaId: string): void {
+    const file = this.deletedFiles.get(mediaId);
+    const {held, mediaFolder} = this.options;
+    if (held === undefined || file === undefined) return;
+    if (!isInside(file, mediaFolder)) return;
+    if (this.document.value.items.some(item => this.fileOf(item.id) === file)) {
+      return;
     }
+    // NOTE(0913vision): The file stays where it is, as a screen may still play
+    // it and 실행 취소 must find it there before the item is back in the list.
+    held.hold(file, true).catch((error: unknown) => {
+      this.options.log.warn('could not hold a deleted media file', error);
+    });
+  }
+
+  /** Lets the held file of media that came back go, so it stays. */
+  private releaseFile(file: string): void {
+    this.options.held?.restore(file).catch((error: unknown) => {
+      this.options.log.warn('could not take a deleted media file back', error);
+    });
   }
 
   private buildLibrary(document: MediaDocument) {

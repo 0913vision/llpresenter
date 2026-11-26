@@ -16,6 +16,7 @@ import {RecoveryCopies} from '../files/recoveryCopies';
 import {type SaveFailureSink} from '../files/saveFailures';
 import {Saver} from '../files/saver';
 import {type SettingsStore} from '../settings/settingsStore';
+import type {DeletionHold} from '../files/heldDeletions';
 
 /** The songs that are stored, and their changes. */
 export interface SongFeed {
@@ -47,8 +48,8 @@ export async function openContent(
     readonly settings: Promise<SettingsStore | null>;
     readonly media: Promise<MediaStore | null>;
     readonly failures: SaveFailureSink;
-    /** Takes the file of a deleted song, 예배 or 템플릿 away. */
-    readonly discard?: ((file: string) => Promise<void>) | undefined;
+    /** Holds the file of a deleted song, 예배 or 템플릿 until the app closes. */
+    readonly held?: DeletionHold | undefined;
   },
 ): Promise<OpenedContent | null> {
   const store = await loading;
@@ -60,7 +61,7 @@ export async function openContent(
       settings: await readers.settings,
       media: await readers.media,
       failures: readers.failures,
-      discard: readers.discard,
+      held: readers.held,
     });
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
@@ -75,12 +76,12 @@ function createContent(
     settings,
     media,
     failures,
-    discard,
+    held,
   }: {
     readonly settings: SettingsStore | null;
     readonly media: MediaStore | null;
     readonly failures: SaveFailureSink;
-    readonly discard?: ((file: string) => Promise<void>) | undefined;
+    readonly held?: DeletionHold | undefined;
   },
 ): OpenedContent {
   const songListeners = new Set<(change: SongChange) => void>();
@@ -106,7 +107,7 @@ function createContent(
     services: store.services,
     templates: store.templates,
     openServiceId: store.openServiceId,
-    files: documentFiles({saver, copies, log, failures, discard}),
+    files: documentFiles({saver, copies, log, failures, held}),
     events: {
       ...events,
       songChanged: change => {

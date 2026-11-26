@@ -14,6 +14,7 @@ import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import type {DocumentFiles} from '@main/store/content/contentPersistence';
+import type {DeletionHold} from '@main/store/files/heldDeletions';
 import {MediaStore} from '@main/store/media/mediaStore';
 import {
   editMediaList,
@@ -41,7 +42,7 @@ const FOLDER = resolve('/data/media');
 
 function setup(
   access: 'editable' | 'readOnly' = 'editable',
-  discard?: (file: string) => Promise<void>,
+  held?: DeletionHold,
 ) {
   vi.useFakeTimers();
   const write = vi
@@ -56,7 +57,7 @@ function setup(
     mediaFolder: FOLDER,
     log,
     files: {write, remove},
-    discard,
+    held,
     document: expectSuccess(
       parseMediaDocument({
         name: 'media',
@@ -285,17 +286,32 @@ describe('media list edits and saves', () => {
     expect(store.get().value.items.some(item => item.id === VIDEO)).toBe(false);
   });
 
-  it('sends the copy of a media item deleted this session to the 휴지통 when it closes, not one brought back', async () => {
-    const discard = vi
-      .fn<(file: string) => Promise<void>>()
-      .mockResolvedValue(undefined);
-    const {store} = setup('editable', discard);
+  it('holds the copy of deleted media in place until the app closes, and lets it go again on 실행 취소', async () => {
+    const calls: string[] = [];
+    const held: DeletionHold = {
+      hold: (file, inPlace) => {
+        calls.push(`hold ${file} ${String(inPlace)}`);
+        return Promise.resolve();
+      },
+      holds: () => false,
+      restore: file => {
+        calls.push(`restore ${file}`);
+        return Promise.resolve();
+      },
+    };
+    const {store} = setup('editable', held);
     await apply(store, {type: 'media.delete', mediaId: VIDEO});
     await apply(store, {type: 'media.delete', mediaId: AUDIO});
     await apply(store, {type: 'media.undoDelete'});
-    expect(discard).not.toHaveBeenCalled();
-    await store.dispose();
-    expect(discard.mock.calls).toEqual([[resolve(FOLDER, 'video.webm')]]);
+    await apply(store, {type: 'media.redoDelete'});
+    const video = resolve(FOLDER, 'video.webm');
+    const audio = resolve(FOLDER, 'audio.mp3');
+    expect(calls).toEqual([
+      `hold ${video} true`,
+      `hold ${audio} true`,
+      `restore ${audio}`,
+      `hold ${audio} true`,
+    ]);
   });
 
   it('restores a deletion without overwriting a later edit to another media item', async () => {

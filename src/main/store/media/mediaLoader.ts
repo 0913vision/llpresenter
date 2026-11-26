@@ -27,13 +27,14 @@ import {MediaStore} from './mediaStore';
 import {recoverMediaImports} from './mediaImportJournal';
 import type {SaveFailureSink} from '../files/saveFailures';
 import type {SettingsProblem} from '../settings/settingsLoader';
+import type {DeletionHold} from '../files/heldDeletions';
 
 /** What the media list opens with besides the loaded data. */
 export interface MediaStoreContext {
   readonly settings: SettingsReader | null;
   readonly pictures?: readonly BundledPicture[] | undefined;
-  /** Throws a file away that deleted media had. */
-  readonly discard?: ((file: string) => Promise<void>) | undefined;
+  /** Holds the file of deleted media until the app closes. */
+  readonly held?: DeletionHold | undefined;
   readonly log: Logger;
   /** Hears the files that couldn't be written, for 저장할 수 없음. */
   readonly failures?: SaveFailureSink | undefined;
@@ -42,7 +43,7 @@ export interface MediaStoreContext {
 /** Loads the media list independently and creates only a missing file. */
 export async function openMediaStore(
   store: LoadedStore,
-  {settings, log, failures, pictures, discard}: MediaStoreContext,
+  {settings, log, failures, pictures, held}: MediaStoreContext,
 ): Promise<{
   readonly store: MediaStore;
   readonly problems: readonly SettingsProblem[];
@@ -65,7 +66,7 @@ export async function openMediaStore(
     pictures,
     file: location.file,
     mediaFolder: store.locations.media,
-    discard,
+    held,
     files: documentFiles({saver, copies, log, failures}),
     log,
   });

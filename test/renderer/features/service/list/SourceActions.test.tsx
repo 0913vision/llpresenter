@@ -307,7 +307,7 @@ describe('the service source menu', () => {
     );
   });
 
-  it('tells that a deleted 템플릿 went to the 휴지통, and its 되돌리기 brings back that one', async () => {
+  it('tells that a 템플릿 was deleted, and its 되돌리기 brings back that one', async () => {
     const {edits, onProblem} = setup(() => ({
       ok: true,
       value: {id: ids.template, revision: null},
@@ -318,7 +318,7 @@ describe('the service source menu', () => {
       expect(onProblem).toHaveBeenCalledWith(
         expect.objectContaining({
           kind: 'info',
-          title: '템플릿을 휴지통으로 보냄',
+          title: '템플릿을 삭제함',
           meta: [expect.stringMatching(/^주일 예배/)],
         }),
       ),

@@ -15,6 +15,7 @@ import {
   type DataLocations,
 } from '@main/store/locations/locations';
 import {writeJson} from '@fixtures/main/store/testFiles';
+import {HELD_FOLDER_NAME} from '@main/store/files/heldDeletions';
 
 const NOW = new Date(2026, 9, 25, 7, 58, 0);
 const NOW_NAME = '2026-10-25_075800';
@@ -255,6 +256,20 @@ describe('runBackup', () => {
     expect((await readdir(locations.songs)).sort()).toEqual(
       [leftover, 'a.llsong'].sort(),
     );
+  });
+
+  it('leaves deleted files the app still holds out of the backup', async () => {
+    const locations = await dataLocations();
+    await writeJson(join(locations.songs, 'a.llsong'), {title: 'a'});
+    const held = join(locations.songs, HELD_FOLDER_NAME, 'run');
+    await mkdir(held, {recursive: true});
+    await writeJson(join(held, 'b.llsong'), {title: 'deleted'});
+
+    await backUp(locations);
+
+    expect(await readdir(join(locations.backups, NOW_NAME, 'Songs'))).toEqual([
+      'a.llsong',
+    ]);
   });
 
   it('fails when a file stands where a data folder should be', async () => {

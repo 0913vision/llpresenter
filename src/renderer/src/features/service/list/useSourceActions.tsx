@@ -80,8 +80,9 @@ async function deleteSource(
 }
 
 /**
- * The notice of a deleted 예배 or 템플릿: its file went to the Windows 휴지통,
- * and 되돌리기 brings it back (user decision, November 24).
+ * The notice of a deleted 예배 or 템플릿, whose 되돌리기 brings it back (user
+ * decision, November 24). Its file goes to the Windows 휴지통 when the app
+ * closes (USER Nov 26), so the notice doesn't say 휴지통.
  */
 function deletedNotice(
   row: SourceRow,
@@ -91,10 +92,7 @@ function deletedNotice(
     key: `source-actions:deleted:${row.source.id}`,
     kind: 'info',
     icon: 'trash',
-    title:
-      row.source.kind === 'template'
-        ? '템플릿을 휴지통으로 보냄'
-        : '예배를 휴지통으로 보냄',
+    title: row.source.kind === 'template' ? '템플릿을 삭제함' : '예배를 삭제함',
     time: noticeTime(),
     meta: [row.name],
     actions: [{icon: 'undo', label: '되돌리기', onSelect: () => restore(row)}],

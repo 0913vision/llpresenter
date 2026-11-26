@@ -73,7 +73,7 @@ describe('ContentStore persistence and notifications', () => {
     expect(store.song(SONG)?.song.title).toBe('Changed');
   });
 
-  it('brings a deleted document back under its own file name, which the 휴지통 left free', async () => {
+  it('brings a deleted document back under its own file name, which holding the deleted file left free', async () => {
     const {store, files} = setUp();
     expect((await store.apply({type: 'song.delete', songId: SONG})).ok).toBe(
       true,

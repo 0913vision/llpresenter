@@ -32,6 +32,9 @@ export interface UpkeepReport {
   readonly launchIdle?: Promise<boolean>;
   /** Called with the backup folder when the launch backup could not be made. */
   readonly onBackupFailed?: ((folder: string) => void) | undefined;
+  /** Sends what a run that didn't close left deleted in these folders to the 휴지통. */
+  readonly sweepDeleted?:
+    ((folders: readonly string[]) => Promise<void>) | undefined;
 }
 
 /**
@@ -51,6 +54,10 @@ export async function upkeepAtLaunch(
   }
   if (report.launchIdle !== undefined && !(await report.launchIdle)) return;
   await removeLeftoverTempFiles(store, log);
+  await report.sweepDeleted?.([
+    ...dataFileFolders.map(name => store.locations[name]),
+    store.locations.media,
+  ]);
   await backUpAtLaunch(store, isAnyOutputOn, report);
 }
 

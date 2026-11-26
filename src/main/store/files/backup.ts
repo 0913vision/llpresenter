@@ -13,6 +13,7 @@ import {
   isInside,
   type DataLocations,
 } from '../locations/locations';
+import {HELD_FOLDER_NAME} from './heldDeletions';
 
 const PARTIAL_SUFFIX = '.partial';
 const KEEP_LIMITS = {min: 1, max: 365} as const;
@@ -283,7 +284,10 @@ async function copyFilter(
   const root =
     developmentFolder === null ? null : await realpath(developmentFolder);
   return async source => {
-    if (isTemporaryFileName(basename(source))) {
+    if (
+      isTemporaryFileName(basename(source)) ||
+      basename(source) === HELD_FOLDER_NAME
+    ) {
       return false;
     }
     if (root !== null && !isInside(await realpath(source), root)) {

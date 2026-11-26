@@ -58,6 +58,7 @@ import {
 import {SkippedFiles, startSkippedFileProblems} from './files/skippedFiles';
 import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
 import {defaultPreferences} from '@core/schema/app/preferences';
+import {HeldDeletions} from './files/heldDeletions';
 
 /**
  * What the data store registers with: the log, the app config, the problem
@@ -135,7 +136,7 @@ export function registerStore({
   const skippedFiles = new SkippedFiles(log);
   const removeSkippedFiles = problems.addStanding(() => skippedFiles.list());
   const stores = openStores({context, appConfig, log, launch, saveFailures});
-  const {loading, settings, media, opened} = stores;
+  const {loading, held, settings, media, opened} = stores;
   const mediaChannels = registerMediaChannels(media, log);
   const settingsChannels = registerSettingsChannels(settings, log, edit =>
     renameLabelOnceRead(stores, edit),
@@ -175,6 +176,7 @@ export function registerStore({
     log,
     ...(launchIdle === undefined ? {} : {launchIdle}),
     onBackupFailed: backupCard.failed,
+    sweepDeleted: folders => held.sweep(folders),
   });
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
@@ -213,6 +215,7 @@ export function registerStore({
         await ready?.content.flush();
       } finally {
         ready?.content.dispose();
+        await held.discard();
         stopSkippedFiles();
         removeSkippedFiles();
         backupCard.dispose();
@@ -260,6 +263,8 @@ async function applySettingsEditOnceRead(
 /** The stores the app reads at launch; each is null when it could not be read. */
 interface OpenedStores {
   readonly loading: Promise<LoadedStore | null>;
+  /** The files of deletions, held until the app closes. */
+  readonly held: HeldDeletions;
   readonly settings: Promise<SettingsStore | null>;
   readonly media: Promise<MediaStore | null>;
   readonly opened: Promise<OpenedContent | null>;
@@ -283,7 +288,10 @@ function openStores({
   readonly launch: LaunchTracker;
   readonly saveFailures: SaveFailures;
 }): OpenedStores {
-  const discard = (file: string): Promise<void> => shell.trashItem(file);
+  const held = new HeldDeletions({
+    trash: file => shell.trashItem(file),
+    log,
+  });
   const loading = launch.track(
     'files',
     readStore(
@@ -317,7 +325,7 @@ function openStores({
         const readySettings = await settings;
         const opened = await openMediaStore(store, {
           pictures: SUNDAY_PICTURES,
-          discard,
+          held,
           settings: readySettings,
           log,
           failures: saveFailures,
@@ -336,10 +344,10 @@ function openStores({
       settings,
       media,
       failures: saveFailures,
-      discard,
+      held,
     }),
   );
-  return {loading, settings, media, opened};
+  return {loading, held, settings, media, opened};
 }
 
 /**

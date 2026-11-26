@@ -5,6 +5,7 @@ import {makeTempDir} from '@fixtures/tempDir';
 import type {Logger} from '@main/base/log';
 import {ContentPersistence} from '@main/store/content/contentPersistence';
 import {documentFiles} from '@main/store/files/documentFiles';
+import {HeldDeletions} from '@main/store/files/heldDeletions';
 import {RecoveryCopies} from '@main/store/files/recoveryCopies';
 import {Saver} from '@main/store/files/saver';
 
@@ -51,7 +52,7 @@ describe('documentFiles', () => {
     ).toEqual(['first content', 'last content']);
   });
 
-  it('hands a deleted file to the discard, such as the 휴지통, and skips a file that is gone', async () => {
+  it('holds a deleted file aside until the app closes, and takes it back when the document is written there again', async () => {
     const folder = await makeTempDir();
     const target = {
       file: join(folder, 'service.llservice'),
@@ -64,21 +65,25 @@ describe('documentFiles', () => {
       now: () => 0,
     });
     const saver = new Saver({copies, reportCopyProblem: vi.fn()});
-    const discarded: string[] = [];
-    const files = documentFiles({
-      saver,
-      copies,
-      log: mockLog(),
-      discard: file => {
-        discarded.push(file);
+    const trashed: string[] = [];
+    const held = new HeldDeletions({
+      trash: file => {
+        trashed.push(file);
         return rm(file);
       },
+      log: mockLog(),
     });
+    const files = documentFiles({saver, copies, log: mockLog(), held});
     await writeFile(target.file, 'service');
     expect(await files.remove(target)).toEqual({ok: true, value: undefined});
-    expect(discarded).toEqual([target.file]);
+    expect(await readdir(folder)).not.toContain('service.llservice');
+    await files.write({target, text: 'service again'});
+    expect(await readFile(target.file, 'utf8')).toBe('service again');
+    await held.discard();
+    expect(trashed).toEqual([]);
     expect(await files.remove(target)).toEqual({ok: true, value: undefined});
-    expect(discarded).toEqual([target.file]);
+    await held.discard();
+    expect(trashed).toEqual([target.file]);
   });
 
   it('waits for an in-flight save before copying and deleting', async () => {

@@ -121,6 +121,24 @@ describe('upkeepAtLaunch', () => {
     ]);
   });
 
+  it('sends what a run that did not close left deleted in the data and media folders to the 휴지통 before the backup', async () => {
+    const log = setup();
+    const sweepDeleted = vi.fn((folders: readonly string[]) => {
+      backups.order.push(`sweep ${folders.join(',')}`);
+      return Promise.resolve();
+    });
+
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, {
+      log,
+      sweepDeleted,
+    });
+
+    expect(backups.order.slice(-2)).toEqual([
+      `sweep ${[locations.songs, locations.services, locations.templates, locations.settings, locations.media].join(',')}`,
+      'backup',
+    ]);
+  });
+
   it('logs each temporary file it could not remove and still backs up', async () => {
     const log = setup();
     vi.mocked(removeStaleTempFiles).mockResolvedValueOnce([
