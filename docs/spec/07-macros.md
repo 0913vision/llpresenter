@@ -88,8 +88,10 @@ Source: `Macros`, `Overlays` 매크로 tab, `MacroTile` README.
   sends one new state, so the screens change once (proposal). A 매크로 that runs
   another 매크로 adds that 매크로's actions to the same batch.
 - If an action's target no longer exists (for example, a deleted 테마), skip
-  that action and run the rest. The tile shows the problem state, with the
-  missing target in the tooltip (proposal).
+  that action and run the rest. A media file that is missing on disk, and a
+  그래픽 to turn on whose image can't be shown, count as a missing target (08).
+  The tile shows the problem state, with the missing target in the tooltip
+  (proposal).
 - An action can run another 매크로. To stop loops, skip a 매크로 that is already
   running in the same chain, and stop at a depth of 4 (proposal).
 - All clear actions in one run count as one clear for undo. Undo restores every
