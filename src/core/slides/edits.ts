@@ -3,6 +3,7 @@ import type {SlideId, ThemeId} from '@core/schema/common/ids';
 import type {Slide, VerseReference} from '@core/schema/slides/slide';
 import type {SlideBackground} from '@core/schema/screens/theme';
 import type {SlideTransition} from '@core/schema/slides/slideTransition';
+import {sameJson} from '@core/common/sameJson';
 import {copySlide} from './make';
 import {verseKey} from './passageSlides';
 
@@ -52,11 +53,15 @@ export function withTheme(slide: Slide, theme: ThemeId): Slide {
   return slide.theme === theme ? slide : {...slide, theme};
 }
 
-/** The slide with a background of its own, or the theme's when absent. */
+/**
+ * The slide with a background of its own, or the theme's when absent. The
+ * same slide when nothing changes.
+ */
 export function withBackground(
   slide: Slide,
   background: SlideBackground | undefined,
 ): Slide {
+  if (sameJson(slide.background, background)) return slide;
   const {background: _background, ...kept} = slide;
   return background === undefined ? kept : {...kept, background};
 }
@@ -66,11 +71,15 @@ export function withHymn(slide: Slide, hymn: Hymn): Slide {
   return {...slide, hymn};
 }
 
-/** The slide with its own transition, or without one when undefined. */
+/**
+ * The slide with its own transition, or without one when undefined. The same
+ * slide when nothing changes.
+ */
 export function withTransition(
   slide: Slide,
   transition: SlideTransition | undefined,
 ): Slide {
+  if (sameJson(slide.transition, transition)) return slide;
   const {transition: _transition, ...kept} = slide;
   return transition === undefined ? kept : {...kept, transition};
 }
