@@ -275,8 +275,10 @@ A library song opens in the same editor ("The editor of an item"). What differs:
 
 - The title field, 저장 (Ctrl S), 다른 이름으로 저장… for a saved song, and how
   many services use the song. A dot marks unsaved changes.
-- An empty title, or one another song has, can't be saved; the field shows the
-  reason.
+- An empty title, one longer than 200 characters, or one another song has can't
+  be saved; the field shows the reason, by the one title rule of the rename, the
+  editor, 다른 이름으로 저장 and the text import. 다른 이름으로 저장 makes a new
+  song, so the title of the song it comes from is taken too.
 - Changes wait for 저장, which asks before it overwrites the song. Leaving with
   unsaved changes asks 저장, 저장 안 함, or 취소. An imported song is unsaved
   until 저장 adds it to the library.
