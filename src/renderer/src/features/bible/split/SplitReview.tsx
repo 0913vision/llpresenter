@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import {useMemo, useState, type JSX} from 'react';
 import {
   BIBLE_BOOKS,
   cutsOfVerse,
@@ -11,6 +11,7 @@ import type {BibleCutSelection} from '@core/schema/bible/bibleCuts';
 import type {BibleSplit} from '../passageSplitter';
 import {verseKey} from './BibleRefinements';
 import {SplitEditor} from './SplitEditor';
+import {useAlive} from '@renderer/ui/useAlive';
 
 function reviewPlan(
   projection: BibleSplit,
@@ -68,13 +69,7 @@ export function SplitReview({
   readonly onCancel: () => void;
 }): JSX.Element | null {
   const [position, setPosition] = useState(0);
-  const active = useRef(true);
-  useEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-    };
-  }, []);
+  const active = useAlive();
   const queue = useMemo(
     () =>
       references.flatMap(reference => {

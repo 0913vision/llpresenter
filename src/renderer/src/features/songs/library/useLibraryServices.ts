@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useRef, useState} from 'react';
 import type {SongId} from '@core/schema/common/ids';
 import {useOrderAddReason} from '@renderer/session/service/orderReasons';
 import {orderFailureNotice} from '@renderer/session/service/serviceProblem';
@@ -6,6 +6,7 @@ import type {Notice} from '@renderer/ui/popups/notices';
 import type {LibraryApi} from './useLibrary';
 import {useShow} from '@renderer/session/show/showStore';
 import {insertSelectedSong} from '@renderer/session/service/insertIntoOrder';
+import {useAlive} from '@renderer/ui/useAlive';
 
 /**
  * Adds songs of the library to the open service and reports a failure with
@@ -18,15 +19,9 @@ export function useLibraryServices(
   const addReason = useOrderAddReason();
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
-  const active = useRef(false);
   // NOTE(0913vision): A failure is reported even after the library is gone,
   // because the handler is the app's and the write was not undone.
-  useEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-    };
-  }, []);
+  const active = useAlive();
 
   const append = async (song: SongId): Promise<void> => {
     const current = useShow.getState();

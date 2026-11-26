@@ -1,17 +1,12 @@
 import {logFailure} from '@renderer/platform/logFailure';
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
+import {useMemo, useRef, useState, useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import type {SettingsName} from '@core/schema/app/settingsDocuments';
 import {settingsDeleteHistory} from '@renderer/platform/undo/settingsDeleteHistory';
 import {failureReasonLines} from '@renderer/platform/problemReasons';
+import {useAlive} from '@renderer/ui/useAlive';
 
 const emptyHistory = {undo: 0, redo: 0, busy: false};
 function noSubscribe(): () => void {
@@ -64,13 +59,7 @@ export function useToolEditing<Edit>({
     history?.get ?? noHistory,
   );
   const pending = useRef(false);
-  const active = useRef(false);
-  useEffect(() => {
-    active.current = true;
-    return () => {
-      active.current = false;
-    };
-  }, []);
+  const active = useAlive();
   const isActive = (): boolean => active.current;
   const run = async (
     edit: Edit,
