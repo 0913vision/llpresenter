@@ -384,6 +384,77 @@ it('gives every slide the transition of the selected one', async () => {
   );
 });
 
+describe('the transition of a slide', () => {
+  it('takes an effect with its direction, and a direction only for a moving one', async () => {
+    const {current} = renderEditor(song());
+    await userEvent.click(row(1));
+    await openTab('전환');
+    await userEvent.click(inspector().getByRole('button', {name: /디졸브/u}));
+    expect(current.slides[1]?.transition).toEqual({kind: 'dissolve', sec: 0.5});
+    expect(
+      inspector().getByRole('button', {name: '오른쪽으로'}),
+    ).toHaveProperty('disabled', true);
+    await userEvent.click(inspector().getByRole('button', {name: /밀어내기/u}));
+    await userEvent.click(
+      inspector().getByRole('button', {name: '오른쪽으로'}),
+    );
+    expect(current.slides[1]?.transition).toEqual({
+      kind: 'push',
+      sec: 0.5,
+      dir: 'right',
+    });
+  });
+
+  it('takes a typed time to a hundredth, within 0.1 to 10 seconds, and nothing that is not a number', async () => {
+    const slides = song().map((slide, index) =>
+      index === 1
+        ? {...slide, transition: {kind: 'dissolve' as const, sec: 1}}
+        : slide,
+    );
+    const {current} = renderEditor(slides);
+    await userEvent.click(row(1));
+    await openTab('전환');
+    const time = inspector().getByRole('textbox', {name: '전환 시간'});
+    const type = async (text: string): Promise<void> => {
+      await userEvent.clear(time);
+      await userEvent.type(time, `${text}{Enter}`);
+    };
+    await type('3.456');
+    expect(current.slides[1]?.transition?.sec).toBe(3.46);
+    await type('25');
+    expect(current.slides[1]?.transition?.sec).toBe(10);
+    await type('0');
+    expect(current.slides[1]?.transition?.sec).toBe(0.1);
+    await type('빠르게');
+    expect(current.slides[1]?.transition?.sec).toBe(0.1);
+  });
+
+  it('shows the transitions of slides that differ as mixed, with no direction to pick', async () => {
+    const slides = song().map((slide, index) =>
+      index === 1
+        ? {...slide, transition: {kind: 'dissolve' as const, sec: 1}}
+        : index === 2
+          ? {
+              ...slide,
+              transition: {kind: 'push' as const, sec: 1, dir: 'up' as const},
+            }
+          : slide,
+    );
+    renderEditor(slides);
+    await userEvent.click(row(1));
+    await userEvent.keyboard('{Shift>}');
+    fireEvent.click(row(2), {shiftKey: true});
+    await userEvent.keyboard('{/Shift}');
+    await openTab('전환');
+    const time = inspector().getByRole('textbox', {name: '전환 시간'});
+    expect(time.getAttribute('placeholder')).toBe('혼합');
+    expect(inspector().getByRole('button', {name: '위로'})).toHaveProperty(
+      'disabled',
+      true,
+    );
+  });
+});
+
 it('moves from a field beside the slides to them with Esc', async () => {
   renderEditor(song());
   await openTab('내용');
