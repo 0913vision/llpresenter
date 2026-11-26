@@ -314,6 +314,39 @@ describe('media list edits and saves', () => {
     ]);
   });
 
+  it('keeps a deleted item as a record with its places, and drops the record when 실행 취소 brings it back', async () => {
+    const {store} = setup();
+    await apply(store, {type: 'media.delete', mediaId: VIDEO});
+    const [record] = store.get().value.removed ?? [];
+    expect(record?.item).toMatchObject({id: VIDEO, file: 'video.webm'});
+    expect(record?.memberships).toMatchObject([
+      {kind: 'media', playlistId: LIST},
+    ]);
+    await apply(store, {type: 'media.undoDelete'});
+    expect(store.get().value.removed).toBeUndefined();
+    await apply(store, {type: 'media.redoDelete'});
+    expect(store.get().value.removed?.map(row => row.item.id)).toEqual([VIDEO]);
+  });
+
+  it('retires items whose file left the folder and revives one with its id, settings and playlist place when its file is back (USER Nov 26)', async () => {
+    const {store} = setup();
+    const original = store.get().value;
+    expect((await saved(store.retire([VIDEO, AUDIO]))).ok).toBe(true);
+    expect(store.get().value.items.map(item => item.id)).toEqual([IMAGE]);
+    expect(store.get().value.playlists[0]?.items).toEqual([IMAGE]);
+    expect(store.get().value.removed).toHaveLength(2);
+    const revived = store.revive(resolve(FOLDER, 'video.webm'));
+    if (revived === null) throw new Error('No record of the video');
+    expect((await saved(revived)).ok).toBe(true);
+    expect(store.get().value.items.find(item => item.id === VIDEO)).toEqual(
+      original.items[0],
+    );
+    expect(store.get().value.playlists[0]?.items).toEqual([VIDEO, IMAGE]);
+    expect(store.get().value.removed?.map(row => row.item.id)).toEqual([AUDIO]);
+    expect(store.revive(resolve(FOLDER, 'other.png'))).toBeNull();
+    expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(false);
+  });
+
   it('restores a deletion without overwriting a later edit to another media item', async () => {
     const {store} = setup();
     await apply(store, {type: 'media.delete', mediaId: VIDEO});

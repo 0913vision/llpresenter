@@ -41,6 +41,8 @@ export const MEDIA_LIMITS = {
   importBatch: 200,
   /** A name in the list. */
   name: NAME_LIMIT,
+  /** The removed items the list remembers; the oldest go first. */
+  removed: 1_000,
 } as const;
 
 /**
@@ -130,9 +132,42 @@ export const audioPlaylistSchema = jsonObject({
   loop: v.boolean(),
 });
 
+/** One place of a removed item in a playlist: the item after it, and where. */
+const occurrenceSchema = jsonObject({
+  next: v.nullable(mediaIdSchema),
+  ordinal: nonNegativeInteger,
+  index: nonNegativeInteger,
+});
+
+/** The places of a removed item in one playlist. */
+const membershipSchema = jsonObject({
+  kind: v.picklist(['media', 'audio']),
+  playlistId: v.union([mediaPlaylistIdSchema, audioPlaylistIdSchema]),
+  occurrences: v.pipe(
+    v.array(occurrenceSchema),
+    v.maxLength(MEDIA_LIMITS.playlistItems),
+  ),
+});
+
+/**
+ * A media item that left the list, deleted or with its file gone from the
+ * media folder, kept with its place in the list and in each playlist, so it
+ * comes back as it was when its file is in the folder again (USER Nov 26).
+ */
+export const removedMediaSchema = jsonObject({
+  item: mediaItemSchema,
+  index: nonNegativeInteger,
+  next: v.nullable(mediaIdSchema),
+  memberships: v.pipe(
+    v.array(membershipSchema),
+    v.maxLength(MEDIA_LIMITS.playlists * 2),
+  ),
+});
+
 /**
  * The contents of `media.json`: every media item and both kinds of playlists,
- * each list with unique ids and within `MEDIA_LIMITS`.
+ * each list with unique ids and within `MEDIA_LIMITS`, and the items that
+ * left the list.
  */
 export const mediaListSchema = jsonObject({
   format: v.literal('llmedia'),
@@ -148,6 +183,9 @@ export const mediaListSchema = jsonObject({
   audioPlaylists: v.pipe(
     listWithUniqueIds(audioPlaylistSchema),
     v.maxLength(MEDIA_LIMITS.playlists),
+  ),
+  removed: v.exactOptional(
+    v.pipe(v.array(removedMediaSchema), v.maxLength(MEDIA_LIMITS.removed)),
   ),
 });
 
@@ -175,6 +213,9 @@ export type MediaPlaylist = MediaList['playlists'][number];
 
 /** A playlist of audio items in `media.json`. */
 export type AudioPlaylist = MediaList['audioPlaylists'][number];
+
+/** A media item that left the list, with its places, in `media.json`. */
+export type RemovedMedia = NonNullable<MediaList['removed']>[number];
 
 /** Reads the text of `media.json`; `file` names the file in errors. */
 export function parseMediaList(

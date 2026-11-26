@@ -166,6 +166,43 @@ describe('parseMediaList', () => {
   });
 });
 
+describe('removed items', () => {
+  function removed() {
+    const list = mediaList();
+    const [item] = list.items;
+    const [playlist] = list.playlists;
+    return {
+      list,
+      record: {
+        item,
+        index: 0,
+        next: null,
+        memberships: [
+          {
+            kind: 'media',
+            playlistId: playlist?.id,
+            occurrences: [{next: null, ordinal: 0, index: 0}],
+          },
+        ],
+      },
+    };
+  }
+
+  it('reads the items that left the list with their places', () => {
+    const {list, record} = removed();
+    expectRoundTrip(codec, {...list, removed: [record]});
+  });
+
+  it('rejects a record whose playlist place holds a path instead of an id', () => {
+    const {list, record} = removed();
+    expectInvalidField(
+      codec,
+      {...list, removed: [{...record, next: '배경/따뜻한 빛.mp4'}]},
+      'removed.0.next',
+    );
+  });
+});
+
 describe('media name limit', () => {
   it('accepts a name at the limit and rejects one past it, for an item and a playlist', () => {
     const atLimit = 'ㄱ'.repeat(MEDIA_LIMITS.name);

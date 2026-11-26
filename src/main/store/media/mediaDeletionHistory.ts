@@ -1,38 +1,25 @@
 import {sameJson} from '@core/common/sameJson';
+import type {MediaId} from '@core/schema/common/ids';
 import type {
-  MediaItem,
   MediaList,
   MediaPlaylist,
   AudioPlaylist,
+  RemovedMedia,
 } from '@core/schema/media/mediaList';
 import type {MediaEdit} from '@core/schema/media/mediaEdit';
 import {editMediaList, mediaRefusal, type MediaChange} from './mediaEdits';
 import type {Result} from '@core/common/result';
 import type {EditFailure} from '@core/schema/services/contentEdit';
 
-interface Occurrence {
-  readonly next: string | null;
-  readonly ordinal: number;
-  readonly index: number;
-}
-interface Membership {
-  readonly kind: 'media' | 'audio';
-  readonly playlistId: string;
-  readonly occurrences: readonly Occurrence[];
-}
+type Membership = RemovedMedia['memberships'][number];
+type Occurrence = Membership['occurrences'][number];
 /**
  * What a deletion removed, kept so undo and redo can put it back: a media item
  * with its places in the playlists, or a media or audio playlist with its
  * position.
  */
 export type MediaDeletion =
-  | {
-      readonly kind: 'item';
-      readonly item: MediaItem;
-      readonly index: number;
-      readonly next: string | null;
-      readonly memberships: readonly Membership[];
-    }
+  | ({readonly kind: 'item'} & RemovedMedia)
   | {
       readonly kind: 'mediaPlaylist';
       readonly playlist: MediaPlaylist;
@@ -51,15 +38,15 @@ type DeleteEdit = Extract<
 >;
 
 function captureOccurrences(
-  items: readonly string[],
-  deletedId: string,
+  items: readonly MediaId[],
+  deletedId: MediaId,
 ): Occurrence[] {
   const occurrences: Occurrence[] = [];
-  const counts = new Map<string, number>();
+  const counts = new Map<MediaId, number>();
   for (const id of items) {
     if (id !== deletedId) counts.set(id, (counts.get(id) ?? 0) + 1);
   }
-  let next: string | null = null;
+  let next: MediaId | null = null;
   let ordinal = 0;
   for (let position = items.length - 1; position >= 0; position--) {
     const id = items[position];
