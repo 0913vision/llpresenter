@@ -66,9 +66,9 @@ export function withBackground(
   return background === undefined ? kept : {...kept, background};
 }
 
-/** The slide with this hymn. */
+/** The slide with this hymn; the same slide when it has it already. */
 export function withHymn(slide: Slide, hymn: Hymn): Slide {
-  return {...slide, hymn};
+  return sameJson(slide.hymn, hymn) ? slide : {...slide, hymn};
 }
 
 /**

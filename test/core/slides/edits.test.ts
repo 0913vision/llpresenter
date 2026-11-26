@@ -16,6 +16,7 @@ import {
   withTransition,
 } from '@core/slides/edits';
 import {createMediaId} from '@core/schema/common/ids';
+import {withHideNext} from '@core/slides/nextText';
 import type {Slide} from '@core/schema/slides/slide';
 import {lyricsSlide, slideId, verseOf} from '@fixtures/core/slides';
 
@@ -131,5 +132,16 @@ describe('passage slides', () => {
     expect(
       replacePassage([title], [of(1, 'x')]).map(entry => entry.texts['가사']),
     ).toEqual(['창세기 1장', 'x']);
+  });
+});
+
+describe('the 무대 next text and the hymn of a slide', () => {
+  it('keeps the same slide when hiding the next text or the hymn does not change', () => {
+    const slide = lyricsSlide(1, '주 하나님');
+    expect(withHideNext(slide, false)).toBe(slide);
+    const hidden = withHideNext(slide, true);
+    expect(hidden.hideNext).toBe(true);
+    expect(withHideNext(hidden, true)).toBe(hidden);
+    expect(withHideNext(hidden, false)).toEqual(slide);
   });
 });
