@@ -8,6 +8,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'clear.undo':
     case 'item.stop':
     case 'item.restore':
+    case 'item.toggle':
       return true;
     case 'layer.clear':
     case 'layer.clear.toggle':

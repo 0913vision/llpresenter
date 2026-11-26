@@ -226,6 +226,38 @@ it.each(['item', 'slide', 'media'] as const)(
   },
 );
 
+it('stops the item and brings it back on each 대기 화면 press from where main has it, so quick presses all count', () => {
+  const {store, dispatch, slide, theme} = setup();
+  slide();
+  const {layers} = store.state;
+  const items = Array.from({length: 3}, () => {
+    dispatch({type: 'item.toggle'});
+    return store.state.item?.id ?? null;
+  });
+  expect(items).toEqual([null, ITEM, null]);
+  expect(theme()).toBe(BUILT_IN_THEME_IDS.standby);
+  dispatch({type: 'item.toggle'});
+  expect(store.state.layers.slide).toBe(layers.slide);
+});
+
+it('takes a test pattern down on a 대기 화면 press before it brings a stopped item back', () => {
+  const {store, dispatch, slide} = setup();
+  slide();
+  dispatch({type: 'item.stop'});
+  dispatch({type: 'screen.testPattern.set', screenId: THEME_MAIN, on: true});
+  expect(store.state.testPatterns).toEqual([THEME_MAIN]);
+  dispatch({type: 'item.toggle'});
+  expect(store.state.testPatterns ?? []).toEqual([]);
+  expect(store.state.item).toBeNull();
+});
+
+it('does nothing on a 대기 화면 press with no item live and none to bring back', () => {
+  const {store, dispatch} = setup();
+  const before = store.state;
+  dispatch({type: 'item.toggle'});
+  expect(store.state).toBe(before);
+});
+
 it('reads the item again on each slide, so an overlay added meanwhile shows', () => {
   const {store, slide, save} = setup();
   slide(0);

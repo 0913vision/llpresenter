@@ -48,6 +48,11 @@ export type SingleLiveCommand =
   | {readonly type: 'layer.clear.toggle'; readonly target: ClearTarget}
   | {readonly type: 'clear.undo'}
   | {readonly type: 'item.restore'}
+  /**
+   * 대기 화면: stops the live item, or brings back the one it stopped, from
+   * where main has it, so quick presses each count.
+   */
+  | {readonly type: 'item.toggle'}
   | {readonly type: 'black.toggle'}
   | {
       readonly type: 'output.set';
@@ -96,6 +101,7 @@ const singleCommandOptions = [
   }),
   v.object({type: v.literal('clear.undo')}),
   v.object({type: v.literal('item.restore')}),
+  v.object({type: v.literal('item.toggle')}),
   v.object({type: v.literal('black.toggle')}),
   v.object({
     type: v.literal('output.set'),

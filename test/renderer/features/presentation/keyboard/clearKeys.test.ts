@@ -56,7 +56,7 @@ it.each([
           cancelable: true,
         }),
       );
-      expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
+      expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.toggle'});
     } finally {
       unmount();
       commandBindingStore.set({});

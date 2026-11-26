@@ -201,6 +201,18 @@ function resumedMessages(
   };
 }
 
+/**
+ * Whether a 대기 화면 press brings the stopped item back: no test pattern is
+ * up, nothing is live, and a stopped item is kept. Otherwise it stops.
+ */
+function bringsItemBack({state, stoppedItem}: LiveHistory): boolean {
+  return (
+    (state.testPatterns?.length ?? 0) === 0 &&
+    state.item == null &&
+    stoppedItem != null
+  );
+}
+
 /** Clears layers and undoes the last clear, one level deep. */
 export const clearSlice = defineSlice({
   commands: [
@@ -208,6 +220,7 @@ export const clearSlice = defineSlice({
     'layer.clear.toggle',
     'clear.undo',
     'item.restore',
+    'item.toggle',
     'overlay.clear',
   ],
   initial: {canUndo: false},
@@ -257,6 +270,13 @@ export const clearSlice = defineSlice({
           {type: 'media.properties.refresh'},
         );
       }
+      case 'item.toggle':
+        return context.apply(
+          history,
+          bringsItemBack(history)
+            ? {type: 'item.restore'}
+            : {type: 'item.stop'},
+        );
       case 'overlay.clear':
         return withClearEffects(
           history,

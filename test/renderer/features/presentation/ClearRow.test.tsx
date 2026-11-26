@@ -81,8 +81,8 @@ it('activates Item Off with unmodified Space and Enter', async () => {
   button.focus();
   await userEvent.keyboard(' {Enter}');
   expect(send.mock.calls).toEqual([
-    [{type: 'item.stop'}],
-    [{type: 'item.stop'}],
+    [{type: 'item.toggle'}],
+    [{type: 'item.toggle'}],
   ]);
 });
 
@@ -93,7 +93,7 @@ it('dismisses the Item Off tooltip and clears pending activation on blur', async
   fireEvent.blur(button);
   expect(screen.queryByRole('tooltip')).toBeNull();
   fireEvent.click(button, {detail: 0});
-  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
+  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.toggle'});
 });
 
 beforeEach(() => {

@@ -10,14 +10,13 @@ export function stopItem(): void {
   }
 }
 
-/** Restores the item button's capture, or takes the active item off. */
+/**
+ * 대기 화면: main takes the active item off or brings back the one it took
+ * off, from where it has it, so a press made before this window hears the one
+ * before still counts.
+ */
 export function toggleItem(): void {
-  const state = useLive.getState().state;
-  if (state?.testPatterns?.length) {
-    stopItem();
-  } else if (state?.canRestoreItem && state.item == null) {
-    sendLive({type: 'item.restore'});
-  } else stopItem();
+  sendLive({type: 'item.toggle'});
 }
 
 /** Whether a layer, or any layer for 모두, has something to clear now. */

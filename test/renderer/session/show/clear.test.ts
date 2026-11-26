@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
 import {emptyLayers, emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {clearLayer, undoClear} from '@renderer/session/show/clear';
+import {clearLayer, toggleItem, undoClear} from '@renderer/session/show/clear';
 import {useLive} from '@renderer/session/live';
 
 const sent: LiveCommand[] = [];
@@ -64,5 +64,19 @@ describe('clearLayer', () => {
     useLive.setState({state: {...emptyLiveState(), clearToggles: ['slide']}});
     clearLayer('slide');
     expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
+  });
+});
+
+describe('toggleItem', () => {
+  it('sends each 대기 화면 press to main, which decides, even before this window hears the one before', () => {
+    useLive.setState({
+      state: {
+        ...emptyLiveState(),
+        item: {id: 'item', kind: 'song', source: 'service'},
+      },
+    });
+    toggleItem();
+    toggleItem();
+    expect(sent).toEqual([{type: 'item.toggle'}, {type: 'item.toggle'}]);
   });
 });
