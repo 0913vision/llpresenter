@@ -247,6 +247,9 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 - The right-click menu of a 라이브러리 row has 삭제. It deletes immediately
   without a confirmation or notice; undo restores the song.
+- A song open in the editor closes when it is deleted. When undo brings it back,
+  it opens again as it was: with its unsaved changes, still unsaved, and its
+  steps. Nothing asks to save (USER, November 26).
 - After the delete, 예배 순서 items of the song keep their own slides and still
   go out, also while one is live; its 원본 shows that the library song is gone.
   Checked Nov 24 with the live item (screens unchanged, stepping goes on).
