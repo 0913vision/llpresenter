@@ -16,6 +16,7 @@ import {TextField} from '@renderer/ui/fields/TextField';
 import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {propReason} from './propEdits';
 import {ScreenTargetsRow} from '../ScreenTargetsRow';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 
 const DEFAULT_STYLE = {
   font: 'Pretendard',
@@ -137,7 +138,7 @@ export function PropDialog({
                 id={controlId}
                 value={text}
                 onChange={setText}
-                maxLength={4000}
+                maxLength={LIVE_STATE_LIMITS.textCharacters}
                 readOnly={locked}
               />
             )}

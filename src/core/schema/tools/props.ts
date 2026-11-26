@@ -17,6 +17,7 @@ import {
   positiveInteger,
 } from '../common/primitives';
 import {lyricTextEntries} from '../slides/textStyle';
+import {LIVE_STATE_LIMITS} from '../live/liveLimits';
 
 /**
  * What a 소품 shows: an image from the media store, or a text with its own style.
@@ -25,7 +26,7 @@ export const propContentSchema = v.variant('kind', [
   v.looseObject({kind: v.literal('image'), media: mediaIdSchema}),
   v.looseObject({
     kind: v.literal('text'),
-    text: v.string(),
+    text: v.pipe(v.string(), v.maxLength(LIVE_STATE_LIMITS.textCharacters)),
     style: jsonObject(lyricTextEntries),
   }),
 ]);

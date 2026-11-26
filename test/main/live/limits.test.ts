@@ -7,7 +7,7 @@ import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {defaultPreferences} from '@core/schema/app/preferences';
 import {serializeRecoveryRecord} from '@core/schema/app/recoveryRecord';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
-import {parseMacroId} from '@core/schema/common/ids';
+import {createPropId, parseMacroId} from '@core/schema/common/ids';
 import {DEFAULT_TEXT_STYLE} from '@core/overlays/textStyle';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {LiveStore, dispatchLogged} from '@main/live/store';
@@ -348,69 +348,75 @@ describe('live admission limits', () => {
     releaseSettings();
   });
 
+  function propsWithText(length: number) {
+    return parseSettingsDocument({
+      name: 'props',
+      revision: 1,
+      access: 'editable',
+      value: {
+        format: 'llsettings.props',
+        schemaVersion: 1,
+        props: [
+          {
+            id: uuid(1),
+            name: 'Invented prop',
+            content: {
+              kind: 'text',
+              text: 'x'.repeat(length),
+              style: DEFAULT_TEXT_STYLE,
+            },
+            targets: [],
+          },
+        ],
+      },
+    });
+  }
+
+  it('refuses a 그래픽 text over the live limit already in its settings file', () => {
+    expect(propsWithText(LIVE_STATE_LIMITS.textCharacters + 1).ok).toBe(false);
+  });
+
+  it('shows and saves settings-derived prop text as long as the live limit', () => {
+    const document = expectSuccess(
+      propsWithText(LIVE_STATE_LIMITS.textCharacters),
+    );
+    const store = new LiveStore(undefined, () => 0, registry());
+    const release = store.connectSettings({
+      get: () => document,
+      preferences: () => defaultPreferences,
+      subscribe: () => () => undefined,
+    });
+    const command = expectSuccess(
+      parseLiveCommand({type: 'prop.set', propId: uuid(1), on: true}),
+    );
+    const log = recordingLogger();
+    dispatchLogged(store, command, log);
+    expect(store.state.layers.prop).not.toBeNull();
+    expect(log.messages('warn')).toHaveLength(0);
+    expect(canSave(store.state)).toBe(true);
+    release();
+  });
+
   it.each([
     LIVE_STATE_LIMITS.textCharacters,
     LIVE_STATE_LIMITS.textCharacters + 1,
-  ])(
-    'validates settings-derived prop text of length %s before committing it',
-    length => {
-      const document = expectSuccess(
-        parseSettingsDocument({
-          name: 'props',
-          revision: 1,
-          access: 'editable',
-          value: {
-            format: 'llsettings.props',
-            schemaVersion: 1,
-            props: [
-              {
-                id: uuid(1),
-                name: 'Invented prop',
-                content: {
-                  kind: 'text',
-                  text: 'x'.repeat(length),
-                  style: DEFAULT_TEXT_STYLE,
-                },
-                targets: [],
-              },
-            ],
-          },
-        }),
-      );
-      const store = new LiveStore(undefined, () => 0, registry());
-      const release = store.connectSettings({
-        get: () => document,
-        preferences: () => defaultPreferences,
-        subscribe: () => () => undefined,
-      });
-      const command = expectSuccess(
-        parseLiveCommand({type: 'prop.set', propId: uuid(1), on: true}),
-      );
-      const accepted = length === LIVE_STATE_LIMITS.textCharacters;
-      const log = recordingLogger();
-      dispatchLogged(store, command, log);
-      expect(store.state.layers.prop !== null).toBe(accepted);
-      expect(log.messages('warn')).toHaveLength(accepted ? 0 : 1);
-      expect(canSave(store.state)).toBe(true);
-      const value = {
-        ...emptyLiveState(),
-        layers: {
-          ...emptyLiveState().layers,
-          prop: {
-            propId: 'summary',
-            items:
-              document.name === 'props'
-                ? document.value.props.map(prop => ({
-                    propId: prop.id,
-                    content: prop.content,
-                    targets: prop.targets,
-                  }))
-                : [],
-          },
-        },
-      };
-      expect(canSave(value)).toBe(accepted);
-      release();
-    },
-  );
+  ])('saves a live 그래픽 text of length %s only within the limit', length => {
+    const prop = {
+      propId: createPropId(uuid(1)),
+      content: {
+        kind: 'text' as const,
+        text: 'x'.repeat(length),
+        style: DEFAULT_TEXT_STYLE,
+      },
+      targets: [],
+    };
+    const value = {
+      ...emptyLiveState(),
+      layers: {
+        ...emptyLiveState().layers,
+        prop: {propId: createPropId(uuid(2)), items: [prop]},
+      },
+    } satisfies LiveState;
+    expect(canSave(value)).toBe(length <= LIVE_STATE_LIMITS.textCharacters);
+  });
 });

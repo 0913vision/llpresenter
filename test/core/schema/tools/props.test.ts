@@ -91,6 +91,11 @@ describe('parseProps', () => {
     ],
     ['a name over 256 characters', {name: '가'.repeat(257)}, 'props.0.name'],
     [
+      'text over 4000 characters',
+      {content: {kind: 'text', text: '가'.repeat(4001), style: textStyle()}},
+      'props.0.content.text',
+    ],
+    [
       'text without a style',
       {content: {kind: 'text', text: '안내'}},
       'props.0.content.style',
