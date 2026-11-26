@@ -572,6 +572,41 @@ describe('settings edits and saves', () => {
     expect(store.changeListenerCount).toBe(0);
   });
 
+  it('refuses an edit of a settings file it does not hold, and a label rename that needs the songs too, writing nothing', async () => {
+    const {write, log} = setup();
+    const empty = new SettingsStore({
+      documents: new Map(),
+      problems: [],
+      log,
+      saving: {
+        folder: '/settings',
+        files: {write, remove: async () => ({ok: true, value: undefined})},
+      },
+    });
+    onTestFinished(() => empty.dispose());
+    expect(await empty.apply(edit('First', 1))).toMatchObject({
+      ok: false,
+      error: {reason: 'not-found'},
+    });
+    const named = setup();
+    const rename = expectSuccess(
+      parseSettingsEdit({
+        type: 'labels.rename',
+        name: 'labels',
+        from: '찬양',
+        to: '경배',
+        baseRevision: 1,
+      }),
+    );
+    expect(await named.store.apply(rename)).toMatchObject({
+      ok: false,
+      error: {reason: 'invalid'},
+    });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(write).not.toHaveBeenCalled();
+    expect(named.write).not.toHaveBeenCalled();
+  });
+
   it('refuses read-only files and schema-version changes without changes or writes', async () => {
     const {store, write} = setup('readOnly');
     expect(await store.apply(edit('Blocked', 1))).toMatchObject({
