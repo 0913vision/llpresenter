@@ -78,6 +78,12 @@ export interface MediaFolderSyncOptions {
   readonly identify?: (folder: string) => Promise<string | null>;
 }
 
+/** A media file of the folder and when it last changed, in milliseconds. */
+interface FolderFile {
+  readonly path: string;
+  readonly changed: number;
+}
+
 /**
  * Keeps the 미디어 list to the files of the fixed media folder (USER Nov 26):
  * a file in the folder is in the list, coming back as it was when the list
@@ -212,48 +218,89 @@ export class MediaFolderSync {
     );
   }
 
+  /**
+   * One look at the folder: items whose files left go out, records whose files
+   * came back return in their order, new files are handed to adopt once they
+   * have settled, and a look follows for the ones still settling.
+   */
   private async once(): Promise<void> {
     if (this.disposed) return;
-    const {store, log} = this.options;
-    const folder = store.folder;
-    const files = await this.filesOf(folder);
+    const files = await this.filesOf(this.options.store.folder);
     if ('error' in files) {
       this.lose('could not read the media folder', files.error);
       return;
     }
-    if (this.lost) {
-      this.lost = false;
-      log.info('following the media folder again', {folder});
-    }
-    const present = new Map(files.map(file => [key(file.path), file]));
+    this.foundAgain();
     const now = (this.options.now ?? Date.now)();
-    // NOTE(0913vision): A file handed to adopt is waited for until it is in
-    // the list. Once it was, it leaves and comes back as any listed file does,
-    // so it is forgotten here, before items whose files left are taken out.
-    const listedBefore = this.listedFiles();
+    this.forgetListedAdoptions(now);
+    await this.retireGone(files);
+    const {revive, adopt, waiting} = this.newcomers(files, now);
+    await this.reviveInOrder(revive);
+    for (const file of adopt) this.adopting.set(key(file), now);
+    if (adopt.length > 0) await this.options.adopt(adopt);
+    if (waiting) this.schedule(SETTLE_MS);
+  }
+
+  /** Notes that the folder can be read again after it was lost. */
+  private foundAgain(): void {
+    if (!this.lost) return;
+    this.lost = false;
+    this.options.log.info('following the media folder again', {
+      folder: this.options.store.folder,
+    });
+  }
+
+  /**
+   * Forgets the files handed to adopt that are in the list now, or that waited
+   * too long. Once listed, such a file leaves and comes back as any listed file
+   * does, so this runs before items whose files left are taken out.
+   */
+  private forgetListedAdoptions(now: number): void {
+    const listed = this.listedFiles();
     for (const [file, since] of this.adopting) {
-      if (listedBefore.has(file) || now - since > ADOPT_TIMEOUT_MS) {
+      if (listed.has(file) || now - since > ADOPT_TIMEOUT_MS) {
         this.adopting.delete(file);
       }
     }
+  }
+
+  /** Takes out the items whose files are no longer in the folder. */
+  private async retireGone(files: readonly FolderFile[]): Promise<void> {
+    const {store, log} = this.options;
+    const present = new Set(files.map(file => key(file.path)));
     const gone = store
       .get()
       .value.items.filter(item => {
         const file = store.fileOf(item.id);
         return (
           file !== null &&
-          isInside(file, folder) &&
+          isInside(file, store.folder) &&
           !present.has(key(file)) &&
           !store.holdsDeleted(file)
         );
       })
       .map(item => item.id);
     if (gone.length > 0) await logged(store.retire(gone), log);
+  }
+
+  /**
+   * The files of the folder the list does not have yet: the ones with a record
+   * come back, the others are adopted, and the ones changed in the last
+   * moments wait for the next look.
+   */
+  private newcomers(
+    files: readonly FolderFile[],
+    now: number,
+  ): {
+    readonly revive: ReadonlyArray<{
+      readonly id: MediaId;
+      readonly order: number;
+    }>;
+    readonly adopt: readonly string[];
+    readonly waiting: boolean;
+  } {
+    const {store} = this.options;
     const listed = this.listedFiles();
-    // NOTE(0913vision): Records are kept oldest first, each with its place in
-    // the list as it was when it left. Bringing them back newest first undoes
-    // the removals in reverse, so items that left together come back in their
-    // order.
     const records = new Map(
       [...store.removedFiles()].map(([file, id], order) => [
         key(file),
@@ -279,14 +326,23 @@ export class MediaFolderSync {
       if (record === undefined) adopt.push(file.path);
       else revive.push(record);
     }
-    revive.sort((a, b) => b.order - a.order);
-    for (const {id} of revive) {
+    return {revive, adopt, waiting};
+  }
+
+  /**
+   * Brings back the items of records whose files came back. Records are kept
+   * oldest first, each with its place in the list as it was when it left;
+   * bringing them back newest first undoes the removals in reverse, so items
+   * that left together come back in their order.
+   */
+  private async reviveInOrder(
+    revive: ReadonlyArray<{readonly id: MediaId; readonly order: number}>,
+  ): Promise<void> {
+    const {store, log} = this.options;
+    for (const {id} of [...revive].sort((a, b) => b.order - a.order)) {
       const revived = store.revive(id);
       if (revived !== null) await logged(revived, log);
     }
-    for (const file of adopt) this.adopting.set(key(file), now);
-    if (adopt.length > 0) await this.options.adopt(adopt);
-    if (waiting) this.schedule(SETTLE_MS);
   }
 
   /** The files of the items in the list, as Windows compares them. */
@@ -307,9 +363,7 @@ export class MediaFolderSync {
    */
   private async filesOf(
     folder: string,
-  ): Promise<
-    ReadonlyArray<{path: string; changed: number}> | {error: unknown}
-  > {
+  ): Promise<readonly FolderFile[] | {error: unknown}> {
     let entries;
     try {
       entries = await readdir(folder, {withFileTypes: true});
