@@ -28,7 +28,7 @@ export function ThemeGradientProperties({
   change,
 }: {
   readonly gradient: GradientBackground;
-  readonly model: ThemeModel;
+  readonly model: Pick<ThemeModel, 'reason' | 'beginEditGroup' | 'reportError'>;
   readonly change: (gradient: GradientBackground) => void;
 }): JSX.Element {
   const [selection, select] = useState(0);
