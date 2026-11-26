@@ -171,6 +171,22 @@ function open(bounds) {
 }
 
 /**
+ * Moves the open window to `bounds` when only its place changed, as when
+ * Windows shifts a monitor while another one comes and goes, so the screen
+ * keeps its picture instead of blinking (church, November 26 17:10); false
+ * when there is no window, or the size or refresh changed and it must open
+ * anew.
+ */
+function moved(bounds) {
+  if (presenter === null || opened === null || opened.hz !== bounds.hz) {
+    return false;
+  }
+  if (!presenter.moveTo(bounds)) return false;
+  opened = bounds;
+  return true;
+}
+
+/**
  * Opens the window again where it was, keeping whether it should show; a
  * window that keeps going away (REOPEN_LIMIT times a minute) is an error, and
  * the main process shows the screen in its output window instead.
@@ -201,8 +217,11 @@ process.parentPort.on('message', event => {
     switch (message.type) {
       case 'open': {
         onTop = message.topmost !== false;
-        open({...message.bounds, hz: message.hz});
-        wantShown = false;
+        const bounds = {...message.bounds, hz: message.hz};
+        if (!moved(bounds)) {
+          open(bounds);
+          wantShown = false;
+        }
         post({type: 'ready'});
         schedule();
         break;

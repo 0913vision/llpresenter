@@ -1066,6 +1066,30 @@ function createPresenter({x, y, width, height, hz, topmost}) {
       visible = true;
       return true;
     },
+    /**
+     * Moves the window to `next` when it keeps its size, as when Windows
+     * shifts a monitor by a few pixels while another one comes and goes, so
+     * the screen never blinks; false when the size differs and the window has
+     * to be made again.
+     */
+    moveTo(next) {
+      if (closed || next.width !== width || next.height !== height) {
+        return false;
+      }
+      x = next.x;
+      y = next.y;
+      corrections = 0;
+      SetWindowPos(
+        hwnd,
+        topmostNow ? HWND_TOPMOST : HWND_NOTOPMOST,
+        x,
+        y,
+        width,
+        height,
+        SWP_NOACTIVATE | (visible ? SWP_SHOWWINDOW : 0),
+      );
+      return true;
+    },
     setOnTop(onTop) {
       topmostNow = onTop;
       SetWindowPos(

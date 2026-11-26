@@ -259,3 +259,50 @@ it('gives back the frame it was copying when its window goes away, and keeps one
   ]);
   expect(postMessage).toHaveBeenLastCalledWith({type: 'reopened'});
 });
+
+it('moves its window when Windows shifts the monitor and the size stays, and makes it anew only for a new size or refresh (church Nov 26 17:10)', () => {
+  let made = 0;
+  const moveTo = vi.fn(
+    (next: {width: number; height: number}) =>
+      next.width === 1920 && next.height === 1080,
+  );
+  const presenter = {
+    visible: true,
+    busy: false,
+    frame: vi.fn(),
+    copied: () => false,
+    takeEnded: () => null,
+    keepPlaced: () => null,
+    close: vi.fn(),
+    moveTo,
+    startMirror: vi.fn(),
+    stopMirror: vi.fn(),
+  };
+  const {postMessage, message} = runUtility(presenter, () => {
+    made += 1;
+  });
+  expect(made).toBe(1);
+  message({
+    type: 'open',
+    bounds: {x: 1922, y: 0, width: 1920, height: 1080},
+  });
+  expect(moveTo).toHaveBeenLastCalledWith(
+    expect.objectContaining({x: 1922, width: 1920}),
+  );
+  expect(made).toBe(1);
+  expect(presenter.close).not.toHaveBeenCalled();
+  expect(
+    postMessage.mock.calls.filter(([value]) => value.type === 'ready'),
+  ).toHaveLength(2);
+  message({
+    type: 'open',
+    bounds: {x: 1922, y: 0, width: 1280, height: 720},
+  });
+  expect(made).toBe(2);
+  message({
+    type: 'open',
+    hz: 30,
+    bounds: {x: 1922, y: 0, width: 1280, height: 720},
+  });
+  expect(made).toBe(3);
+});
