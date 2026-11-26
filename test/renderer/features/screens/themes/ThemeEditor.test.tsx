@@ -274,6 +274,52 @@ describe('elements', () => {
   });
 });
 
+describe('a shape', () => {
+  it('saves its corner, shadow and gradient colors as chosen', async () => {
+    const {user, saved} = await setup();
+    await user.click(themeRow(BUILT_IN_THEME_IDS.blank));
+    await user.click(screen.getByRole('button', {name: '사각형'}));
+    await user.click(elementRow('사각형'));
+    const corner = properties().getByRole('spinbutton', {name: '모서리'});
+    fireEvent.change(corner, {target: {value: '24'}});
+    fireEvent.blur(corner);
+    await user.click(properties().getByRole('checkbox', {name: '그림자'}));
+    await user.click(properties().getByRole('radio', {name: '그라데이션'}));
+    await user.click(properties().getByRole('button', {name: '색 추가'}));
+    await user.click(properties().getByRole('button', {name: '색 1 삭제'}));
+    await overwrite(user);
+    await waitFor(() => {
+      const layout = saved(BUILT_IN_THEME_IDS.blank)?.screens.audience;
+      const shape =
+        layout?.mode === 'own'
+          ? layout.elements.find(element => element.kind === 'shape')
+          : undefined;
+      expect(shape).toMatchObject({
+        radius: 24,
+        shadow: {blur: 16, color: '#000000', opacity: 35},
+        fill: {angle: 90, stops: [{position: 100}, {position: 100}]},
+      });
+    });
+  });
+
+  it('turns a gradient back into one color, its first', async () => {
+    const {user} = await setup();
+    await user.click(themeRow(BUILT_IN_THEME_IDS.blank));
+    await user.click(screen.getByRole('button', {name: '사각형'}));
+    await user.click(elementRow('사각형'));
+    await user.click(properties().getByRole('radio', {name: '그라데이션'}));
+    expect(
+      properties().getByRole('button', {name: '색 1 삭제'}),
+    ).toHaveProperty('ariaDisabled', 'true');
+    await user.click(properties().getByRole('radio', {name: '단색'}));
+    expect(properties().queryByText(/^색 \d$/u)).toBeNull();
+    expect(properties().getByRole('textbox', {name: '색'})).toHaveProperty(
+      'value',
+      '#FFFFFF',
+    );
+  });
+});
+
 describe('a theme and its screens', () => {
   it('makes a screen show what another one shows, and nothing', async () => {
     const {user, saved} = await setup();
