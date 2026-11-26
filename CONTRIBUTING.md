@@ -283,6 +283,13 @@ the store; a slice is not tested alone.
   target.
 - Test each behavior once, where it is owned. Don't repeat a parser's cases in
   every caller.
+- Name a test by the rule or behavior it holds, in the words of the spec or the
+  screen ("keeps 크기 단계 largest first"), never by a function, hook or mock
+  ("returns sizes from sizeSteps").
+- Write a test from the rule it holds, not from the code it covers. Never add
+  tests to raise coverage: a test that repeats what the code does today finds no
+  bug and has to change with every rewrite.
+- A fix comes with one test that fails before it and passes after it.
 
 ## UI consistency
 
