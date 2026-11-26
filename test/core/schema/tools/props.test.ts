@@ -89,6 +89,7 @@ describe('parseProps', () => {
       {content: {kind: 'image'}},
       'props.0.content.media',
     ],
+    ['a name over 256 characters', {name: '가'.repeat(257)}, 'props.0.name'],
     [
       'text without a style',
       {content: {kind: 'text', text: '안내'}},

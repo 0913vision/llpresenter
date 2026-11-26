@@ -138,6 +138,18 @@ describe('parseScreens', () => {
       );
     },
   );
+  it('takes a name of 256 characters, and refuses a longer one', () => {
+    expectRoundTrip(
+      codec,
+      withScreen({...mainScreen(), name: '가'.repeat(256)}),
+    );
+    expectInvalidField(
+      codec,
+      withScreen({...mainScreen(), name: '가'.repeat(257)}),
+      'screens.0.name',
+    );
+  });
+
   it('reads the three default screens', () => {
     expectRoundTrip(codec, defaultScreens());
   });

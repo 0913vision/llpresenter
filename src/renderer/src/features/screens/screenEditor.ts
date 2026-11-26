@@ -3,7 +3,10 @@ import type {Result} from '@core/common/result';
 import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
 import type {MonitorInfo, MonitorList} from '@core/schema/screens/monitors';
 import type {Screen} from '@core/schema/screens/screens';
-import {EMPTY_NAME_REASON} from '@renderer/ui/fields/nameReason';
+import {
+  EMPTY_NAME_REASON,
+  LONG_NAME_REASON,
+} from '@renderer/ui/fields/nameReason';
 import {assignScreenMonitor} from './assignScreenMonitor';
 import {
   changeScreen,
@@ -37,6 +40,7 @@ export const SCREEN_NAME_PROBLEMS: Readonly<
   Record<ScreenRenameProblem, string>
 > = {
   empty: EMPTY_NAME_REASON,
+  long: LONG_NAME_REASON,
   taken: '같은 이름의 화면이 있습니다.',
   missing: '화면을 찾을 수 없음',
 };

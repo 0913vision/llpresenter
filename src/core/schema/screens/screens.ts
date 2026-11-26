@@ -15,6 +15,7 @@ import {
   jsonObject,
   hexColor,
   listWithUniqueIds,
+  NAME_LIMIT,
   percent,
   pixelCount,
   pixelPosition,
@@ -90,7 +91,7 @@ export function inScreenOrder<
  */
 export const screenSchema = jsonObject({
   id: screenIdSchema,
-  name: v.string(),
+  name: v.pipe(v.string(), v.maxLength(NAME_LIMIT)),
   kind: v.picklist(SCREEN_KIND_ORDER),
   messageStyleId: v.exactOptional(messageStyleIdSchema),
   method: v.picklist(['fullscreen', 'window', 'capture', 'ndi']),

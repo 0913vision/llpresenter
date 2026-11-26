@@ -2,6 +2,7 @@ import {SCREEN_NAME_PROBLEMS} from '../screenEditor';
 import type {Screen} from '@core/schema/screens/screens';
 import {useState, type JSX} from 'react';
 import {nameProblem} from '@core/screens';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
@@ -33,6 +34,7 @@ export function NameRow({
       {({controlId}) => (
         <TextField
           id={controlId}
+          maxLength={NAME_LIMIT}
           readOnly={reason !== undefined}
           aria-disabled={reason !== undefined ? true : undefined}
           title={reason}

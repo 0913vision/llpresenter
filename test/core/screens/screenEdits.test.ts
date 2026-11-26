@@ -142,6 +142,13 @@ describe('nameProblem', () => {
     expect(nameProblem(name, screens(), MAIN_ID)).toBe('empty');
   });
 
+  it('rejects a name over 256 characters, counted without the spaces around it', () => {
+    expect(nameProblem('가'.repeat(257), screens(), MAIN_ID)).toBe('long');
+    expect(nameProblem(` ${'가'.repeat(256)} `, screens(), MAIN_ID)).toBe(
+      undefined,
+    );
+  });
+
   it("rejects another screen's name, ignoring spaces around it", () => {
     expect(nameProblem('무대 화면', screens(), MAIN_ID)).toBe('taken');
     expect(nameProblem(' 무대 화면 ', screens(), MAIN_ID)).toBe('taken');

@@ -16,6 +16,7 @@ import {ScreenContextMenu} from './screenMenuEntries';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 import type {NamedDocument} from '@core/schema/app/settingsDocuments';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 /** Exposes row rename and confirmed removal through the same screen settings queue. */
 export function useScreenRowActions(
@@ -74,6 +75,7 @@ export function useScreenRowActions(
     renaming !== id || reason !== undefined
       ? undefined
       : {
+          maxLength: NAME_LIMIT,
           validate: name => {
             const problem = nameProblem(
               name,

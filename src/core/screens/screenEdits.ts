@@ -4,6 +4,7 @@ import {
   NDI_DEFAULT_SOURCE_NAME,
   type Screen,
 } from '@core/schema/screens/screens';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 /** The most the 가장자리 여백 may be, in percent (spec 10, "Screens"). */
 export const EDGE_MARGIN_MAX = 20;
@@ -31,7 +32,7 @@ export type ScreenChange = Partial<
 };
 
 /** Why a screen name can't be saved, or `undefined` when it can. */
-export type NameProblem = 'empty' | 'taken';
+export type NameProblem = 'empty' | 'long' | 'taken';
 
 function withMessageStyle(
   screen: Screen,
@@ -161,6 +162,7 @@ export function nameProblem(
 ): NameProblem | undefined {
   const trimmed = name.trim();
   if (trimmed === '') return 'empty';
+  if (trimmed.length > NAME_LIMIT) return 'long';
   const taken = items.some(
     screen => screen.id !== id && screen.name.trim() === trimmed,
   );

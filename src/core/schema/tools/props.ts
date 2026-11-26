@@ -13,6 +13,7 @@ import type {MigrationStep} from '../common/migration';
 import {
   jsonObject,
   listWithUniqueIds,
+  NAME_LIMIT,
   positiveInteger,
 } from '../common/primitives';
 import {lyricTextEntries} from '../slides/textStyle';
@@ -31,7 +32,7 @@ export const propContentSchema = v.variant('kind', [
 
 const propSchema = jsonObject({
   id: propIdSchema,
-  name: v.string(),
+  name: v.pipe(v.string(), v.maxLength(NAME_LIMIT)),
   content: propContentSchema,
   targets: v.array(screenIdSchema),
 });
