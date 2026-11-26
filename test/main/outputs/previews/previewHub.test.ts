@@ -89,17 +89,19 @@ function setup() {
   const output = new BrowserWindow({
     title: `file:///app/output.html?screen=${MAIN}`,
   });
+  const store = {
+    state: {...emptyLiveState(), outputs: {[MAIN]: true, [CAPTIONS]: true}},
+  };
   const hub = new PreviewHub({
     control,
-    store: {
-      state: {...emptyLiveState(), outputs: {[MAIN]: true, [CAPTIONS]: true}},
-    },
+    store,
     screens: () => [screenOf(MAIN), screenOf(CAPTIONS, {target: 'ndi'})],
     contentsOf: id => (id === MAIN ? output.webContents : null),
     log: recordingLogger(),
   });
   return {
     hub,
+    store,
     control: control.webContents,
     settings: settings.webContents,
     output,
@@ -114,6 +116,15 @@ function sentTo(id: number, channel: string): unknown[] {
   return (win?.webContents.sent ?? [])
     .filter(([name]) => name === channel)
     .map(([, value]) => value);
+}
+
+/** Makes a mock window's page gone, so nothing reaches it. */
+function close(id: number): void {
+  const win = electron.MockWindow.all.find(
+    ({webContents}) => webContents.id === id,
+  );
+  if (win === undefined) throw new Error(`No window ${id}`);
+  win.webContents.gone = true;
 }
 
 const RELAY = outputEndpoints.previewRelay.channel;
@@ -198,5 +209,24 @@ describe('PreviewHub', () => {
     expect(alpha.stop).toHaveBeenCalledOnce();
     expect(control.listenerCount('destroyed')).toBe(0);
     expect(settings.listenerCount('destroyed')).toBe(0);
+  });
+
+  it('drops a window it can no longer send frames to', () => {
+    const {hub, control, settings} = setup();
+    hub.control({screenId: CAPTIONS, action: 'start'}, settings);
+    close(settings.id);
+    alpha.create.mock.calls[0]?.[0].send(frame);
+    expect(sentTo(settings.id, FRAME)).toEqual([]);
+    expect(settings.listenerCount('destroyed')).toBe(0);
+    expect(alpha.stop).toHaveBeenCalledOnce();
+    expect(hub.sourceOf(CAPTIONS, control)).toBe('alpha');
+  });
+
+  it('gives no source for an output that is off, or once the control window is gone', () => {
+    const {hub, store, control, settings} = setup();
+    store.state = {...store.state, outputs: {[MAIN]: false, [CAPTIONS]: true}};
+    expect(hub.sourceOf(MAIN, control)).toBeNull();
+    close(settings.id);
+    expect(hub.sourceOf(CAPTIONS, settings)).toBeNull();
   });
 });
