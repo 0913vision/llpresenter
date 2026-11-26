@@ -508,9 +508,10 @@ describe('text import dialog', () => {
     render(<TextImportDialog {...f.props} />);
     await screen.findByText('슬라이드 3');
     expect(screen.getAllByRole('option')).toHaveLength(3);
-    expect(
-      screen.getByRole('textbox', {name: '제목'}).getAttribute('value'),
-    ).toBe('Invented');
+    expect(screen.getByRole('textbox', {name: '제목'})).toHaveProperty(
+      'value',
+      'Invented',
+    );
     fireEvent.change(screen.getByRole('textbox', {name: '제목'}), {
       target: {value: 'Edited title'},
     });

@@ -57,9 +57,7 @@ describe('SlideHotKeyDialog', () => {
     async code => {
       const {field, onSave, save} = setup('KeyC');
       fireEvent.keyDown(field, {key: code, code});
-      expect(screen.getByPlaceholderText('없음').getAttribute('value')).toBe(
-        '',
-      );
+      expect(screen.getByPlaceholderText('없음')).toHaveProperty('value', '');
       await userEvent.click(save);
       expect(onSave).toHaveBeenCalledExactlyOnceWith(undefined);
     },

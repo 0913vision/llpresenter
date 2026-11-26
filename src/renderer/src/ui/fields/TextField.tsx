@@ -10,6 +10,7 @@ import {classNames} from '../classNames';
 import {FieldFrame, useFieldReason} from './fieldFrame';
 import {Icon} from '../Icon';
 import {isComposing} from './ime';
+import {useTypedValue} from './typedValue';
 import {hasModifier} from '../keys/modifierKeys';
 import type {ControlSize} from '../types';
 import styles from './TextField.module.css';
@@ -118,6 +119,7 @@ export function TextField({
     () => inputRef.current,
     [],
   );
+  const shown = useTypedValue(inputRef, value);
   const reason = useFieldReason({
     invalid,
     reason: invalidReason,
@@ -177,13 +179,16 @@ export function TextField({
         {...rest}
         ref={inputRef}
         type="text"
-        value={value}
+        defaultValue={shown.initial}
         disabled={disabled}
         readOnly={readOnly}
         aria-invalid={invalid ? true : undefined}
         aria-describedby={reason.describedBy}
         className={styles.input}
-        onChange={event => onChange(event.target.value)}
+        onChange={event => {
+          onChange(event.target.value);
+          shown.typed(event.target.value);
+        }}
         onKeyDown={handleKeyDown}
       />
       {canClear ? (

@@ -129,9 +129,10 @@ it('previews literal values and sends optional defaults as all screens until cle
     duration: null,
   });
   expect(fixture.edit).not.toHaveBeenCalled();
-  expect(
-    screen.getByRole('textbox', {name: '차량 번호'}).getAttribute('value'),
-  ).toBe('12가 $&');
+  expect(screen.getByRole('textbox', {name: '차량 번호'})).toHaveProperty(
+    'value',
+    '12가 $&',
+  );
 });
 
 it('makes all and individual targets exclusive and disables sending with none', async () => {

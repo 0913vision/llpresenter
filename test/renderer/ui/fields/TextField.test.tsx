@@ -274,3 +274,36 @@ describe('TextArea', () => {
     ).toBeDefined();
   });
 });
+
+describe('TextField typed text', () => {
+  it('keeps what was just typed when a render with the older value lands before its change is heard', () => {
+    const onChange = vi.fn();
+    const {rerender} = render(
+      <TextField aria-label="책" value="창세" onChange={onChange} />,
+    );
+    const input = screen.getByRole('textbox', {name: '책'});
+    if (!(input instanceof HTMLInputElement)) throw new Error('no input');
+    // NOTE(0913vision): The browser has put 기 in; another update re-renders
+    // the field with the value from before it (PROBE42, a slow PC).
+    input.value = '창세기';
+    rerender(<TextField aria-label="책" value="창세" onChange={onChange} />);
+    expect(input.value).toBe('창세기');
+  });
+
+  it('still shows a value its owner sets, and puts back a change its owner refused', () => {
+    const {rerender} = render(
+      <TextField aria-label="장" value="12" onChange={() => undefined} />,
+    );
+    const input = screen.getByRole('textbox', {name: '장'});
+    if (!(input instanceof HTMLInputElement)) throw new Error('no input');
+    fireEvent.change(input, {target: {value: '12a'}});
+    rerender(
+      <TextField aria-label="장" value="12" onChange={() => undefined} />,
+    );
+    expect(input.value).toBe('12');
+    rerender(
+      <TextField aria-label="장" value="3" onChange={() => undefined} />,
+    );
+    expect(input.value).toBe('3');
+  });
+});
