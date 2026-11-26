@@ -1,4 +1,3 @@
-import type {WebContents} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {
   PLAYBACK_PROBLEM_LIMITS,
@@ -88,10 +87,17 @@ export class PlaybackProblemBoard {
   }
 }
 
+/** The page of an output, as far as its problems follow it. */
+interface OutputPage {
+  readonly id: number;
+  once(event: 'destroyed', listener: () => void): unknown;
+  removeListener(event: 'destroyed', listener: () => void): unknown;
+}
+
 /** Binds the lifetime of a problem source to its actual output web contents. */
 export function watchPlaybackProblems(
   board: Pick<PlaybackProblemBoard, 'register'>,
-  contents: WebContents,
+  contents: OutputPage,
   source: Source,
 ): () => void {
   const release = board.register(contents.id, source);
