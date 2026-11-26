@@ -6,7 +6,12 @@ import type {
 } from '@core/schema/live/liveCommand';
 import type {LiveLayers, LiveState} from '@core/schema/live/live';
 import type {LiveHistory} from './history';
-import type {MacroId, MessageId, ScreenId} from '@core/schema/common/ids';
+import type {
+  MacroId,
+  MediaId,
+  MessageId,
+  ScreenId,
+} from '@core/schema/common/ids';
 import type {SlideBackground} from '@core/schema/screens/theme';
 import type {ThemedSlide} from '@core/theme';
 import type {PayloadError} from '@core/schema/common/payload';
@@ -70,6 +75,8 @@ export interface SliceInputs {
     background(slide: ThemedSlide): SlideBackground;
   };
   readonly audioMedia?: () => MediaList;
+  /** Whether a media item's file can't be found now (spec 08, "Missing media file"). */
+  readonly isMissingMedia?: (mediaId: MediaId) => boolean;
   readonly now: number;
   /** The monotonic 타이머 clock; absent uses `now`. */
   readonly timerNow?: number;

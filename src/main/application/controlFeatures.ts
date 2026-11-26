@@ -123,6 +123,7 @@ export function startControlFeatures(
     port: data.mediaBackend,
     media: data.media,
     analysis,
+    live: foundation.store,
   });
   const stopSongReveal = registerSongReveal({
     fileOf: async songId =>

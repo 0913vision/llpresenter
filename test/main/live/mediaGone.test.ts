@@ -3,6 +3,7 @@ import {describe, expect, it} from 'vitest';
 import type {} from '@core/schema/live/live';
 import {LiveStore} from '@main/live/store';
 import type {MediaList} from '@core/schema/media/mediaList';
+import type {MediaId} from '@core/schema/common/ids';
 import {IMAGES, IMAGE_PROP, overlaySettings} from '@fixtures/core/overlays';
 
 function library(present: readonly number[]): MediaList {
@@ -98,5 +99,34 @@ describe('a background that left the library', () => {
     store.dispatch({type: 'media.show', media: {mediaId: first, loop: false}});
     store.dispatch({type: 'slide.show', slide});
     expect(store.state.layers.media?.mediaId).toBe(IMAGES[0]);
+  });
+});
+
+describe('a slide whose background file is missing', () => {
+  it('keeps the background on screen instead of showing the missing one, and shows it once the file is back', () => {
+    const {store} = started([0, 1]);
+    const [present, gone] = IMAGES;
+    if (present === undefined || gone === undefined) throw new Error('No id');
+    const missing = new Set<MediaId>([gone]);
+    store.connectMissingMedia(mediaId => missing.has(mediaId));
+    const slide = (text: string, media: MediaId, number: number) => ({
+      type: 'slide.show' as const,
+      slide: {
+        itemId: 'item',
+        position: number - 1,
+        ...shownText([text], number),
+        background: {kind: 'media' as const, media},
+      },
+    });
+    store.dispatch(slide('임재', present, 1));
+    expect(store.state.layers.media?.mediaId).toBe(present);
+
+    store.dispatch(slide('날마다', gone, 2));
+    expect(store.state.layers.slide?.texts).toEqual({가사: '날마다'});
+    expect(store.state.layers.media?.mediaId).toBe(present);
+
+    missing.clear();
+    store.dispatch(slide('날마다 둘째 줄', gone, 3));
+    expect(store.state.layers.media?.mediaId).toBe(gone);
   });
 });

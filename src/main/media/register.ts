@@ -2,7 +2,7 @@ import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {randomUUID} from 'node:crypto';
 import {dialog, shell, type BrowserWindow} from 'electron';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {createMediaId} from '@core/schema/common/ids';
+import {createMediaId, type MediaId} from '@core/schema/common/ids';
 import {defaultPreferences} from '@core/schema/app/preferences';
 import type {MediaImportProgress} from '@core/schema/media/mediaEdit';
 import {IpcHost} from '../base/ipcHost';
@@ -37,6 +37,10 @@ export interface MediaBackendRegistration {
   readonly log: Logger;
   readonly uiState: UiStateFields;
   readonly settings?: Promise<Pick<SettingsReader, 'preferences'> | null>;
+  /** The live state, which keeps a missing background off the screens. */
+  readonly live?: {
+    connectMissingMedia(isMissing: (mediaId: MediaId) => boolean): () => void;
+  };
 }
 
 function dialogParent(
@@ -206,6 +210,10 @@ export function registerMediaBackend(
       defaultPreferences.media.defaults,
   });
   const missing = watchMissingFiles(options, ipc);
+  const stopMissingLive = options.live?.connectMissingMedia(
+    mediaId => missing()?.isMissing(mediaId) ?? false,
+  );
+  if (stopMissingLive !== undefined) ipc.whenClosed(stopMissingLive);
   listenForReveals(options, ipc);
   const relinker = new MediaRelinker({
     store: () => options.media,

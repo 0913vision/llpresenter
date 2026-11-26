@@ -59,6 +59,10 @@ export function showBackground(
     context.themes?.background({theme, texts: slide.texts}) ?? {kind: 'none'};
   const library = context.audioMedia?.();
   if (background.kind === 'media') {
+    // NOTE(0913vision): A background whose file is gone never goes out: the
+    // one on screen stays, so the screens never turn black over a missing
+    // file (spec 08, "Missing media file").
+    if (context.isMissingMedia?.(background.media) === true) return history;
     const item = library?.items.find(entry => entry.id === background.media);
     return context.apply(
       showMedia(

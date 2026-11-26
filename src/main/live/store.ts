@@ -5,7 +5,7 @@ import {
   MAX_LIVE_BATCH_COMMANDS,
 } from '@core/schema/live/liveCommand';
 import {randomUUID} from 'node:crypto';
-import {createMessageId} from '@core/schema/common/ids';
+import {createMessageId, type MediaId} from '@core/schema/common/ids';
 import {
   macroDroppedProblem,
   type AppProblem,
@@ -55,6 +55,7 @@ export class LiveStore {
   private monitorNumbers: MonitorNumbersPort | undefined;
   private macros: MacroCommandPort | undefined;
   private audioMedia: (() => MediaList) | undefined;
+  private isMissingMedia: ((mediaId: MediaId) => boolean) | undefined;
   private readonly readClock: () => Pick<SliceInputs, 'now' | 'timerNow'>;
   private persistOutputs: PersistOutputs | undefined;
   private committing: Promise<void> | null = null;
@@ -117,6 +118,14 @@ export class LiveStore {
     this.audioMedia = read;
     return () => {
       if (this.audioMedia === read) this.audioMedia = undefined;
+    };
+  }
+
+  /** Follows which media files can't be found, so a slide never shows one. */
+  connectMissingMedia(isMissing: (mediaId: MediaId) => boolean): () => void {
+    this.isMissingMedia = isMissing;
+    return () => {
+      if (this.isMissingMedia === isMissing) this.isMissingMedia = undefined;
     };
   }
 
@@ -280,6 +289,9 @@ export class LiveStore {
       ...(this.themes === undefined ? {} : {themes: this.themes}),
       ...this.readClock(),
       ...(this.audioMedia === undefined ? {} : {audioMedia: this.audioMedia}),
+      ...(this.isMissingMedia === undefined
+        ? {}
+        : {isMissingMedia: this.isMissingMedia}),
       ...(this.settings === undefined ? {} : {settings: this.settings}),
       ...(this.macros === undefined ? {} : {macros: this.macros}),
       nextMessageId: () => createMessageId(randomUUID()),
