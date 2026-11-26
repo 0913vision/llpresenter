@@ -85,6 +85,15 @@ describe('parseLabels', () => {
     expectInvalidField(codec, withLabel(label), field);
   });
 
+  it('takes a name as long as the 이름표 of a slide, and refuses a longer one', () => {
+    expectRoundTrip(codec, withLabel({name: '가'.repeat(64), color: 'none'}));
+    expectInvalidField(
+      codec,
+      withLabel({name: '가'.repeat(65), color: 'none'}),
+      'labels.0.name',
+    );
+  });
+
   it('rejects two labels with the same name', () => {
     const labels = {
       ...defaultLabels(),

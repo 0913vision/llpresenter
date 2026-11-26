@@ -5,6 +5,8 @@ import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import type {AppliedRename, LabelCatalog} from './labelCatalog';
+import {SLIDE_LIMITS} from '@core/schema/slides/slide';
+import {LONG_NAME_REASON} from '@renderer/ui/fields/nameReason';
 
 /** Why a blank label name can't be saved. */
 export const EMPTY_LABEL_NAME_REASON =
@@ -18,6 +20,7 @@ export function labelNameReason(
   labels: readonly Label[],
 ): string | undefined {
   if (name.trim() === '') return EMPTY_LABEL_NAME_REASON;
+  if (name.trim().length > SLIDE_LIMITS.label) return LONG_NAME_REASON;
   if (labels.some(label => label.name === name.trim())) {
     return DUPLICATE_LABEL_NAME_REASON;
   }
@@ -54,6 +57,7 @@ function NameDraft({
   const draft = useRenameDraft(
     label.name,
     {
+      maxLength: SLIDE_LIMITS.label,
       validate: name =>
         labelNameReason(
           name,

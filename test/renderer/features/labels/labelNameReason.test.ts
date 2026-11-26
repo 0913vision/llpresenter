@@ -5,6 +5,7 @@ import {
   EMPTY_LABEL_NAME_REASON,
   labelNameReason,
 } from '@renderer/features/labels/LabelNameField';
+import {LONG_NAME_REASON} from '@renderer/ui/fields/nameReason';
 
 describe('label name reasons', () => {
   const labels: readonly Label[] = [{name: '후렴', color: 'none'}];
@@ -13,6 +14,7 @@ describe('label name reasons', () => {
     ['', EMPTY_LABEL_NAME_REASON],
     ['  ', EMPTY_LABEL_NAME_REASON],
     [' 후렴 ', DUPLICATE_LABEL_NAME_REASON],
+    ['가'.repeat(65), LONG_NAME_REASON],
   ])('rejects %j', (value, reason) => {
     expect(labelNameReason(value, labels)).toBe(reason);
   });

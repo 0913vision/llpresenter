@@ -403,6 +403,7 @@ describe('label rename requests', () => {
       {...rename, from: ''},
       {...rename, to: ' '},
       {...rename, to: rename.from},
+      {...rename, to: '가'.repeat(65)},
       {...rename, baseRevision: 0},
       {...rename, baseRevision: 1.5},
     ]) {

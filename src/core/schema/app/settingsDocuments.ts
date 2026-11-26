@@ -23,6 +23,7 @@ import {
   quickTimerCreateSchema,
   quickTimerRenameSchema,
 } from '../tools/quickTimerEdit';
+import {SLIDE_LIMITS} from '../slides/slide';
 
 /** Shared metadata for settings and the separately edited media list. */
 export function settingsDocumentSchema<
@@ -122,7 +123,7 @@ const labelRenameSchema = v.pipe(
     type: v.literal('labels.rename'),
     name: v.literal('labels'),
     from: nonBlankText,
-    to: nonBlankText,
+    to: v.pipe(nonBlankText, v.maxLength(SLIDE_LIMITS.label)),
     baseRevision: revisionSchema,
   }),
   v.check(edit => edit.from !== edit.to, 'Expected another label name'),

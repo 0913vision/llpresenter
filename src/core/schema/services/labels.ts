@@ -12,9 +12,11 @@ import {
 import type {MigrationStep} from '../common/migration';
 import {jsonObject, nonBlankText, positiveInteger} from '../common/primitives';
 import {uniqueNames} from '../common/uniqueNames';
+import {SLIDE_LIMITS} from '../slides/slide';
 
 const labelSchema = jsonObject({
-  name: nonBlankText,
+  /** As long as the 이름표 of a slide may be, so every 이름표 fits a slide. */
+  name: v.pipe(nonBlankText, v.maxLength(SLIDE_LIMITS.label)),
   color: labelColorSchema,
 });
 

@@ -14,6 +14,7 @@ import {labelMenuEntries} from './labelMenuEntries';
 import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import type {LabelCatalog} from './labelCatalog';
 import styles from './LabelMenu.module.css';
+import {SLIDE_LIMITS} from '@core/schema/slides/slide';
 
 interface LabelMenuProps {
   readonly store: LabelCatalog;
@@ -97,7 +98,7 @@ export function LabelMenu({
               <input
                 aria-label="이름 적기"
                 autoFocus
-                maxLength={64}
+                maxLength={SLIDE_LIMITS.label}
                 value={name}
                 onChange={event => setName(event.currentTarget.value)}
                 onKeyDown={event => {
