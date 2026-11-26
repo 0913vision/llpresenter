@@ -58,7 +58,7 @@ describe('image measuring in main', () => {
     expect(electron.crop).not.toHaveBeenCalled();
   });
 
-  it('answers null for an image nativeImage cannot read', () => {
+  it('answers nothing for an image Electron cannot read', () => {
     electron.empty = true;
     expect(measureImage('a.webp', null)).toBeNull();
   });

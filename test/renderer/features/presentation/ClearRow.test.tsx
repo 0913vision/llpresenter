@@ -233,7 +233,7 @@ describe('ClearRow', () => {
     ).toBe('true');
   });
 
-  it('redraws only the undo button when canUndo changes', () => {
+  it('redraws only the undo button when undo becomes possible or not', () => {
     installApi();
     render(<ClearRow compact={false} />);
     iconRenders.names.length = 0;

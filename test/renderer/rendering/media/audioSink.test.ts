@@ -118,7 +118,7 @@ describe('applySink', () => {
     expect(setSinkId).toHaveBeenCalledTimes(2);
   });
 
-  it('does nothing where an element has no setSinkId', () => {
+  it('does nothing where the browser cannot choose an output device', () => {
     expect(() =>
       applySink(document.createElement('audio'), 'hall', vi.fn()),
     ).not.toThrow();

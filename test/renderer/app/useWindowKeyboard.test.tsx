@@ -52,7 +52,7 @@ function Listed({
 }
 
 describe('secondary window keyboard', () => {
-  it('does not close while a modal without onEscape is open', () => {
+  it('does not close while a dialog that ignores Esc is open', () => {
     const close = vi.fn();
     render(<Closing close={close} />);
     const modal = document.createElement('div');

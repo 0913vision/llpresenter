@@ -155,7 +155,7 @@ describe('MacroGrid', () => {
     expect((await hoverForTooltip(add))?.textContent).toBe('저장 중');
   });
 
-  it('has no 새 매크로 slot without onNew', () => {
+  it('has no 새 매크로 slot where new 매크로 cannot be made', () => {
     render(<Grid />);
     expect(screen.queryByRole('button', {name: '새 매크로'})).toBe(null);
   });

@@ -64,7 +64,7 @@ describe('readSoakSettings', () => {
     });
   });
 
-  it('accepts the longest delay setTimeout can wait', () => {
+  it('accepts the longest delay a timer can wait', () => {
     expect(
       readSoakSettings({
         LLP_SOAK_RECORD: 'soak.jsonl',

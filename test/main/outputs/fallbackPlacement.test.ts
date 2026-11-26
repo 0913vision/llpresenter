@@ -9,7 +9,7 @@ const SAVED = {
   bounds: {x: 1920, y: 0, width: 1920, height: 1080},
 };
 
-it('shows a full screen output whose monitor is gone as a window marked monitorMissing', () => {
+it('shows a full screen output whose monitor is gone as a window marked as missing its monitor', () => {
   expect(
     placementWithoutMonitors(fullScreenScreen({display: SAVED}), AREA),
   ).toMatchObject({kind: 'window', reason: 'monitorMissing'});

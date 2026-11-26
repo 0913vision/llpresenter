@@ -286,7 +286,7 @@ describe('applyCommand', () => {
     }
   });
 
-  it('keeps canUndo in step with the undo for random commands', () => {
+  it('offers 되돌리기 exactly when there is a step to undo, for random commands', () => {
     const random = seededRandom(RANDOM_SEED);
     let history = initialHistory(emptyLiveState());
     for (let i = 0; i < RANDOM_COMMAND_COUNT; i += 1) {

@@ -22,7 +22,7 @@ describe('mediaUrl', () => {
 });
 
 describe('mediaIdFromUrl', () => {
-  it('reads back every id that mediaUrl writes', () => {
+  it('reads back every media id that a media address carries', () => {
     for (const id of ['abc', '따뜻한 빛', 'a/b', '100%', '?#&=', ' ']) {
       expect(mediaIdFromUrl(mediaUrl(id))).toBe(id);
     }

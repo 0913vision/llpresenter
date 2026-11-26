@@ -292,7 +292,7 @@ afterEach(async () => {
   delete window.llp;
 });
 
-it('opens the chosen result through showSong without edits or output', async () => {
+it('opens the chosen song in the library without edits or output', async () => {
   const {mount, search, showSong, send, api} = setup();
   const edit = vi.spyOn(api.content, 'edit');
   const rows = useShow.getState().rows;

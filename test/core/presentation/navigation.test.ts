@@ -103,7 +103,7 @@ describe('nextTileAtLast', () => {
     expect(next('stop', {live: {itemId: 'a', index: 3}})).toBeNull();
   });
 
-  it('starts the next item on its first tile with nextItem, skipping the sections between', () => {
+  it('starts the next item on its first tile, skipping the sections between', () => {
     expect(next('nextItem', {live: {itemId: 'a', index: 3}})).toEqual({
       itemId: 'b',
       index: 0,

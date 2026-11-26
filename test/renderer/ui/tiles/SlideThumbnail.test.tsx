@@ -182,7 +182,7 @@ describe('SlideThumbnail', () => {
     );
   });
 
-  it('formats physical hot key codes and describes them in thumbnailName', () => {
+  it('formats physical hot key codes and names them in the name of the tile', () => {
     expect(formatSlideHotKey('KeyA')).toBe('A');
     expect(formatSlideHotKey('Digit1')).toBe('1');
     expect(formatSlideHotKey('F1')).toBe('F1');
@@ -204,7 +204,7 @@ describe('SlideThumbnail', () => {
     ).toBe('2, 단축키 1');
   });
 
-  it('renders a keycap badge with aria-hidden when hotKey is provided', () => {
+  it('shows a keycap badge, hidden from screen readers, on a slide with a hot key', () => {
     const option = renderOne(
       <SlideThumbnail number={1} label="후렴" hotKey="KeyA" text={lyrics} />,
     );
