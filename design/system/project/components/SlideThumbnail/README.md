@@ -71,7 +71,8 @@ The thumbnail itself has no size variants. Its fixed tile width sets its size; i
 | Live | Same | Same | `ring-live` (3px `live`). Takes priority over selected |
 | Focus in 준비 | Same | Same | `outline: 2px solid accent`, `outline-offset: 4px` (outside the live ring) |
 | Focus in 진행 | Same | Same | Plate style: 2px `accent` outline, 2px outside the plate; live picture ring remains |
-| 슬라이드 media file missing | Hatching (`bg-inset`/`bg-well`, 135°, 6px) | `filex` 24px `warning` in the center | If live, also `ring-live`. The path is in the title tooltip |
+| 슬라이드 media file missing, drawn | The 슬라이드 as it goes out: its theme's background (USER Nov 26) | Its texts; `filex` 16px `warning` on `scrim-strong` at the top left | `ring-warning` (2px `warning`); if live, `ring-live` instead. The path is in the title tooltip |
+| Media file missing, no picture | Hatching (`bg-inset`/`bg-well`, 135°, 6px) | `filex` 24px `warning` in the center | If live, also `ring-live`. The path is in the title tooltip |
 
 Hover uses the same 1px `line-control` as the hover of the small previews (ShowH `.pv:hover`, 1px #6e6e6e). Because it is a gray 1px line, it doesn't get confused with the blue 2px (selected) or the red 3px (live), and it only shows where you can click. On a selected or live thumbnail, hover keeps that ring as it is.
 

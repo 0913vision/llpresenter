@@ -6,6 +6,11 @@ import {useThemes} from '@renderer/platform/documents/themes';
 import {tileDrawing, type TileDrawingOptions} from './slideDrawing';
 import {SlidePicture} from './SlidePicture';
 
+function withoutBackground(tile: ShowTile): ShowTile {
+  const {background: _missing, ...slide} = tile.slide;
+  return {...tile, slide};
+}
+
 /** A slide of a list, drawn in the theme that slide has. */
 export function TilePicture({
   tile,
@@ -13,7 +18,12 @@ export function TilePicture({
 }: TileDrawingOptions & {readonly tile: ShowTile}): JSX.Element {
   const themes = useThemes(view => view.themes);
   const screens = useThemes(view => view.screens);
-  return <SlidePicture {...tileDrawing(tile, {themes, screens}, options)} />;
+  const missingFileOf = useMissingFileOf();
+  // NOTE(0913vision): A slide whose background file is missing goes out on
+  // its theme's background (USER Nov 26), so its picture shows that too.
+  const shown =
+    missingFileOf(tile.slide) === undefined ? tile : withoutBackground(tile);
+  return <SlidePicture {...tileDrawing(shown, {themes, screens}, options)} />;
 }
 
 /**

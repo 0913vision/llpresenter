@@ -4,7 +4,11 @@ import {memo, type CSSProperties, type JSX, type ReactNode} from 'react';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels';
 import {classNames} from '../classNames';
 import {labelInk} from '../labels/labelInk';
-import {MissingFileMark, missingFileText} from './MissingFile';
+import {
+  MissingFileBadge,
+  MissingFileMark,
+  missingFileText,
+} from './MissingFile';
 import {
   gridMoves,
   rowMoves,
@@ -196,7 +200,7 @@ function Canvas({
   SlideThumbnailProps,
   'canvas' | 'text' | 'media' | 'missingFile' | 'hotKey' | 'transition'
 >): JSX.Element {
-  if (missingFile !== undefined) {
+  if (missingFile !== undefined && canvas === undefined) {
     return (
       <span className={styles.canvas}>
         <MissingFileMark />
@@ -219,6 +223,7 @@ function Canvas({
       {canvas !== undefined || text === undefined ? null : (
         <span className={styles.text}>{text}</span>
       )}
+      {missingFile === undefined ? null : <MissingFileBadge />}
       {hotKey !== undefined && (
         <span className={styles.hotKey} aria-hidden="true">
           {formatSlideHotKey(hotKey)}

@@ -1,3 +1,17 @@
+.badge {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-badge);
+  height: var(--size-badge);
+  border-radius: var(--radius-sm);
+  background: var(--scrim-strong);
+  color: var(--warning);
+}
+
 .mark {
   position: absolute;
   inset: 0;

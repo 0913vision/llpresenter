@@ -17,7 +17,10 @@ import {
 } from '@renderer/ui/panels/layoutResize';
 import {SlideThumbnailBand} from '@renderer/ui/tiles/SlideThumbnail';
 import {SlideTransitionMark} from '@renderer/ui/tiles/SlideTransitionMark';
-import {MissingFileMark, missingFileText} from '@renderer/ui/tiles/MissingFile';
+import {
+  MissingFileBadge,
+  missingFileText,
+} from '@renderer/ui/tiles/MissingFile';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {selectInDeck} from '../deckSelection';
 import {EditorSlideNumber} from './EditorSlideNumber';
@@ -170,11 +173,8 @@ export const SlideRow = memo(
                 : missingFileText(missingFile)
             }
           >
-            {missingFile === undefined ? (
-              <TilePicture tile={tile} tiles={tiles} />
-            ) : (
-              <MissingFileMark />
-            )}
+            <TilePicture tile={tile} tiles={tiles} />
+            {missingFile === undefined ? null : <MissingFileBadge />}
             <SlideTransitionMark transition={slide.transition} />
           </div>
           {deck.readOnly ? (

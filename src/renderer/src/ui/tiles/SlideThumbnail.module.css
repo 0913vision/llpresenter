@@ -38,6 +38,10 @@
   transition: none;
 }
 
+.thumb[data-state~='warning'] {
+  box-shadow: var(--ring-warning);
+}
+
 .thumb[data-state~='live'] {
   box-shadow: var(--ring-live);
   transition: none;

@@ -93,7 +93,7 @@ Don't put a control on a surface of its own color.
 | State                     | Token                     | Shape                                                                                            |
 | ------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------ |
 | Live                      | `live`                    | 3px `ring-live` on thumbnails and backgrounds, LIVE badge, the dot of a screen output that is on |
-| Problem                   | `warning`, `warning-tint` | Icon, outline, notification                                                                      |
+| Problem                   | `warning`, `warning-tint` | Icon, outline (`ring-warning` 2px on thumbnails), notification                                   |
 | Healthy                   | `ok`                      | 6px dot in the status bar                                                                        |
 | Value that can't be saved | `live`                    | `ring-field-error` on the text field, and a tooltip                                              |
 

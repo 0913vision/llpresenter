@@ -545,7 +545,7 @@ describe('the background of a slide', () => {
     expect(current.slides).toEqual(song());
   });
 
-  it('shows a hatched mark with the path in place of a picture whose file is missing', () => {
+  it('keeps drawing a slide whose background file is missing, marked with the path', () => {
     const slides = song().map((slide, index) =>
       index === 1
         ? {...slide, background: {kind: 'media' as const, media: warm}}
