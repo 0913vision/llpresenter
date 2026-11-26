@@ -1,4 +1,4 @@
-import {watch} from 'node:fs';
+import {realpathSync, watch} from 'node:fs';
 import {readdir, readFile, stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {MediaId} from '@core/schema/common/ids';
@@ -258,8 +258,13 @@ async function logged(
   }
 }
 
+// NOTE(0913vision): Windows' watcher asserts and ends the process when the
+// folder is named by its short 8.3 form (C:\Users\RUNNER~1\...), so it
+// watches the folder's full name.
 function watchFolder(folder: string, onChange: () => void): () => void {
-  const watcher = watch(folder, {persistent: false}, () => onChange());
+  const watcher = watch(realpathSync.native(folder), {persistent: false}, () =>
+    onChange(),
+  );
   watcher.on('error', () => watcher.close());
   return () => watcher.close();
 }
