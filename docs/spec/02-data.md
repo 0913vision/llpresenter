@@ -693,7 +693,9 @@ follows the folder at launch and whenever the folder changes:
 
 - A file that is new to the folder joins the list as an import of a file already
   in the folder does, named after its file, once it has not changed for 5
-  seconds. Files an import is writing (named in `.imports`) wait.
+  seconds. Files an import is writing (named in `.imports`) wait. A picture the
+  app made from slides (`llp-ppt-` at the start of its name) joins hidden, as
+  those pictures always are.
 - An item whose file left the folder leaves the list. `removed[]` keeps it with
   its place in the list and in each playlist, and a deleted item is kept the
   same way. When its file is in the folder again, it comes back as it was, so
