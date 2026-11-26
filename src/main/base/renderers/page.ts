@@ -33,15 +33,23 @@ export function startLoading(
     : win.loadFile(join(__dirname, `../renderer/${name}.html`), {query});
 }
 
-/** Like {@link startLoading}, but a failed load is logged. */
+/**
+ * Like {@link startLoading}, but a failed load is logged. A load cut off
+ * because its window closed, such as the windowed 청중 page that the full
+ * screen one replaces when its monitor comes back, is only noted.
+ */
 export function loadPage(
   win: BrowserWindow,
   page: PageRequest,
   log: Logger,
 ): void {
-  startLoading(win, page).catch((error: unknown) =>
-    log.error(`failed to load ${page.name}`, error),
-  );
+  startLoading(win, page).catch((error: unknown) => {
+    if (win.isDestroyed()) {
+      log.info(`stopped loading ${page.name}: its window closed`);
+      return;
+    }
+    log.error(`failed to load ${page.name}`, error);
+  });
 }
 
 /** Keeps the window on its own page: no navigation and no new windows. */

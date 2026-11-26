@@ -18,6 +18,7 @@ vi.mock('electron', async () => {
     BrowserWindow: class MockBrowserWindow {
       readonly loadURL = vi.fn(() => Promise.resolve());
       readonly loadFile = vi.fn(() => Promise.resolve());
+      readonly isDestroyed = vi.fn(() => false);
       readonly webContents = Object.assign(new EventEmitter(), {
         setWindowOpenHandler: vi.fn(),
       });
@@ -88,6 +89,22 @@ describe('loadPage', () => {
       expect(log.messages('error')).toEqual(['failed to load output']),
     );
     expect(log.entries[0]?.detail).toBe(failure);
+  });
+
+  it('only notes a load cut off because its window closed, as when 청중 comes back full screen', async () => {
+    const win = mockWindow();
+    vi.mocked(win.loadFile).mockRejectedValue(
+      new Error("ERR_FAILED (-2) loading 'output.html?screen=main'"),
+    );
+    vi.mocked(win.isDestroyed).mockReturnValue(true);
+    const log = recordingLogger();
+    loadPage(win, {name: 'output'}, log);
+    await vi.waitFor(() =>
+      expect(log.messages('info')).toEqual([
+        'stopped loading output: its window closed',
+      ]),
+    );
+    expect(log.messages('error')).toEqual([]);
   });
 });
 
