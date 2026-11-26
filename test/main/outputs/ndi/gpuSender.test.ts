@@ -2,6 +2,7 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 import {createGpuSender} from '@main/outputs/ndi/gpuSender';
+import {startLoading} from '@main/base/renderers/page';
 
 const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -234,4 +235,46 @@ it('hands a probe frame to the bitmap output and takes the next copy only after 
   expect(first.release).toHaveBeenCalledOnce();
   paint({texture: texture()}, {x: 0, y: 0, width: 10, height: 10});
   expect(frames()).toHaveLength(2);
+});
+
+it('falls back on a texture handle it can not pass on', () => {
+  const {sender, worker, paint, frames, fallback} = setup();
+  sender.showCapture(FULL);
+  worker().emit('message', {type: 'ready'});
+  const odd = texture();
+  paint({
+    texture: {
+      ...odd,
+      textureInfo: {...odd.textureInfo, handle: {ntHandle: Buffer.alloc(4)}},
+    },
+  });
+  expect(frames()).toHaveLength(0);
+  expect(odd.release).toHaveBeenCalledOnce();
+  expect(fallback).toHaveBeenCalledWith(
+    'unsupported texture handle or pixel format',
+  );
+});
+
+it('falls back when GPU compositing goes off while it sends', () => {
+  const {sender, worker, paint, fallback} = setup();
+  sender.showCapture(FULL);
+  worker().emit('message', {type: 'ready'});
+  mocks.gpuStatus.mockReturnValue({gpu_compositing: 'disabled_software'});
+  paint({});
+  expect(fallback).toHaveBeenCalledWith('GPU compositing is unavailable');
+});
+
+it('falls back when its utility can not start or its page does not load', async () => {
+  mocks.fork.mockImplementationOnce(() => {
+    throw new Error('no process');
+  });
+  const unstarted = setup();
+  unstarted.sender.showCapture(FULL);
+  expect(unstarted.fallback).toHaveBeenCalledWith(new Error('no process'));
+
+  vi.mocked(startLoading).mockRejectedValueOnce(new Error('no page'));
+  const unloaded = setup();
+  await vi.waitFor(() =>
+    expect(unloaded.fallback).toHaveBeenCalledWith(new Error('no page')),
+  );
 });
