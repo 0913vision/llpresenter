@@ -120,6 +120,20 @@ export type FrameRateReport = Readonly<
 >;
 
 /**
+ * What a failure detail says as text: the fields of an object, such as
+ * `{"src":"...","code":4}`, or the value itself. An object that can't be
+ * written out, such as one that holds itself, says its kind.
+ */
+function detailText(detail: unknown): string {
+  if (typeof detail !== 'object' || detail === null) return String(detail);
+  try {
+    return JSON.stringify(detail);
+  } catch {
+    return Object.prototype.toString.call(detail);
+  }
+}
+
+/**
  * The log line of a failure in a window: `message`, and the error's stack, or
  * what anything else thrown says, as the detail. Both are cut to the lengths
  * main takes, so a long stack is shortened instead of losing the whole line.
@@ -131,7 +145,7 @@ export function rendererErrorEntry(
   const detail =
     error instanceof Error
       ? (error.stack ?? `${error.name}: ${error.message}`)
-      : String(error);
+      : detailText(error);
   return {
     level: 'error',
     message: message.slice(0, RENDERER_LOG_LIMITS.message),

@@ -121,6 +121,23 @@ describe('rendererErrorEntry', () => {
     );
   });
 
+  it('writes out the fields of a detail object, so the line names what failed', () => {
+    expect(
+      rendererErrorEntry('could not load a background media file', {
+        src: 'llp-media://media/1d26a4f8',
+        code: 4,
+      }).detail,
+    ).toBe('{"src":"llp-media://media/1d26a4f8","code":4}');
+  });
+
+  it('writes an object that can not be written out as text', () => {
+    const loop: Record<string, unknown> = {};
+    loop['self'] = loop;
+    expect(rendererErrorEntry('could not draw', loop).detail).toBe(
+      '[object Object]',
+    );
+  });
+
   it('cuts a long message and stack to what main takes, so the line is kept', () => {
     const error = new Error('x');
     error.stack = 's'.repeat(9000);
