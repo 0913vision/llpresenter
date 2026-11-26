@@ -216,6 +216,39 @@ describe('macro compiler', () => {
     ]);
   });
 
+  it('skips turning on a 그래픽 whose image can not be shown, runs the rest, and still turns it off', () => {
+    const {catalog} = environment([
+      macro(IDS.macro, [
+        {kind: 'prop', prop: IDS.prop, mode: 'on'},
+        {kind: 'clearAll'},
+        {kind: 'prop', prop: IDS.prop, mode: 'off'},
+      ]),
+    ]);
+    const plan = compileMacro({
+      catalog: {
+        ...catalog,
+        media: {
+          ...catalog.media,
+          items: catalog.media.items.filter(item => item.id !== IDS.image),
+        },
+      },
+      macro: findMacro(catalog),
+      state: emptyLiveState(),
+      supports: () => true,
+    });
+    expect(plan.commands).toEqual([
+      {type: 'layer.clear', target: 'all'},
+      {type: 'prop.set', propId: IDS.prop, on: false},
+    ]);
+    expect(plan.problems).toEqual([
+      expect.objectContaining({
+        reason: 'missing-target',
+        action: 0,
+        target: {kind: 'media', id: IDS.image},
+      }),
+    ]);
+  });
+
   it('flattens nested runs in place, skips cycles immediately, and allows a sibling to run the same macro again', () => {
     const nested = uuid(21);
     const {catalog} = environment([

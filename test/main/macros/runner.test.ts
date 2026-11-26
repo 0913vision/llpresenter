@@ -56,6 +56,21 @@ function setup(macros = [macro()]) {
 }
 
 describe('MacroRunner', () => {
+  it('compiles against a media list without the files that are missing, so an action naming one is skipped', () => {
+    const {runner, context, media} = setup();
+    const missing = media.items.find(item => item.kind === 'video');
+    if (missing === undefined) throw new Error('No video fixture');
+    runner.run(
+      history(),
+      {type: 'macro.run', macroId: MACRO},
+      {...context, isMissingMedia: id => id === missing.id},
+    );
+    const [options] = vi.mocked(compileMacro).mock.lastCall ?? [];
+    expect(options?.catalog.media.items.map(item => item.id)).toEqual(
+      media.items.filter(item => item !== missing).map(item => item.id),
+    );
+  });
+
   it('compiles the 매크로 against the state and applies its commands as one batch', () => {
     const {runner, context, applied, supports} = setup();
     const before = history();

@@ -23,6 +23,19 @@ export interface MacroRunnerOptions {
   readonly log: Logger;
 }
 
+/**
+ * The media list without the items whose file is missing, so an action that
+ * names one is skipped like one whose target is gone (spec 07, 08).
+ */
+function shownMedia(
+  media: MediaList,
+  {isMissingMedia}: Pick<SliceContext, 'isMissingMedia'>,
+): MediaList {
+  if (isMissingMedia === undefined) return media;
+  const items = media.items.filter(item => !isMissingMedia(item.id));
+  return items.length === media.items.length ? media : {...media, items};
+}
+
 /** Compiles against the latest catalog and reduces through the existing batch transaction. */
 export class MacroRunner implements MacroCommandPort {
   private latest: MacroPlan | null = null;
@@ -41,7 +54,7 @@ export class MacroRunner implements MacroCommandPort {
     const id = command.macroId;
     const catalog = readMacroCatalog(
       this.options.settings,
-      this.options.media(),
+      shownMedia(this.options.media(), context),
     );
     const macro = requireMacroTarget(
       catalog.macros.macros.find(item => item.id === id),

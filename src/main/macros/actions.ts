@@ -99,19 +99,26 @@ export const macroActionHandlers = [
   defineMacroAction({
     kind: 'prop',
     compile: (action, {catalog, props}) => {
-      requireMacroTarget(
+      const prop = requireMacroTarget(
         catalog.props.props.find(item => item.id === action.prop),
         'prop',
         action.prop,
       );
-      return command({
-        type: 'prop.set',
-        propId: action.prop,
-        on:
-          action.mode === 'toggle'
-            ? !props.has(action.prop)
-            : action.mode === 'on',
-      });
+      const on =
+        action.mode === 'toggle'
+          ? !props.has(action.prop)
+          : action.mode === 'on';
+      const {content} = prop;
+      // NOTE(0913vision): An image that can't be shown is a missing target, so
+      // only this action is skipped (spec 07), not the whole run.
+      if (on && !props.has(action.prop) && content.kind === 'image') {
+        requireMacroTarget(
+          catalog.media.items.find(item => item.id === content.media),
+          'media',
+          content.media,
+        );
+      }
+      return command({type: 'prop.set', propId: action.prop, on});
     },
   }),
   defineMacroAction({
