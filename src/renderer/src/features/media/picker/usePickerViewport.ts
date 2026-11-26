@@ -1,5 +1,6 @@
 import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {pickerRowTop} from './mediaPickerChoices';
+import {tokenPixels} from '@renderer/ui/tokenPixels';
 
 /** How many rows the list shows at once. */
 export const VISIBLE_ROWS = 8;
@@ -56,10 +57,7 @@ export function usePickerViewport({
   useLayoutEffect(() => {
     const element = viewport.current;
     if (element === null) return;
-    const height =
-      Number.parseFloat(
-        getComputedStyle(element).getPropertyValue('--size-row-menu'),
-      ) || 0;
+    const height = tokenPixels(getComputedStyle(element), '--size-row-menu');
     if (height !== row) setRow(height);
     const nextGap = dividerHeight(separator.current);
     if (nextGap !== gap) setGap(nextGap);

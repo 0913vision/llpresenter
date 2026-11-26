@@ -8,6 +8,7 @@ import {
   type RefObject,
 } from 'react';
 import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
+import {tokenPixels} from '../../tokenPixels';
 
 /** What a scrolled list shows: where it is, how tall it is, and its rows. */
 export interface RowView {
@@ -27,12 +28,8 @@ const UNMEASURED: RowView = {top: 0, height: 0, row: 0};
 /** One row is as tall as the design system's `--size-row`. */
 export function designRowHeight(list: HTMLElement): number {
   return (
-    Number.parseFloat(
-      getComputedStyle(list).getPropertyValue('--size-row') ||
-        getComputedStyle(document.documentElement).getPropertyValue(
-          '--size-row',
-        ),
-    ) || 0
+    tokenPixels(getComputedStyle(list), '--size-row') ||
+    tokenPixels(getComputedStyle(document.documentElement), '--size-row')
   );
 }
 

@@ -15,6 +15,7 @@ import {
   type CanvasElement,
   type CanvasGesture,
 } from './canvasDraft';
+import {tokenPixels} from '../tokenPixels';
 
 /** How the canvas saves frames; the owner answers whether each save held. */
 export interface CanvasActions {
@@ -143,9 +144,7 @@ export function useCanvasGesture<T extends CanvasElement>({
       keepRatio,
       snapGrid,
       minimumSize: layout.minimumSize ?? MIN_SIZE,
-      distance: Number.parseFloat(
-        getComputedStyle(surface).getPropertyValue('--size-guide-snap'),
-      ),
+      distance: tokenPixels(getComputedStyle(surface), '--size-guide-snap'),
       targets: [
         {x: 0, y: 0, w: layout.width, h: layout.height},
         ...layout.elements

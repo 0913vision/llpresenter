@@ -12,6 +12,7 @@ import {
 import type {ResizeSession} from '@renderer/ui/panels/ResizeGap';
 import {fitRows} from './panelRowHeights';
 import type {SizeClass} from '@core/schema/app/appConfig';
+import {tokenPixels} from '../tokenPixels';
 
 /** Where a panel keeps its row heights, per window size class. */
 export interface RowSizeStore {
@@ -189,7 +190,7 @@ function availableHeight(
   preserveCollapsed: boolean,
 ): number {
   const style = getComputedStyle(parent);
-  const gap = parseFloat(style.getPropertyValue('--panel-gap')) || 0;
+  const gap = tokenPixels(style, '--panel-gap');
   const workspace = preserveCollapsed
     ? parent.closest<HTMLElement>('[data-workspace-layout="show"]')
     : null;
@@ -197,7 +198,7 @@ function availableHeight(
     workspace === null
       ? 0
       : workspace.clientHeight -
-        (parseFloat(style.getPropertyValue('--size-panel-header')) || 0) -
+        tokenPixels(style, '--size-panel-header') -
         gap;
   return (
     Math.max(parent.clientHeight, collapsedHeight) -

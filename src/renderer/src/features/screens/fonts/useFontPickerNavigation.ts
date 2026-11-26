@@ -10,6 +10,7 @@ import {isComposing} from '@renderer/ui/fields/ime';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import {filterFamilies, type FontChoice} from './fontChoices';
+import {tokenPixels} from '@renderer/ui/tokenPixels';
 
 /** How many font rows the picker's list shows at once. */
 export const FONT_PICKER_VISIBLE_ROWS = 8;
@@ -56,10 +57,11 @@ export function useFontPickerNavigation({
   useLayoutEffect(() => {
     const element = viewport.current;
     if (element === null) return;
-    const height =
-      Number.parseFloat(
-        getComputedStyle(element).getPropertyValue('--size-row-menu'),
-      ) || DEFAULT_ROW_PX;
+    const height = tokenPixels(
+      getComputedStyle(element),
+      '--size-row-menu',
+      DEFAULT_ROW_PX,
+    );
     if (height !== row) setRow(height);
     if (height === row && !initialized.current) {
       initialized.current = true;

@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import {isComposing} from '@renderer/ui/fields/ime';
+import {tokenPixels} from '@renderer/ui/tokenPixels';
 
 const INITIAL_ROWS = 8;
 const OVERSCAN_ROWS = 2;
@@ -60,9 +61,8 @@ export function useImportLabelWindow(count: number) {
     if (node === null) return;
     const read = (): void => {
       const css = getComputedStyle(node);
-      const gap = Number.parseFloat(css.getPropertyValue('--space-10')) || 0;
-      const row =
-        Number.parseFloat(css.getPropertyValue('--size-control-md')) || 0;
+      const gap = tokenPixels(css, '--space-10');
+      const row = tokenPixels(css, '--size-control-md');
       setMeasure({height: node.clientHeight, stride: row + gap, gap});
     };
     read();

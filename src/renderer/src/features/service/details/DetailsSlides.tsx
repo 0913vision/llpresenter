@@ -16,6 +16,7 @@ import {
   scrollIntoBand,
 } from '@renderer/ui/lists/selection/useRowRange';
 import {textBoxHasKey} from '@renderer/ui/fields/textEntry';
+import {tokenPixels} from '@renderer/ui/tokenPixels';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;
@@ -80,9 +81,9 @@ export function DetailsSlides({
         return;
       }
       const css = getComputedStyle(element);
-      const gapX = parseFloat(css.getPropertyValue('--space-12')) || 12;
-      const gapY = parseFloat(css.getPropertyValue('--space-16')) || 16;
-      const band = parseFloat(css.getPropertyValue('--size-thumb-band')) || 24;
+      const gapX = tokenPixels(css, '--space-12', 12);
+      const gapY = tokenPixels(css, '--space-16', 16);
+      const band = tokenPixels(css, '--size-thumb-band', 24);
       const {columns, tileWidth} = detailsGridGeometry(
         element.clientWidth,
         gapX,

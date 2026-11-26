@@ -11,6 +11,7 @@ import type {RightColumn} from './columns';
 import type {ColumnWidthStore} from './columnWidthStore';
 import type {ColumnWidths} from '@renderer/ui/panels/sizeClass';
 import type {SizeClass} from '@core/schema/app/appConfig';
+import {tokenPixels} from '@renderer/ui/tokenPixels';
 
 const LEFT_VARIABLE = '--ll-col-left';
 const RIGHT_VARIABLE = '--ll-col-right';
@@ -27,11 +28,7 @@ function showOn(
 
 /** The width of 진행's collapsed left column: its strip, a panel header wide. */
 function collapsedStrip(grid: HTMLElement): number {
-  return (
-    parseFloat(
-      getComputedStyle(grid).getPropertyValue('--size-panel-header'),
-    ) || 0
-  );
+  return tokenPixels(getComputedStyle(grid), '--size-panel-header');
 }
 
 function watchWindowResize(layout: ColumnLayout): () => void {
