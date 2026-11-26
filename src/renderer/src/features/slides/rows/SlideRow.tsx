@@ -164,7 +164,10 @@ export const SlideRow = memo(
             }
           />
         )}
-        <div className={styles.thumbnail}>
+        <div
+          className={styles.thumbnail}
+          data-state={missingFile === undefined ? undefined : 'warning'}
+        >
           <div
             className={styles.thumbnailCanvas}
             title={

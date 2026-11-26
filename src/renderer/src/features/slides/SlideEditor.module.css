@@ -52,6 +52,10 @@
   border-radius: var(--radius-sm);
 }
 
+.thumbnail[data-state~='warning'] {
+  box-shadow: var(--ring-warning);
+}
+
 .thumbnailCanvas {
   position: relative;
   width: 100%;

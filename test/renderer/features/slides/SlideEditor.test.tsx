@@ -560,6 +560,8 @@ describe('the background of a slide', () => {
     expect(
       row(2).querySelector('[title^="파일을 찾을 수 없습니다"]'),
     ).toBeNull();
+    expect(row(1).querySelector('[data-state~="warning"]')).not.toBeNull();
+    expect(row(2).querySelector('[data-state~="warning"]')).toBeNull();
   });
 
   it('warns beside the background select when the chosen background file is missing, naming it', async () => {
