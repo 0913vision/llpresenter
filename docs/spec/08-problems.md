@@ -116,6 +116,10 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 
 - Check that the file exists when the app loads the media list, and again when a
   file fails to play (proposal for the launch check).
+- An item whose file left the media folder leaves the 미디어 list and comes back
+  when the file does (02, USER November 26). The places that use it show the
+  marks below; a media tile shows them only for an item whose file is outside
+  the media folder.
 
 ### Showing it
 

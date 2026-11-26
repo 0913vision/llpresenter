@@ -684,11 +684,25 @@ change this picker preference.
 
 ## Media list (`Settings\media.json`)
 
-A fresh media catalog and `Media` folder are empty. Only media the operator
-imports belongs there. Bundled theme backgrounds and decorations stay in the app
-assets, with their existing IDs resolved outside `media.json`; they do not
-appear in Media, media search, or counts and cannot be renamed or deleted.
-Section themes use gradient presets instead of image files (12).
+A fresh media catalog and `Media` folder are empty. The `Media` folder decides
+which media exist (USER, November 26): every picture, video and sound file in it
+(top level, known kinds, not hidden) is in the list, and `media.json` keeps only
+what a file can't hold: the ID other files refer to, the display name, the
+settings, the playlists, and the hidden pictures of PowerPoint imports. The list
+follows the folder at launch and whenever the folder changes:
+
+- A file that is new to the folder joins the list as an import of a file already
+  in the folder does, named after its file, once it has not changed for 5
+  seconds. Files an import is writing (named in `.imports`) wait.
+- An item whose file left the folder leaves the list. `removed[]` keeps it with
+  its place in the list and in each playlist, and a deleted item is kept the
+  same way. When its file is in the folder again, it comes back as it was, so
+  the songs and items that use its ID show it again.
+- A folder that can't be read changes nothing. Bundled theme backgrounds and
+  decorations stay in the app assets, with their existing IDs resolved outside
+  `media.json`; they do not appear in Media, media search, or counts and cannot
+  be renamed or deleted. Section themes use gradient presets instead of image
+  files (12).
 
 The `media.sections.prepare` edit retains only its `type` field as a no-op.
 Section insertion chooses a gradient theme and does not add media entries or
@@ -713,6 +727,7 @@ files.
 | `.props.volume`           | 0 to 100                            | 음량 (volume).                                                                                                                                                                                    | `Media` properties              |
 | `playlists[]`             | Array                               | Media playlists, for example 배경 영상 (background videos), 예배 전 반복 (pre-service loop), 광고 이미지 (announcement images), 설교 이미지 (sermon images): `id`, `name`, `items[]` (media IDs). | `Media`                         |
 | `audioPlaylists[]`        | Array                               | Audio playlists, for example 예배 전 음악 (pre-service music), 헌금 연주 (offering music), 효과음 (sound effects): `id`, `name`, `items[]`, `loop` (Boolean).                                     | `Media`, `Overlays` 오디오 tab  |
+| `removed[]`               | Array                               | Items that left the list, newest last, at most 1,000: `item` (as in `items[]`), `index` and `next` (its place in the list), `memberships` (its places in each playlist).                          | USER, November 26               |
 
 - One media item can be in several playlists (proposal). Removing it from a
   playlist keeps it in the media list.
