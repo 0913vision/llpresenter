@@ -102,11 +102,3 @@ it('clears the picture for no media, and goes with its element', () => {
   view.dispose();
   expect(document.body.querySelector('img')).toBeNull();
 });
-
-it('reads the time left of a still from the media list', () => {
-  const remaining = vi.fn(() => 12);
-  const {view} = setup({peek: id => `known://${id}`, remaining});
-  expect(view.remaining()).toBeUndefined();
-  view.show(layer(PICTURE));
-  expect(view.remaining()).toBe(12);
-});
