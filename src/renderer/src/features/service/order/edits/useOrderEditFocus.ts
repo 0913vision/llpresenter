@@ -89,7 +89,11 @@ export function useOrderEditFocus({
     const nextId =
       token.deleted === undefined
         ? undefined
-        : rowAfterDeletion(token.rows, token.deleted, rows);
+        : rowAfterDeletion(
+            token.rows,
+            token.deleted,
+            rows.filter(row => !token.deleted?.includes(row.id)),
+          );
     if (nextId !== undefined) token.select?.(nextId);
     const target =
       options.find(option => option.dataset['value'] === (nextId ?? cursor)) ??

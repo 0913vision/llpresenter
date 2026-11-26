@@ -1,5 +1,5 @@
 import {liveItemReason} from '@renderer/session/service/liveGuard';
-import type {RefObject} from 'react';
+import {useRef, type RefObject} from 'react';
 import {orderedSelection} from '@core/common/selectionOrder';
 import {createServiceItemId} from '@core/schema/common/ids';
 import type {ServiceRow} from '@core/presentation';
@@ -14,7 +14,7 @@ import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems, movableItems} from '../orderRows';
 import {useMovedRowFocus} from './useMovedRowFocus';
-import {useOrderEditFocus} from './useOrderEditFocus';
+import {rowAfterDeletion, useOrderEditFocus} from './useOrderEditFocus';
 import {useShow} from '@renderer/session/show/showStore';
 
 /** The rows chosen in the list and the way to choose others. */
@@ -109,19 +109,46 @@ export function useOrderEdits({
     });
   };
 
+  // NOTE(0913vision): The rows follow main, so they show a deleted row until
+  // main has it. A Delete pressed before then must take the next row, not
+  // the one on its way out, so the choice moves on at once.
+  const deleting = useRef(new Set<string>());
+
   const remove = (ids: readonly string[]): void => {
-    if (!editable || ids.length === 0 || liveItemReason(ids) !== undefined) {
+    const chosen = ids.filter(id => !deleting.current.has(id));
+    if (
+      !editable ||
+      chosen.length === 0 ||
+      liveItemReason(chosen) !== undefined
+    ) {
       return;
     }
     const snapshot = useShow.getState();
     deleteSelection(
-      ids.length,
+      chosen.length,
       () =>
         useShow.getState().serviceId === snapshot.serviceId &&
         useShow.getState().rows === snapshot.rows &&
         !useShow.getState().readOnly,
-      () =>
-        runFocusedEdit(() => removeItems(ids.map(createServiceItemId)), ids),
+      () => {
+        const shown = rows.filter(row => !deleting.current.has(row.id));
+        const next = rowAfterDeletion(
+          shown,
+          chosen,
+          shown.filter(row => !chosen.includes(row.id)),
+        );
+        for (const id of chosen) deleting.current.add(id);
+        if (workspace === 'prep' && next !== undefined) {
+          selection.replace([next], next);
+        }
+        runFocusedEdit(
+          () =>
+            removeItems(chosen.map(createServiceItemId)).finally(() => {
+              for (const id of chosen) deleting.current.delete(id);
+            }),
+          [...deleting.current],
+        );
+      },
     );
   };
 

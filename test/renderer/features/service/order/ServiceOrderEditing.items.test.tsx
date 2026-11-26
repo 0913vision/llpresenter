@@ -212,6 +212,30 @@ describe('service panel editing', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
+  it('takes a second Delete pressed while the first is still being saved', async () => {
+    const {api, ids, onProblem} = setup('prep');
+    const save = vi.mocked(api.content.edit);
+    const saveNow = save.getMockImplementation();
+    if (saveNow === undefined) throw new Error('Missing save');
+    let release = (): void => undefined;
+    const held = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    save.mockImplementation(async command => {
+      await held;
+      return saveNow(command);
+    });
+    const user = userEvent.setup();
+    const row = screen.getByRole('option', {name: '첫 곡'});
+    await user.click(row);
+    row.focus();
+    await user.keyboard('{Delete}');
+    await user.keyboard('{Delete}');
+    release();
+    await waitFor(() => expect(ids()).toEqual([headerId]));
+    expect(onProblem).not.toHaveBeenCalled();
+  });
+
   it('deletes from the menu and hands focus to the next row without scrolling', async () => {
     const {ids} = setup('prep');
     const user = userEvent.setup();

@@ -3,6 +3,8 @@ import {useRef, useState, type KeyboardEvent, type MouseEvent} from 'react';
 interface Selection {
   readonly serviceId: string | null;
   readonly cursor: string | null;
+  /** The open item when the rows were chosen, until it becomes `cursor`. */
+  readonly from: string | null;
   readonly anchor: string | null;
   readonly ids: readonly string[];
 }
@@ -26,8 +28,14 @@ export function useServiceItemSelection({
 }) {
   const [choice, setChoice] = useState<Selection | null>(null);
   const modifiers = useRef<Modifiers>(SINGLE);
+  // NOTE(0913vision): Opening the chosen row takes a moment; until it is open
+  // the rows stay chosen, so a key pressed meanwhile acts on them. The open
+  // item changed by anything else starts the choice anew.
   const current =
-    choice?.serviceId === serviceId && choice.cursor === cursor ? choice : null;
+    choice?.serviceId === serviceId &&
+    (choice.cursor === cursor || choice.from === cursor)
+      ? choice
+      : null;
   const selected = new Set(
     (current?.ids ?? (cursor === null ? [] : [cursor])).filter(id =>
       ids.includes(id),
@@ -37,6 +45,7 @@ export function useServiceItemSelection({
     setChoice({
       serviceId,
       cursor: next,
+      from: cursor,
       anchor: values[0] ?? next,
       ids: values,
     });
@@ -51,15 +60,22 @@ export function useServiceItemSelection({
       setChoice({
         serviceId,
         cursor: id,
+        from: cursor,
         anchor,
         ids: keys.ctrlKey ? [...new Set([...selected, ...range])] : range,
       });
     } else if (keys.ctrlKey) {
       if (selected.has(id)) selected.delete(id);
       else selected.add(id);
-      setChoice({serviceId, cursor: id, anchor: id, ids: [...selected]});
+      setChoice({
+        serviceId,
+        cursor: id,
+        from: cursor,
+        anchor: id,
+        ids: [...selected],
+      });
     } else {
-      setChoice({serviceId, cursor: id, anchor: id, ids: [id]});
+      setChoice({serviceId, cursor: id, from: cursor, anchor: id, ids: [id]});
     }
     onSelect(id);
   };

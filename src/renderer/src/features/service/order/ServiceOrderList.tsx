@@ -89,10 +89,7 @@ export function ServiceOrderList({
   // NOTE(0913vision): 진행 doesn't change the 예배 순서; its rows only choose
   // what goes out.
   const editable =
-    workspace === 'prep' &&
-    !readOnly &&
-    !editing.busy &&
-    window.llp !== undefined;
+    workspace === 'prep' && !readOnly && window.llp !== undefined;
   const full = useOrderFull();
   const besidePalette = table !== undefined && !navigator;
 
@@ -211,7 +208,6 @@ export function ServiceOrderList({
       ref={listRef}
       tabIndex={-1}
       className={styles.list}
-      aria-busy={editing.busy}
       {...drop.dragProps}
       {...listEvents}
     >

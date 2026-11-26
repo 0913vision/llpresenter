@@ -173,6 +173,10 @@ the compact 예배 순서, or the library; its right column shows the selected
   취소 undo every edit of an item the same way, one step each: a change in the
   right column (테마, 배경, 오버레이) as well as the order edits (10, "Focus
   precedence"). The right-click menu has 삭제 (delete) (proposal).
+- Every press counts, as in PowerPoint's slide list: a Delete, Alt Up or Down,
+  Ctrl D or Ctrl Z pressed before the previous change is saved acts on what that
+  change left. Delete moves the selection to the next row at once, so Delete
+  pressed five times removes five rows.
 - The list accepts 라이브러리 songs dropped on it (see "Adding items to the 예배
   순서").
 
