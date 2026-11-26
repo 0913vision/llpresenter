@@ -9,6 +9,7 @@ import {SourceTree} from './SourceTree';
 import {useSourceActions} from './useSourceActions';
 import {useNewService} from './useNewService';
 import {useServiceSwitchGuard} from '../useServiceSwitchGuard';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 const DIALOG_HEIGHT = 700;
 const NAME_NEEDED = '이름을 적어야 만들 수 있습니다.';
@@ -87,6 +88,7 @@ export function NewServiceDialog({
               <TextField
                 aria-label="이름"
                 value={state.name}
+                maxLength={NAME_LIMIT}
                 onChange={state.setName}
               />
             </DialogField>

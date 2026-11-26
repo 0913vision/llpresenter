@@ -198,7 +198,7 @@ Each 예배 순서 is one file. It holds only items.
 | `format`        | `"llservice"`             | Yes      | File type.                                                          |
 | `schemaVersion` | Integer                   | Yes      | 1 in version 1.                                                     |
 | `id`            | UUID                      | Yes      | Service ID. "Open the last service" and the recovery record use it. |
-| `name`          | String                    | Yes      | Service name.                                                       |
+| `name`          | String                    | Yes      | Service name, at most 256 characters (`NAME_LIMIT`).                |
 | `date`          | String `YYYY-MM-DDTHH:mm` | Yes      | Service date and time.                                              |
 | `order`         | Array, at most 1,000      | Yes      | The items, in the order they show.                                  |
 
@@ -266,6 +266,8 @@ the slot behavior in the earlier service samples and draft boards.
 
 - A 템플릿 uses the service file format (`format: "llservice"`). Store it in the
   `Templates\` folder of the data folder (proposal).
+- A 템플릿 name has at most 256 characters (`NAME_LIMIT`), like a service name;
+  a copy name (`… 복사본`) is cut to fit.
 - A 템플릿 has no `date`. Existing optional `time` (`HH:mm`) values remain
   readable and preserved, but do not set a new service's time. New services use
   `T00:00` in the existing date-time format; old service dates are preserved.

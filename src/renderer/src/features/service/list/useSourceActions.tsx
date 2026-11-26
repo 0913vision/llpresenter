@@ -31,6 +31,7 @@ import {useAlive} from '@renderer/ui/useAlive';
 import {useShow} from '@renderer/session/show/showStore';
 import type {ServiceSource} from './serviceSource';
 import {RENAME_FAILED} from '@renderer/session/service/serviceProblem';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 type NamedSource = Exclude<ServiceSource, {readonly kind: 'empty'}>;
 
@@ -245,6 +246,7 @@ export function useSourceActions({
           }
           locked={busy}
           rename={{
+            maxLength: NAME_LIMIT,
             onCommit: name =>
               run('rename', next =>
                 renameSource(next, {source: dialog.row.source, name}),

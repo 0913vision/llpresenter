@@ -9,7 +9,7 @@ import {
   templateIdSchema,
 } from '../common/ids';
 import {payloadObject, plainObject, type PayloadError} from '../common/payload';
-import {localDateTime} from '../common/primitives';
+import {localDateTime, NAME_LIMIT} from '../common/primitives';
 import {serviceSchema, templateSchema} from './service';
 import {songSchema} from '../songs/song';
 import {
@@ -54,7 +54,7 @@ const songEditSchemas = [
 const serviceEditSchemas = [
   v.object({
     type: v.literal('service.create'),
-    name: v.string(),
+    name: v.pipe(v.string(), v.maxLength(NAME_LIMIT)),
     date: localDateTime,
     templateId: v.nullable(templateIdSchema),
   }),
@@ -73,7 +73,7 @@ const serviceEditSchemas = [
   v.object({
     type: v.literal('service.saveAsTemplate'),
     serviceId: serviceIdSchema,
-    name: v.string(),
+    name: v.pipe(v.string(), v.maxLength(NAME_LIMIT)),
   }),
   v.object({
     type: v.literal('template.update'),

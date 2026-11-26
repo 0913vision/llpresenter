@@ -6,6 +6,7 @@ import {
   slideIdSchema,
 } from '../common/ids';
 import type {ReadonlyKnown} from '../common/fileFormat';
+import {LIVE_STATE_LIMITS} from '../live/liveLimits';
 import {
   jsonObject,
   listWithUniqueIds,
@@ -26,7 +27,9 @@ export const ITEM_OVERLAY_LIMITS = {
 const content = v.pipe(
   v.union([
     jsonObject({media: mediaIdSchema, loop: v.boolean(), sound: v.boolean()}),
-    jsonObject({text: v.string()}),
+    jsonObject({
+      text: v.pipe(v.string(), v.maxLength(LIVE_STATE_LIMITS.textCharacters)),
+    }),
   ]),
   v.check(
     value => !(Object.hasOwn(value, 'media') && Object.hasOwn(value, 'text')),

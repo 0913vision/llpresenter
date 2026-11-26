@@ -21,6 +21,7 @@ it.each([
   {content: {media: uuid(3), loop: 'yes', sound: false}},
   {content: {media: uuid(3), loop: true, sound: 0}},
   {content: {media: uuid(3), loop: true, sound: false, text: 'Ambiguous'}},
+  {content: {text: '가'.repeat(4001)}},
   {name: ' '},
   {name: 'x'.repeat(81)},
   {from: 0},
@@ -35,4 +36,14 @@ it.each([
   expect(v.safeParse(itemOverlaySchema, {...overlay, ...patch}).success).toBe(
     false,
   );
+});
+
+it('takes text as long as a slide holds', () => {
+  const longest = {...overlay, from: uuid(4), to: uuid(5)};
+  expect(
+    v.safeParse(itemOverlaySchema, {
+      ...longest,
+      content: {text: '가'.repeat(4000)},
+    }).success,
+  ).toBe(true);
 });

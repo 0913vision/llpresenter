@@ -133,6 +133,25 @@ describe('parseContentEdit', () => {
   it.each([
     ['an unknown type', {type: 'song.copy'}, 'type'],
     [
+      'a new service with a name over 256 characters',
+      {
+        type: 'service.create',
+        name: '예'.repeat(257),
+        date: '2026-11-04T19:30',
+        templateId: null,
+      },
+      'name',
+    ],
+    [
+      'a 템플릿 with a name over 256 characters',
+      {
+        type: 'service.saveAsTemplate',
+        serviceId: SERVICE_ID,
+        name: '예'.repeat(257),
+      },
+      'name',
+    ],
+    [
       'an update without its base revision',
       {type: 'song.update', song: song()},
       'baseRevision',

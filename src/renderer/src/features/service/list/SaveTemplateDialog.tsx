@@ -2,6 +2,7 @@ import {EMPTY_NAME_REASON} from '@renderer/ui/fields/nameReason';
 import {useState, type JSX} from 'react';
 import {Dialog, DialogField} from '@renderer/ui/popups/Dialog';
 import {TextField} from '@renderer/ui/fields/TextField';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 /**
  * The dialog that asks for the name to save the open service as a template
@@ -36,6 +37,7 @@ export function SaveTemplateDialog({
         <TextField
           aria-label="이름"
           value={text}
+          maxLength={NAME_LIMIT}
           onChange={setText}
           readOnly={busy}
         />

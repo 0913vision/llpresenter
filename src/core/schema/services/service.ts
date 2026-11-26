@@ -23,6 +23,7 @@ import {
   jsonObject,
   listWithUniqueIds,
   localDateTime,
+  NAME_LIMIT,
   positiveInteger,
   timeOfDay,
 } from '../common/primitives';
@@ -110,7 +111,7 @@ export const serviceSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),
   schemaVersion: positiveInteger,
   id: serviceIdSchema,
-  name: v.string(),
+  name: v.pipe(v.string(), v.maxLength(NAME_LIMIT)),
   date: localDateTime,
   order: orderSchema,
 });
@@ -120,7 +121,7 @@ export const templateSchema = jsonObject({
   format: v.literal(SERVICE_FORMAT),
   schemaVersion: positiveInteger,
   id: templateIdSchema,
-  name: v.string(),
+  name: v.pipe(v.string(), v.maxLength(NAME_LIMIT)),
   time: v.exactOptional(timeOfDay),
   order: orderSchema,
 });

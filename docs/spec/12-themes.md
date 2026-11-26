@@ -299,8 +299,9 @@ not preset names or indices, so the rename does not change existing themes.
 ## 오버레이
 
 - An item can have several 오버레이. Each has content (a video, an image, or
-  text), a range (from one 슬라이드 to another), the screens it shows on, and
-  for a video 반복 or 정지 and 소리.
+  text of at most 4,000 characters, as much as a 슬라이드 holds), a range (from
+  one 슬라이드 to another), the screens it shows on, and for a video 반복 or
+  정지 and 소리.
 - A range is stored with the ids of its two 슬라이드, so it moves with them.
   Ranges never overlap.
 - It draws over the whole screen, above the 테마 and under 그래픽.

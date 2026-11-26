@@ -10,6 +10,7 @@ import {
 import {appliedId, asServiceId, editApplied, settle} from './serviceEdits';
 import {useAlive} from '@renderer/ui/useAlive';
 import {useShow} from '@renderer/session/show/showStore';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 type SaveTemplateApi = Pick<LlpApi, 'content' | 'templates' | 'log'>;
 interface TemplateService {
@@ -157,7 +158,9 @@ export function useSaveTemplate({
 
   const saveNew = (): void => {
     if (api === undefined || conflict === null || busy) return;
-    const name = copyName(conflict.name, conflict.taken);
+    const name = copyName(conflict.name, conflict.taken, {
+      maxLength: NAME_LIMIT,
+    });
     setBusy(true);
     finish(writeTemplate({api, serviceId: conflict.serviceId, name}), name);
   };

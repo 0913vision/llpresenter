@@ -9,6 +9,7 @@ import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
 import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
 import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {editorTask} from '@renderer/platform/editorTask';
+import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 
 /**
  * The dialog that sets what an overlay shows, a text or a media item, and saves
@@ -102,6 +103,7 @@ export function ItemOverlayContent({
           <TextArea
             aria-label="오버레이 글자"
             value={text}
+            maxLength={LIVE_STATE_LIMITS.textCharacters}
             readOnly={saving}
             onChange={setText}
           />

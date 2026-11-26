@@ -180,6 +180,18 @@ describe('a template file', () => {
     }
   });
 
+  it('takes a name of 256 characters, and refuses a longer one, as a service does', () => {
+    for (const [file, read] of [
+      [template(), parseTemplate],
+      [service(), parseService],
+    ] as const) {
+      const named = (name: string) =>
+        read(JSON.stringify({...file, name}), FILE).ok;
+      expect(named('예'.repeat(256))).toBe(true);
+      expect(named('예'.repeat(257))).toBe(false);
+    }
+  });
+
   it('refuses a time that is none, and a service refuses a template', () => {
     expect(
       parseTemplate(JSON.stringify({...template(), time: '11시'}), FILE).ok,

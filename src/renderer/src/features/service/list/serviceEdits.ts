@@ -10,6 +10,7 @@ import {
 import {parsePayload} from '@core/schema/common/payload';
 import {renameHistory} from '@renderer/platform/undo/renameHistory';
 import {logFailure} from '@renderer/platform/logFailure';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 /**
  * Whether an edit took effect. A failed save still did: main keeps the edit
@@ -159,6 +160,7 @@ export async function duplicateService(
   const name = copyName(
     source.service.name,
     entries.map(entry => entry.name),
+    {maxLength: NAME_LIMIT},
   );
   const created = await settle(api, 'Could not copy a service', () =>
     api.content.edit({
