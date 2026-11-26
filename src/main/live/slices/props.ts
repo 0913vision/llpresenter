@@ -11,7 +11,11 @@ import {defineSlice} from '../slice';
 export const propsSlice = defineSlice({
   commands: ['prop.set'],
   initial: {},
-  reduce: (history, command, {settings, audioMedia, reject}) => {
+  reduce: (
+    history,
+    command,
+    {settings, audioMedia, isMissingMedia, reject},
+  ) => {
     const previous = history.state.layers.prop?.items ?? [];
     const retained = previous.filter(item => item.propId !== command.propId);
     if (!command.on) {
@@ -29,11 +33,14 @@ export const propsSlice = defineSlice({
     const current = previous.find(item => item.propId === prop.id);
     const library = audioMedia?.();
     const content = prop.content;
+    // NOTE(0913vision): An image that left the list or whose file is missing
+    // can't be shown (spec 08); one already on screen can still go.
     if (
       current === undefined &&
       content.kind === 'image' &&
-      library !== undefined &&
-      !library.items.some(item => item.id === content.media)
+      ((library !== undefined &&
+        !library.items.some(item => item.id === content.media)) ||
+        isMissingMedia?.(content.media) === true)
     ) {
       throw new MissingLiveTargetError({kind: 'media', id: content.media});
     }

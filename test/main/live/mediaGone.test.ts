@@ -66,6 +66,23 @@ describe('a 그래픽 whose image left the library', () => {
   });
 });
 
+describe('a 그래픽 whose image file is missing', () => {
+  it('cannot be shown while the file is missing, and can again once it is back', () => {
+    const {store} = started([0]);
+    const [image] = IMAGES;
+    if (image === undefined) throw new Error('No id');
+    const missing = new Set<MediaId>([image]);
+    store.connectMissingMedia(mediaId => missing.has(mediaId));
+    expect(
+      store.dispatch({type: 'prop.set', propId: IMAGE_PROP, on: true}),
+    ).toBe(false);
+    missing.clear();
+    expect(
+      store.dispatch({type: 'prop.set', propId: IMAGE_PROP, on: true}),
+    ).toBe(true);
+  });
+});
+
 describe('a background that left the library', () => {
   it('stays on screen through the slide it was drawn behind and is not drawn behind the next one', () => {
     const {store, leave} = started([0]);

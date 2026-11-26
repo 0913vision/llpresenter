@@ -11,6 +11,7 @@ import {MediaTile} from '@renderer/ui/tiles/MediaTile';
 import {TileList, gridMoves} from '@renderer/ui/lists/TileList';
 import styles from './PropGrid.module.css';
 import type {MenuAnchor} from '@renderer/ui/menus/menuModel';
+import {useMedia} from '@renderer/platform/documents/media';
 
 /** The 그래픽 as tiles; `onMenu` opens the menu of one. */
 export function PropGrid({
@@ -21,7 +22,10 @@ export function PropGrid({
 }: {
   readonly props: readonly Prop[];
   readonly screens: readonly Screen[];
-  /** The media list; a 그래픽 whose image is not in it cannot be shown. */
+  /**
+   * The media list; a 그래픽 whose image is not in it, or whose file is
+   * missing, cannot be shown.
+   */
   readonly media?: readonly MediaItem[] | undefined;
   readonly onMenu?:
     | ((
@@ -37,12 +41,14 @@ export function PropGrid({
     layer?.items
       ? layer.items.some(item => item.propId === prop.id)
       : layer?.propId === prop.id;
+  const missing = useMedia(view => view.missing);
   const imageGone = (prop: Prop): boolean => {
     const {content} = prop;
     return (
-      media !== undefined &&
       content.kind === 'image' &&
-      !media.some(item => item.id === content.media)
+      ((media !== undefined &&
+        !media.some(item => item.id === content.media)) ||
+        missing?.has(content.media) === true)
     );
   };
   const toggle = (prop: Prop): void => {
