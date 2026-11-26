@@ -48,6 +48,7 @@ const mocks = await vi.hoisted(async () => {
     readonly setResizable = vi.fn();
     readonly setMaximizable = vi.fn();
     readonly setTitle = vi.fn();
+    readonly setParentWindow = vi.fn();
     readonly getNormalBounds = vi.fn(() => ({
       x: 100,
       y: 80,
@@ -500,6 +501,21 @@ describe('환경설정 window', () => {
       if (state !== 'never opened') expect(last().destroyed).toBe(true);
     },
   );
+
+  it('follows a control window made again after a graphics failure: its parent, and its close', async () => {
+    const {open, last, owner, control} = setup();
+    open();
+    const win = last();
+    const replacement = new BrowserWindow();
+    owner.replaceControl(replacement);
+    expect(win.setParentWindow).toHaveBeenCalledWith(replacement);
+    expect(control.listenerCount('closed')).toBe(0);
+
+    control.emit('closed');
+    expect(win.hide).not.toHaveBeenCalled();
+    replacement.emit('closed');
+    await vi.waitFor(() => expect(win.hide).toHaveBeenCalledOnce());
+  });
 
   it('finishes disposal when settings is destroyed during the save question', async () => {
     const {open, last, owner} = setup();
