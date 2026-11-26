@@ -161,18 +161,11 @@ copied from is never touched. Other places keep the media ID, so they must say
 that the media is gone and must not draw it again (decided with lint-325, from
 rehearsal 4 B1).
 
-### The question
+### Deleting it
 
-- 삭제 asks first (the Delete rule in 11) and names every place that uses the
-  media, with a count for each kind: 재생목록, 그래픽, 곡 배경, 예배 순서 항목
-  (an item's own background, or a media item), 항목 오버레이, 테마 (an image
-  element), and 매크로 (a media or audio action). They show as a list under the
-  label `쓰는 곳`, one short line per kind with its count at the right
-  (`재생목록  2곳`), in that order; a kind with no use is left out, and the list
-  is left out when nothing uses the media. The meta line is
-  `파일은 그대로 남음`.
-- If main cannot count the uses, the line reads `쓰는 곳 확인 실패` and 삭제
-  still works (the same wording as the other where-used questions).
+- 삭제 acts at once without a question, as every 삭제 does (11), and 실행 취소
+  brings the item back with its playlist places. The places that use it keep the
+  media ID and show it as gone (below).
 
 ### A use whose media is gone
 
