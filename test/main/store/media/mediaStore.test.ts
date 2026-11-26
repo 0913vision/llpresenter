@@ -39,7 +39,10 @@ const AUDIO_LIST = createAudioPlaylistId(uuid(12));
 const FILE = resolve('/data/settings/media.json');
 const FOLDER = resolve('/data/media');
 
-function setup(access: 'editable' | 'readOnly' = 'editable') {
+function setup(
+  access: 'editable' | 'readOnly' = 'editable',
+  discard?: (file: string) => Promise<void>,
+) {
   vi.useFakeTimers();
   const write = vi
     .fn<DocumentFiles['write']>()
@@ -53,6 +56,7 @@ function setup(access: 'editable' | 'readOnly' = 'editable') {
     mediaFolder: FOLDER,
     log,
     files: {write, remove},
+    discard,
     document: expectSuccess(
       parseMediaDocument({
         name: 'media',
@@ -279,6 +283,19 @@ describe('media list edits and saves', () => {
     expect(store.get().value).toEqual(original);
     expect((await apply(store, {type: 'media.redoDelete'})).ok).toBe(true);
     expect(store.get().value.items.some(item => item.id === VIDEO)).toBe(false);
+  });
+
+  it('sends the copy of a media item deleted this session to the 휴지통 when it closes, not one brought back', async () => {
+    const discard = vi
+      .fn<(file: string) => Promise<void>>()
+      .mockResolvedValue(undefined);
+    const {store} = setup('editable', discard);
+    await apply(store, {type: 'media.delete', mediaId: VIDEO});
+    await apply(store, {type: 'media.delete', mediaId: AUDIO});
+    await apply(store, {type: 'media.undoDelete'});
+    expect(discard).not.toHaveBeenCalled();
+    await store.dispose();
+    expect(discard.mock.calls).toEqual([[resolve(FOLDER, 'video.webm')]]);
   });
 
   it('restores a deletion without overwriting a later edit to another media item', async () => {
