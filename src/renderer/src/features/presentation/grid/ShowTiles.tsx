@@ -4,7 +4,11 @@ import {outputTile} from '@renderer/session/show/show';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/tiles/SlideThumbnail';
 import {Menu} from '@renderer/ui/menus/Menu';
 import type {TransitionProgress} from '@renderer/ui/tiles/transitionProgress';
-import {TilePicture, tileProps} from '@renderer/pictures/TilePicture';
+import {
+  TilePicture,
+  tileProps,
+  useMissingFileOf,
+} from '@renderer/pictures/TilePicture';
 import {showSlideMenuEntries} from './showSlideMenuEntries';
 import {tileReflowIds} from './tileReflowIds';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
@@ -48,6 +52,7 @@ export function ShowTiles({
   readonly className: string | undefined;
 }): JSX.Element {
   const ids = tileReflowIds(tiles, itemId ?? '');
+  const missingFileOf = useMissingFileOf();
   return (
     <ThumbnailGrid
       workspace="show"
@@ -78,6 +83,7 @@ export function ShowTiles({
             canvas={<TilePicture tile={tile} />}
             live={index === live}
             transitionProgress={index === live ? progress : undefined}
+            missingFile={missingFileOf(tile.slide)}
             {...tileProps(tile)}
           />
         );

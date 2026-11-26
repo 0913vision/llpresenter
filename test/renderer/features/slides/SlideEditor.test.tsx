@@ -545,6 +545,23 @@ describe('the background of a slide', () => {
     expect(current.slides).toEqual(song());
   });
 
+  it('shows a hatched mark with the path in place of a picture whose file is missing', () => {
+    const slides = song().map((slide, index) =>
+      index === 1
+        ? {...slide, background: {kind: 'media' as const, media: warm}}
+        : slide,
+    );
+    useMedia.setState({missing: new Set([warm])});
+    renderEditor(slides);
+    const marked = row(1).querySelector('[title^="파일을 찾을 수 없습니다: "]');
+    expect(marked?.getAttribute('title')).toContain(
+      useMedia.getState().items.find(item => item.id === warm)?.file,
+    );
+    expect(
+      row(2).querySelector('[title^="파일을 찾을 수 없습니다"]'),
+    ).toBeNull();
+  });
+
   it('is chosen at the right, and taken away again', async () => {
     const {current} = renderEditor(song());
     await openTab('디자인');

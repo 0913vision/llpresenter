@@ -9,7 +9,7 @@ import {flushSync} from 'react-dom';
 import type {SlideId} from '@core/schema/common/ids';
 import type {ShowTile} from '@core/schema/services/showService';
 import type {ThemeFile} from '@core/schema/screens/theme';
-import {TilePicture} from '@renderer/pictures/TilePicture';
+import {TilePicture, useMissingFileOf} from '@renderer/pictures/TilePicture';
 import {classNames} from '@renderer/ui/classNames';
 import {
   isLayoutResizeActive,
@@ -17,6 +17,7 @@ import {
 } from '@renderer/ui/panels/layoutResize';
 import {SlideThumbnailBand} from '@renderer/ui/tiles/SlideThumbnail';
 import {SlideTransitionMark} from '@renderer/ui/tiles/SlideTransitionMark';
+import {MissingFileMark, missingFileText} from '@renderer/ui/tiles/MissingFile';
 import {isInTextEntry} from '@renderer/ui/fields/textEntry';
 import {selectInDeck} from '../deckSelection';
 import {EditorSlideNumber} from './EditorSlideNumber';
@@ -67,6 +68,7 @@ export const SlideRow = memo(
   }: SlideRowProps): JSX.Element => {
     const row = useRef<HTMLDivElement>(null);
     const {slide, labelColor} = tile;
+    const missingFile = useMissingFileOf()(slide);
     const number = index + 1;
     useLayoutEffect(() => {
       const node = row.current;
@@ -160,8 +162,19 @@ export const SlideRow = memo(
           />
         )}
         <div className={styles.thumbnail}>
-          <div className={styles.thumbnailCanvas}>
-            <TilePicture tile={tile} tiles={tiles} />
+          <div
+            className={styles.thumbnailCanvas}
+            title={
+              missingFile === undefined
+                ? undefined
+                : missingFileText(missingFile)
+            }
+          >
+            {missingFile === undefined ? (
+              <TilePicture tile={tile} tiles={tiles} />
+            ) : (
+              <MissingFileMark />
+            )}
             <SlideTransitionMark transition={slide.transition} />
           </div>
           {deck.readOnly ? (
