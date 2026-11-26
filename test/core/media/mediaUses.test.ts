@@ -9,6 +9,15 @@ import {
 import {themes as sampleThemes} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {IMAGES, overlaySettings} from '@fixtures/core/overlays';
+import {lyricsSlide} from '@fixtures/core/slides';
+import {
+  hymnOne,
+  itemId,
+  service,
+  SUNDAY_ID,
+} from '@fixtures/main/store/testFiles';
+import {parseSong} from '@core/schema/songs/song';
+import {parseService} from '@core/schema/services/service';
 
 function uuid(index: number): string {
   return `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
@@ -108,4 +117,72 @@ describe('the media:uses payloads', () => {
       expect(parseMediaUses(value).ok).toBe(false);
     },
   );
+});
+
+describe('the places in songs, 예배 and settings that use a media item', () => {
+  const background = {kind: 'media' as const, media: target};
+
+  it('counts songs and 예배 items that show it, 예배 overlays, themes and macros', () => {
+    const song = parseSong(
+      JSON.stringify({
+        ...hymnOne(),
+        slides: [lyricsSlide(1, '만복의 근원', {background})],
+      }),
+      'song.llsong',
+    );
+    const sunday = parseService(
+      JSON.stringify(
+        service(SUNDAY_ID, '2026-11-29T11:00', [
+          {
+            id: itemId(1),
+            kind: 'media',
+            name: '배경 영상',
+            media: target,
+            slides: [lyricsSlide(1, '')],
+          },
+          {
+            id: itemId(2),
+            kind: 'blank',
+            name: '빈 슬라이드',
+            slides: [lyricsSlide(1, '', {background})],
+          },
+        ]),
+      ),
+      'sunday.llservice',
+    );
+    if (!song.ok || !sunday.ok) throw new Error('Invalid fixture');
+    const [theme] = sampleThemes().themes;
+    if (theme === undefined) throw new Error('No theme');
+    const macros = settingsDocument('macros', {
+      macros: [
+        {
+          id: uuid(300),
+          name: '영상',
+          icon: 'play',
+          color: 'teal',
+          actions: [{kind: 'media', media: target}],
+        },
+      ],
+      collections: [],
+    });
+    if (macros.name !== 'macros') throw new Error('Missing macros');
+    const uses = countMediaUses(
+      target,
+      sources({
+        songs: [song.value.data],
+        services: [sunday.value.data],
+        themes: {
+          ...sampleThemes(),
+          themes: [{...theme, background}],
+        },
+        macros: macros.value,
+      }),
+    );
+    expect(uses).toMatchObject({
+      songBackgrounds: 1,
+      serviceItems: 2,
+      themes: 1,
+      macros: 1,
+    });
+  });
 });
