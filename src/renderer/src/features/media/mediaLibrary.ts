@@ -357,8 +357,8 @@ export class MediaLibrary {
   }
 
   /**
-   * 삭제 of a media item: it leaves the media list and every playlist; its
-   * file stays where it is.
+   * 삭제 of a media item: it leaves the media list and every playlist; main
+   * sends its copy to the 휴지통 when the app closes.
    *
    * @returns Whether it went.
    */

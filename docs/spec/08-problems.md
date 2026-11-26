@@ -154,9 +154,11 @@ README, `Notification` README.
 ## Deleting a media item that is in use
 
 Deleting a media item removes it from the media list and from every playlist.
-The file stays on disk. Other places keep the media ID, so they must say that
-the media is gone and must not draw it again (decided with lint-325, from
-rehearsal 4 B1).
+Its copy in the media folder (02) goes to the Windows 휴지통 when the app
+closes, unless 되돌리기 brought the item back first; the file it was copied from
+is never touched. Other places keep the media ID, so they must say that the
+media is gone and must not draw it again (decided with lint-325, from rehearsal
+4 B1).
 
 ### The question
 
