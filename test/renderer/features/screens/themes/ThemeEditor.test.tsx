@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/app/settingsDocuments';
-import type {ThemeFile} from '@core/schema/screens/theme';
+import {THEME_FILE_LIMITS, type ThemeFile} from '@core/schema/screens/theme';
 import type {Themes} from '@core/schema/screens/themes';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
@@ -207,18 +207,19 @@ describe('elements', () => {
     expect(elementRows()).toHaveLength(before + 1);
   });
 
-  it('adds a box with a name of its own, and removes it again', async () => {
+  it('adds a box with a name of its own, whose name field stops at the longest a theme file takes, and removes it again', async () => {
     const {user} = await setup();
     await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));
     await user.click(screen.getByRole('button', {name: '글 상자'}));
     const added = elementRow(/글 상자|상자/u);
     expect(added).toBeTruthy();
     await openTab(user, '테마');
-    expect(
-      properties()
-        .getAllByRole('textbox', {name: '이름'})
-        .map(field => field.getAttribute('value')),
-    ).toHaveLength(2);
+    const names = properties().getAllByRole('textbox', {name: '이름'});
+    expect(names).toHaveLength(2);
+    expect(names.map(field => field.getAttribute('maxlength'))).toEqual([
+      String(THEME_FILE_LIMITS.name),
+      String(THEME_FILE_LIMITS.name),
+    ]);
     await user.click(elementRows()[0] ?? added);
     await user.keyboard('{Delete}');
     expect(elementRows().some(row => row.textContent.includes('상자'))).toBe(
