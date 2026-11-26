@@ -536,6 +536,10 @@ panel past the resizable border or disappears below that border.
   페이드 아웃 (fade out), and a volume slider.
 - When a track ends, the next one plays. When the last track ends, the list
   starts over if 반복 is on, and stops otherwise (proposal).
+- A track whose file is missing (08) can't be clicked, and it is skipped: when
+  the track before it ends, on 다음 and 이전, and when the list starts from its
+  first track. The list stops when no track can play. No notification card opens
+  (USER, November 26).
 - A track is identified by its audio playlist and its position in that playlist,
   so the same file can appear twice in one playlist (proposal).
 - A 매크로's 오디오 action plays one media ID on its own, outside any playlist

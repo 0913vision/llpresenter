@@ -1,4 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
+import {createMediaId} from '@core/schema/common/ids';
 import {emptyLiveState} from '@core/schema/live/live';
 import {macroActionKinds} from '@core/schema/tools/macros';
 import {parseLiveState} from '@core/schema/live/liveState';
@@ -246,6 +247,39 @@ describe('macro compiler', () => {
         action: 0,
         target: {kind: 'media', id: IDS.image},
       }),
+    ]);
+  });
+
+  it('starts an audio playlist whose first file is missing, for main to skip to one that can play, and skips one with none', () => {
+    const {catalog} = environment([
+      macro(IDS.macro, [{kind: 'audioPlaylist', playlist: IDS.playlist}]),
+    ]);
+    const gone = createMediaId(uuid(98));
+    const compile = (items: readonly string[]) =>
+      compileMacro({
+        catalog: {
+          ...catalog,
+          media: {
+            ...catalog.media,
+            audioPlaylists: catalog.media.audioPlaylists.map(playlist => ({
+              ...playlist,
+              items: [gone, ...playlist.items].filter(id => items.includes(id)),
+            })),
+            items: catalog.media.items.filter(item => item.id !== gone),
+          },
+        },
+        macro: findMacro(catalog),
+        state: emptyLiveState(),
+        supports: () => true,
+      });
+    expect(compile([gone, IDS.audio]).commands).toEqual([
+      {
+        type: 'audio.play',
+        source: {kind: 'playlist', playlistId: IDS.playlist, position: 0},
+      },
+    ]);
+    expect(compile([gone]).problems).toEqual([
+      expect.objectContaining({reason: 'missing-target', action: 0}),
     ]);
   });
 

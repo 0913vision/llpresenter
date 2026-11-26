@@ -13,8 +13,8 @@ import {useTimerNow} from '../timers/useTimerNow';
 import styles from './AudioTransport.module.css';
 
 /**
- * The play, position and volume controls of the 오디오 tab; `firstPlayable` is
- * false when the first track can't be started.
+ * The play, position and volume controls of the 오디오 tab; `playable` is
+ * false when no track of the playlist can be started.
  */
 export function AudioTransport({
   api,
@@ -22,14 +22,14 @@ export function AudioTransport({
   items,
   selected,
   volume,
-  firstPlayable = true,
+  playable = true,
 }: {
   readonly api: LlpApi;
   readonly audio: AudioLayer | null;
   readonly items: readonly MediaItem[];
   readonly selected: AudioPlaylist | undefined;
   readonly volume: number;
-  readonly firstPlayable?: boolean | undefined;
+  readonly playable?: boolean | undefined;
 }): JSX.Element {
   const playback = audio?.playback;
   const running = playback !== undefined && playback.since !== null;
@@ -41,7 +41,7 @@ export function AudioTransport({
   const shown =
     duration === undefined ? position : Math.min(position, duration);
   const play = (): void => {
-    const command = audioPlayCommand({audio, selected, firstPlayable});
+    const command = audioPlayCommand({audio, selected, playable});
     if (command !== null) api.live.send(command);
   };
 
@@ -78,7 +78,7 @@ export function AudioTransport({
           이전
         </Button>
         <Button
-          disabled={!playback && (!selected?.items.length || !firstPlayable)}
+          disabled={!playback && (!selected?.items.length || !playable)}
           onClick={play}
         >
           {running ? '일시 정지' : '재생'}

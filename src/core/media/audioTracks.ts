@@ -13,14 +13,20 @@ export interface AudioTrack {
   readonly missing: boolean;
 }
 
+/** What the rows of a playlist are marked by: the playing track, and missing files. */
+export interface AudioTrackMarks {
+  readonly active?: AudioSource | undefined;
+  readonly missingFiles?: ReadonlySet<string> | undefined;
+}
+
 /**
  * The rows of a playlist. A row whose audio item is gone has no `item` and is
- * marked missing.
+ * marked missing, as is one whose file is in `missingFiles`.
  */
 export function audioTracks(
   playlist: AudioPlaylist,
   items: readonly MediaItem[],
-  active: AudioSource | undefined,
+  {active, missingFiles}: AudioTrackMarks = {},
 ): readonly AudioTrack[] {
   const byId = new Map(
     items.filter(item => item.kind === 'audio').map(item => [item.id, item]),
@@ -28,7 +34,7 @@ export function audioTracks(
   return playlist.items.map((id, position) => ({
     position,
     item: byId.get(id),
-    missing: !byId.has(id),
+    missing: !byId.has(id) || missingFiles?.has(id) === true,
     playing:
       active?.kind === 'playlist' &&
       active.playlistId === playlist.id &&

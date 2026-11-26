@@ -1,3 +1,4 @@
+import type {MediaId} from '@core/schema/common/ids';
 import type {AudioSource} from '@core/schema/live/liveActions';
 import {audioPositionSeconds} from '@core/schema/media/audioState';
 import {outputMediaProperties} from '@core/schema/media/outputMedia';
@@ -6,13 +7,67 @@ import {setLayer, updateLayer, type LiveHistory} from '../history';
 import {defineSlice, type SliceContext} from '../slice';
 import {nextAudioTrackVersion} from '../media/audioTrackVersion';
 
+type AudioMedia = NonNullable<
+  ReturnType<NonNullable<SliceContext['audioMedia']>>
+>;
+type AudioPlaylist = AudioMedia['audioPlaylists'][number];
+
+/** A playlist with the check of which of its tracks can play. */
+interface PlayableList {
+  readonly playlist: AudioPlaylist;
+  readonly canPlay: (mediaId: MediaId) => boolean;
+}
+
+/** A track can play when it is an audio item of the list whose file isn't missing. */
+function playableList(
+  playlist: AudioPlaylist,
+  media: AudioMedia,
+  {isMissingMedia}: Pick<SliceContext, 'isMissingMedia'>,
+): PlayableList {
+  return {
+    playlist,
+    canPlay: mediaId =>
+      media.items.some(({id, kind}) => id === mediaId && kind === 'audio') &&
+      isMissingMedia?.(mediaId) !== true,
+  };
+}
+
+/**
+ * The first position from `start` on, going `step`, whose track can play, or
+ * undefined for none. Going forward it wraps past the end only in a looping
+ * playlist.
+ */
+function playablePosition(
+  {playlist, canPlay}: PlayableList,
+  start: number,
+  step: -1 | 1,
+): number | undefined {
+  // NOTE(0913vision): A track whose file is missing is skipped (USER Nov 26
+  // "건너뛰고 다음 곡"), so a list never stops on it with a failure card.
+  let at = start;
+  let checked = 0;
+  while (checked < playlist.items.length) {
+    if (at >= playlist.items.length) {
+      if (!playlist.loop) return undefined;
+      at = 0;
+    }
+    const mediaId = playlist.items[at];
+    if (at < 0 || mediaId === undefined) return undefined;
+    if (canPlay(mediaId)) return at;
+    at += step;
+    checked++;
+  }
+  return undefined;
+}
+
 function play(
   history: LiveHistory,
-  source: AudioSource,
+  requested: AudioSource,
   context: SliceContext,
 ): LiveHistory {
   const media = context.audioMedia?.();
   if (media === undefined) throw new Error('Audio media is unavailable');
+  const source = playableSource(requested, media, context);
   const mediaId =
     source.kind === 'media'
       ? source.mediaId
@@ -28,7 +83,7 @@ function play(
   const item = media.items.find(
     ({id, kind}) => id === mediaId && kind === 'audio',
   );
-  if (item === undefined) {
+  if (item === undefined || context.isMissingMedia?.(item.id) === true) {
     throw new MissingLiveTargetError({kind: 'audio', id: mediaId});
   }
   const trackVersion = nextAudioTrackVersion(history.state);
@@ -45,6 +100,25 @@ function play(
   return {...next, state: {...next.state, audioTrackVersion: trackVersion}};
 }
 
+/** A playlist track that can play, from the requested one on. */
+function playableSource(
+  source: AudioSource,
+  media: AudioMedia,
+  context: SliceContext,
+): AudioSource {
+  if (source.kind === 'media') return source;
+  const playlist = media.audioPlaylists.find(
+    ({id}) => id === source.playlistId,
+  );
+  if (playlist === undefined) return source;
+  const position = playablePosition(
+    playableList(playlist, media, context),
+    source.position,
+    1,
+  );
+  return position === undefined ? source : {...source, position};
+}
+
 function move(
   history: LiveHistory,
   direction: -1 | 1,
@@ -57,24 +131,25 @@ function move(
       ? play(history, source, context)
       : setLayer(history, 'audio', null);
   }
-  const playlist = context
-    .audioMedia?.()
-    .audioPlaylists.find(({id}) => id === source.playlistId);
-  if (playlist === undefined) {
+  const media = context.audioMedia?.();
+  const playlist = media?.audioPlaylists.find(
+    ({id}) => id === source.playlistId,
+  );
+  if (media === undefined || playlist === undefined) {
     throw new MissingLiveTargetError({
       kind: 'audio playlist',
       id: source.playlistId,
     });
   }
-  const next = Math.max(0, source.position + direction);
-  if (next >= playlist.items.length && !playlist.loop) {
-    return setLayer(history, 'audio', null);
+  const list = playableList(playlist, media, context);
+  const position =
+    direction === 1
+      ? playablePosition(list, source.position + 1, 1)
+      : playablePosition(list, Math.max(0, source.position - 1), -1);
+  if (position === undefined) {
+    return direction === 1 ? setLayer(history, 'audio', null) : history;
   }
-  return play(
-    history,
-    {...source, position: next >= playlist.items.length ? 0 : next},
-    context,
-  );
+  return play(history, {...source, position}, context);
 }
 
 /** Audio transport is independent of screens, 테마, and the control window. */

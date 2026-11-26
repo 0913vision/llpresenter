@@ -5,11 +5,12 @@ import type {AudioPlaylist} from '@core/schema/media/mediaList';
 export function audioPlayCommand({
   audio,
   selected,
-  firstPlayable,
+  playable,
 }: {
   readonly audio: AudioLayer | null;
   readonly selected: AudioPlaylist | undefined;
-  readonly firstPlayable: boolean;
+  /** Whether a track of `selected` can play; main skips the ones that can't. */
+  readonly playable: boolean;
 }) {
   if (audio?.playback) {
     return {
@@ -19,7 +20,7 @@ export function audioPlayCommand({
           : ('audio.play' as const),
     };
   }
-  if (selected !== undefined && selected.items.length > 0 && firstPlayable) {
+  if (selected !== undefined && selected.items.length > 0 && playable) {
     return {
       type: 'audio.play' as const,
       source: {kind: 'playlist' as const, playlistId: selected.id, position: 0},

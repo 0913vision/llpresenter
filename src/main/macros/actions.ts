@@ -173,9 +173,11 @@ export const macroActionHandlers = [
       );
       const first = playlist.items[0];
       if (first === undefined) throw new Error('Audio playlist is empty');
+      // NOTE(0913vision): Main skips the tracks that can't play (USER Nov 26),
+      // so the playlist needs only one that can.
       requireMacroTarget(
         catalog.media.items.find(
-          item => item.id === first && item.kind === 'audio',
+          item => item.kind === 'audio' && playlist.items.includes(item.id),
         ),
         'audio',
         first,

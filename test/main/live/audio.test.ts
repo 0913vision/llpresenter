@@ -20,7 +20,7 @@ function command(value: unknown): LiveCommand {
   return parsed.value;
 }
 
-function setup(loop = false) {
+function setup(loop = false, missing: readonly string[] = []) {
   const parsed = parseMediaList(
     JSON.stringify({
       format: 'llmedia',
@@ -44,6 +44,7 @@ function setup(loop = false) {
   const store = new LiveStore(undefined, () => now);
   const read = vi.fn(() => parsed.value.data);
   const release = store.connectAudioMedia(read);
+  store.connectMissingMedia(id => missing.includes(id));
   const send = (value: unknown) => store.dispatch(command(value));
   return {
     store,
@@ -60,6 +61,39 @@ function setup(loop = false) {
       }),
   };
 }
+
+describe('a playlist track whose file is missing (USER Nov 26, skip it)', () => {
+  const position = (store: LiveStore) => {
+    const source = store.state.layers.audio?.playback?.source;
+    return source?.kind === 'playlist' ? source.position : null;
+  };
+
+  it('is skipped when the track before it ends and on 다음, and the list stops when none is left', () => {
+    const {store, start, send} = setup(false, [SECOND]);
+    start();
+    const version = store.state.layers.audio?.playback?.trackVersion;
+    send({type: 'audio.next', trackVersion: version});
+    expect(position(store)).toBe(2);
+    send({type: 'audio.next'});
+    expect(store.state.layers.audio).toBeNull();
+  });
+
+  it('is skipped going back on 이전, and where the list starts', () => {
+    const {store, start, send} = setup(true, [FIRST]);
+    start();
+    expect(position(store)).toBe(1);
+    send({type: 'audio.next'});
+    expect(position(store)).toBe(1);
+    send({type: 'audio.previous'});
+    expect(position(store)).toBe(1);
+  });
+
+  it('leaves nothing to play in a list whose files are all missing', () => {
+    const {store, start} = setup(true, [FIRST, SECOND]);
+    expect(start()).toBe(false);
+    expect(store.state.layers.audio).toBeNull();
+  });
+});
 
 describe('audio transport', () => {
   it('starts manual fade once, ignores stale completion, and lets play cancel it with a fresh identity', () => {

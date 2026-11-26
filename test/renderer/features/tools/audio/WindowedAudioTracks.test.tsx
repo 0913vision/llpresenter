@@ -55,7 +55,7 @@ it('bounds a long list, navigates to both ends and releases its observer', () =>
   const {unmount} = render(
     <WindowedAudioTracks
       api={mockLlpApi()}
-      tracks={audioTracks(playlist, data.items, undefined)}
+      tracks={audioTracks(playlist, data.items)}
     />,
   );
   const list = screen.getByRole('list');

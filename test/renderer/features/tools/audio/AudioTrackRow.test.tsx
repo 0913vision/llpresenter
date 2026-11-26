@@ -43,7 +43,7 @@ it('plays the selected occurrence and disables an unavailable track', () => {
   const api = mockLlpApi({live: {send}});
   const playlist = data.audioPlaylists[0];
   if (!playlist) throw new Error('Missing playlist fixture');
-  const tracks = audioTracks(playlist, data.items, undefined);
+  const tracks = audioTracks(playlist, data.items);
   render(
     <>
       {tracks.map(track => (

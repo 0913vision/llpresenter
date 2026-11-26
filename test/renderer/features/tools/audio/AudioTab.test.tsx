@@ -28,7 +28,8 @@ afterEach(() => {
 const track = '00000000-0000-4000-8000-000000000001';
 const first = '00000000-0000-4000-8000-000000000002';
 const second = '00000000-0000-4000-8000-000000000003';
-function fixture(missing = false) {
+const other = '00000000-0000-4000-8000-000000000004';
+function fixture(missing: boolean | readonly string[] = false) {
   const parsed = parseMediaDocument({
     name: 'media',
     revision: 1,
@@ -45,10 +46,11 @@ function fixture(missing = false) {
           size: 1,
           duration: 65,
         },
+        {id: other, name: 'Other', kind: 'audio', file: 'other.wav', size: 1},
       ],
       playlists: [],
       audioPlaylists: [
-        {id: first, name: 'First', loop: false, items: [track, track]},
+        {id: first, name: 'First', loop: false, items: [track, other]},
         {id: second, name: 'Second', loop: true, items: [track]},
       ],
     },
@@ -69,7 +71,11 @@ function fixture(missing = false) {
         return stop;
       },
       missing: async () =>
-        missing ? parsed.value.value.items.map(item => item.id) : [],
+        missing === true
+          ? parsed.value.value.items.map(item => item.id)
+          : parsed.value.value.items
+              .map(item => item.id)
+              .filter(id => missing !== false && missing.includes(id)),
     },
     live: {send},
   });
@@ -135,6 +141,26 @@ it('does not start a missing file from the row or transport', async () => {
   expect(play.getAttribute('aria-disabled')).toBe('true');
   fireEvent.click(play);
   expect(f.send).not.toHaveBeenCalled();
+});
+
+it('starts a playlist whose first file is missing, for main to skip to a track that can play', async () => {
+  const f = fixture([track]);
+  render(<AudioTab />);
+  const list = await screen.findByRole('list', {name: '오디오 트랙 목록'});
+  await waitFor(() =>
+    expect(
+      within(list)
+        .getAllByRole('button')
+        .map(button => button instanceof HTMLButtonElement && button.disabled),
+    ).toEqual([true, false]),
+  );
+  const play = screen.getByRole('button', {name: '재생'});
+  expect(play.getAttribute('aria-disabled')).not.toBe('true');
+  fireEvent.click(play);
+  expect(f.send).toHaveBeenLastCalledWith({
+    type: 'audio.play',
+    source: {kind: 'playlist', playlistId: first, position: 0},
+  });
 });
 
 it('updates and clears a deleted selection without retaining old tracks', async () => {

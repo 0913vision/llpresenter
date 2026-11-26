@@ -38,18 +38,13 @@ export function AudioTab({
   const tracks = useMemo(
     () =>
       selected
-        ? audioTracks(
-            selected,
-            items,
-            audio?.playback?.since !== null
-              ? audio?.playback?.source
-              : undefined,
-          ).map(track => ({
-            ...track,
-            missing:
-              track.missing ||
-              (track.item !== undefined && missing.has(track.item.id)),
-          }))
+        ? audioTracks(selected, items, {
+            active:
+              audio?.playback?.since !== null
+                ? audio?.playback?.source
+                : undefined,
+            missingFiles: missing,
+          })
         : [],
     [selected, items, audio, missing],
   );
@@ -99,7 +94,7 @@ export function AudioTab({
           selected={selected}
           items={items}
           volume={volume}
-          firstPlayable={tracks[0]?.missing === false}
+          playable={tracks.some(track => !track.missing)}
         />
       ) : null}
     </div>

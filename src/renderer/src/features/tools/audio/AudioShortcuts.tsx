@@ -46,23 +46,13 @@ function BoundAudioShortcuts({
       id: 'audio.playPause',
       run: () => {
         const audio = useLive.getState().state?.layers.audio ?? null;
-        const first =
-          selected === undefined
-            ? undefined
-            : audioTracks(
-                selected,
-                document?.value.items ?? [],
-                audio?.playback?.source,
-              )[0];
-        const command = audioPlayCommand({
-          audio,
-          selected,
-          firstPlayable:
-            first !== undefined &&
-            !first.missing &&
-            first.item !== undefined &&
-            !missing.has(first.item.id),
-        });
+        const playable =
+          selected !== undefined &&
+          audioTracks(selected, document?.value.items ?? [], {
+            active: audio?.playback?.source,
+            missingFiles: missing,
+          }).some(track => !track.missing);
+        const command = audioPlayCommand({audio, selected, playable});
         if (command !== null) api?.live.send(command);
       },
     },

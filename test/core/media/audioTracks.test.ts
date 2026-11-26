@@ -40,7 +40,7 @@ it('keeps repeated and missing tracks at their playlist positions', () => {
     playlistId: playlist.id,
     position: 2,
   } as const;
-  const tracks = audioTracks(playlist, data.items, active);
+  const tracks = audioTracks(playlist, data.items, {active});
   expect(tracks.map(track => track.position)).toEqual([0, 1, 2, 3]);
   expect(tracks.map(track => track.item?.name)).toEqual([
     'Track',
@@ -61,11 +61,40 @@ it('keeps repeated and missing tracks at their playlist positions', () => {
     false,
     true,
   ]);
-  expect(audioTracks(other, data.items, active)[0]?.playing).toBe(false);
+  expect(audioTracks(other, data.items, {active})[0]?.playing).toBe(false);
   expect(
     audioTracks(playlist, data.items, {
-      kind: 'media',
-      mediaId: item.id,
+      active: {kind: 'media', mediaId: item.id},
     }).some(track => track.playing),
   ).toBe(false);
+});
+
+it('marks a track whose file is missing, at every position it has', () => {
+  const {data} = expectSuccess(
+    parseMediaList(
+      JSON.stringify({
+        format: 'llmedia',
+        schemaVersion: 1,
+        items: [1, 2].map(n => ({
+          id: id(n),
+          name: `Track ${n}`,
+          kind: 'audio',
+          file: `${n}.wav`,
+          size: 1,
+        })),
+        playlists: [],
+        audioPlaylists: [
+          {id: id(5), name: 'List', loop: false, items: [id(1), id(2), id(1)]},
+        ],
+      }),
+      'media.json',
+    ),
+  );
+  const [playlist] = data.audioPlaylists;
+  if (playlist === undefined) throw new Error('No playlist');
+  expect(
+    audioTracks(playlist, data.items, {missingFiles: new Set([id(1)])}).map(
+      track => track.missing,
+    ),
+  ).toEqual([true, false, true]);
 });
