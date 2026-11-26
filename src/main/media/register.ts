@@ -18,7 +18,6 @@ import {mediaDialogFilters, type MediaKind} from './mediaKinds';
 import {MediaRelinker, type RelinkStore} from './mediaRelinker';
 import {MissingFiles, type MissingFilesSource} from './missingFiles';
 import {MediaFolderSync, type FolderSyncStore} from './mediaFolderSync';
-import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 
 /** What the media backend uses of the media store. */
 export type MediaBackendStore = ImportStore &
@@ -164,20 +163,7 @@ function followMediaFolder(
       sync = new MediaFolderSync({
         store,
         log,
-        adopt: async files => {
-          for (let at = 0; at < files.length; at += MEDIA_LIMITS.importBatch) {
-            await importer.import(
-              {
-                source: {
-                  kind: 'files',
-                  paths: files.slice(at, at + MEDIA_LIMITS.importBatch),
-                },
-                playlist: null,
-              },
-              adopting.signal,
-            );
-          }
-        },
+        adopt: files => importer.adopt(files, adopting.signal),
       });
       sync.start();
     },

@@ -1,5 +1,17 @@
 import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 
+/**
+ * How the files of the pictures the app makes from imported slides begin in
+ * the media folder; such a picture belongs to its slides and is hidden in the
+ * 미디어 list.
+ */
+export const APP_PICTURE_PREFIX = 'llp-ppt-';
+
+/** Whether a file of the media folder is a picture the app made from slides. */
+export function isAppPicture(fileName: string): boolean {
+  return fileName.toLowerCase().startsWith(APP_PICTURE_PREFIX);
+}
+
 /** Names a new PowerPoint background without colliding with the media list. */
 export function powerpointBackgroundName(
   title: string,

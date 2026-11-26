@@ -9,7 +9,7 @@ import type {
   MediaImportResult,
 } from '@core/schema/media/mediaEdit';
 import type {AnalysisFailureReason} from '@core/schema/media/mediaAnalysis';
-import {importedProps, type MediaDefaults} from '@core/media';
+import {importedProps, isAppPicture, type MediaDefaults} from '@core/media';
 import {MEDIA_LIMITS, type MediaItem} from '@core/schema/media/mediaList';
 import {defaultPreferences} from '@core/schema/app/preferences';
 import type {Logger} from '../base/log';
@@ -78,6 +78,8 @@ interface ImportJob {
   readonly fileName: string;
   readonly playlist: PlaylistRef | null;
   readonly defaults: MediaDefaults;
+  /** A picture the app made from slides: hidden in the 미디어 list. */
+  readonly internal: boolean;
   readonly abort: AbortController;
   /** Stops following the backend's signal once the job ends. */
   readonly release: () => void;
@@ -207,6 +209,31 @@ export class MediaImporter {
     };
   }
 
+  /**
+   * Puts files that are already in the media folder into the list, as
+   * importing them does but without asking; a picture the app made from
+   * slides joins hidden (USER Nov 26: the folder decides which media exist).
+   */
+  async adopt(files: readonly string[], signal: AbortSignal): Promise<void> {
+    if (this.isClosing(signal) || files.length === 0) return;
+    const defaults = await this.defaultsPolicy();
+    for (const source of files.slice(
+      0,
+      Math.max(0, MAX_IMPORT_JOBS - this.jobs.size),
+    )) {
+      if (this.isClosing(signal)) return;
+      this.options.report(
+        this.enqueue({
+          source,
+          playlist: null,
+          signal,
+          defaults,
+          internal: isAppPicture(basename(source)),
+        }),
+      );
+    }
+  }
+
   cancel(mediaId: MediaId): Promise<MediaEditResult> {
     const job = this.jobs.get(mediaId);
     if (job === undefined) {
@@ -253,11 +280,13 @@ export class MediaImporter {
     playlist,
     signal,
     defaults,
+    internal = false,
   }: {
     readonly source: string;
     readonly playlist: PlaylistRef | null;
     readonly signal: AbortSignal;
     readonly defaults: MediaDefaults;
+    readonly internal?: boolean;
   }): MediaImportProgress {
     const fileName = basename(source);
     const mediaId = this.options.createId();
@@ -275,6 +304,7 @@ export class MediaImporter {
       fileName,
       playlist,
       defaults,
+      internal,
       abort,
       release: () => {
         signal.removeEventListener('abort', stop);
@@ -486,6 +516,7 @@ export class MediaImporter {
       id: job.mediaId,
       name: nameOf(job.fileName),
       kind: job.kind,
+      ...(job.internal ? {internal: true as const} : {}),
       file,
       size,
       ...(props === undefined ? {} : {props}),

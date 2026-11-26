@@ -3,7 +3,7 @@ import {randomUUID} from 'node:crypto';
 import {constants} from 'node:fs';
 import {copyFile, readFile, rm, stat} from 'node:fs/promises';
 import {extname, join} from 'node:path';
-import {powerpointBackgroundName} from '@core/media';
+import {APP_PICTURE_PREFIX, powerpointBackgroundName} from '@core/media';
 import {createMediaId, type MediaId} from '@core/schema/common/ids';
 import type {MediaItem} from '@core/schema/media/mediaList';
 import type {MediaStore} from '../../store/media/mediaStore';
@@ -58,7 +58,7 @@ async function addPictures(
     const copies = await Promise.allSettled(
       pictures.map(async ({path, item}) => {
         const id = createMediaId(randomUUID());
-        const file = `llp-ppt-${id}${extname(path).toLowerCase()}`;
+        const file = `${APP_PICTURE_PREFIX}${id}${extname(path).toLowerCase()}`;
         const target = join(media.folder, file);
         await copyFile(path, target, constants.COPYFILE_EXCL);
         created.push(target);

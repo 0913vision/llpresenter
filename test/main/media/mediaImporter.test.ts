@@ -240,6 +240,24 @@ describe('media import', () => {
     expect(reports.at(-1)).toMatchObject({phase: 'complete', percent: 100});
   });
 
+  it('adopts files already in the folder, a picture the app made from slides hidden (USER Nov 26)', async () => {
+    const {importer, items, reports, media} = await setup();
+    await mkdir(media, {recursive: true});
+    const picture = join(media, 'llp-ppt-4f1b.png');
+    const background = join(media, '새 배경.mp3');
+    await writeFile(picture, 'invented picture');
+    await writeFile(background, 'invented sound');
+    await importer.adopt([picture, background], signal());
+    await ended(reports, 2);
+    expect(
+      items.map(({name, internal, file}) => ({name, internal, file})),
+    ).toEqual([
+      {name: 'llp-ppt-4f1b', internal: true, file: 'llp-ppt-4f1b.png'},
+      {name: '새 배경', internal: undefined, file: '새 배경.mp3'},
+    ]);
+    expect(reports.some(report => report.phase === 'copying')).toBe(false);
+  });
+
   it('stores the path inside the media folder for a file chosen through a junction', async () => {
     const {importer, items, reports, media, root} = await setup();
     await mkdir(media, {recursive: true});

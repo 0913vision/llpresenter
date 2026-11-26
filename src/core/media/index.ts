@@ -16,5 +16,9 @@ export {type MediaDefaults, importedProps} from './importedProps';
 export {mediaLoops} from './mediaEndRule';
 export {countMediaUses} from './mediaUses';
 export {mediaObjectFit} from './objectFit';
-export {powerpointBackgroundName} from './powerpointBackground';
+export {
+  APP_PICTURE_PREFIX,
+  isAppPicture,
+  powerpointBackgroundName,
+} from './powerpointBackground';
 export {thumbnailRevision} from './thumbnailRevision';
