@@ -83,22 +83,26 @@ describe('undo timeline', () => {
     expect(undoReason('undo')).toBe('되돌릴 편집이 없습니다.');
   });
 
-  it('runs one step at a time', async () => {
-    let finish: (done: boolean) => void = () => undefined;
+  it('runs one step at a time, and a press made while one runs runs next instead of being dropped', async () => {
+    const finishes: Array<(done: boolean) => void> = [];
     const slow: UndoOwner = {
       replay: () =>
         new Promise<boolean>(resolve => {
-          finish = resolve;
+          finishes.push(resolve);
         }),
     };
     owners.push(slow);
     undoTimeline.record(slow);
     undoTimeline.record(slow);
     const first = undoTimeline.replay('undo', report);
-    expect(await undoTimeline.replay('undo', report)).toBe(false);
-    finish(true);
-    expect(await first).toBe(true);
-    expect(undoTimeline.get()).toEqual({undo: 1, redo: 1, busy: false});
+    const second = undoTimeline.replay('undo', report);
+    await vi.waitFor(() => expect(finishes).toHaveLength(1));
+    expect(undoTimeline.get().busy).toBe(true);
+    finishes[0]?.(true);
+    await vi.waitFor(() => expect(finishes).toHaveLength(2));
+    finishes[1]?.(true);
+    expect(await Promise.all([first, second])).toEqual([true, true]);
+    expect(undoTimeline.get()).toEqual({undo: 0, redo: 2, busy: false});
   });
 
   it('runs nothing while it is blocked, and says why', async () => {

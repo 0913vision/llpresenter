@@ -373,16 +373,17 @@ the keys that earlier rules pass on.
    the deletion of a song, service, template, 이름표, screen, 타이머, 메시지,
    그래픽, 매크로 or media item. Each kind keeps its own steps (the 예배 순서
    the newest 100); one timeline of the window keeps their order, and a new step
-   drops what could be redone. An edit made in another window (곡 편집, 순서
-   편집) is not in it; if one changed the order since, 실행 취소 refuses instead
-   of overwriting it. The song and theme editors keep their own steps while the
-   focus is in them. **In 진행, 실행 취소 and 다시 실행 are off** (keys, 편집
-   menu and title bar buttons; the reason "진행에서는 실행 취소를 쓰지
-   않습니다."): 진행 sends what is on the screens, so a step is run back in
-   준비, where the steps made in 진행 are kept too. A step that runs back or
-   forward brings its place up, as PowerPoint goes to the slide it changed: the
-   item with that slide chosen in 준비, the song that came back opened, or the
-   media item chosen in the whole media list.
+   drops what could be redone. A press made while a step still runs waits for it
+   and then runs, so three quick presses run back three steps. An edit made in
+   another window (곡 편집, 순서 편집) is not in it; if one changed the order
+   since, 실행 취소 refuses instead of overwriting it. The song and theme
+   editors keep their own steps while the focus is in them. **In 진행, 실행 취소
+   and 다시 실행 are off** (keys, 편집 menu and title bar buttons; the reason
+   "진행에서는 실행 취소를 쓰지 않습니다."): 진행 sends what is on the screens,
+   so a step is run back in 준비, where the steps made in 진행 are kept too. A
+   step that runs back or forward brings its place up, as PowerPoint goes to the
+   slide it changed: the item with that slide chosen in 준비, the song that came
+   back opened, or the media item chosen in the whole media list.
 5. **In the Show workspace**, the slide grid passes ↑ and ↓ to the previous and
    next slide commands; Enter and keypad Enter advance the slide. The service
    order list keeps ↑, ↓, Home, End, and Enter for selection without output.

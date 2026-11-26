@@ -65,6 +65,8 @@ class UndoTimeline {
   private redo: Entry[] = [];
   private tab: UndoTab = 'prep';
   private blockedBy: string | undefined;
+  /** The step that runs or the last one that ran; the next press waits for it. */
+  private running: Promise<unknown> = Promise.resolve();
   private state: UndoTimelineState = {undo: 0, redo: 0, busy: false};
   private readonly listeners = new Set<() => void>();
   private readonly placeListeners = new Set<(place: UndoPlace) => void>();
@@ -148,21 +150,28 @@ class UndoTimeline {
     this.publish(this.state.busy);
   }
 
-  /** Runs back, or forward again, the latest step of the tab on screen. */
-  async replay(
+  /**
+   * Runs back, or forward again, the latest step of the tab on screen. A press
+   * made while another step runs waits for it and then runs, so quick presses
+   * each count.
+   */
+  replay(
+    kind: 'undo' | 'redo',
+    report: (notice: Notice) => void,
+  ): Promise<boolean> {
+    const turn = this.running.then(() => this.replayNow(kind, report));
+    this.running = turn.catch(() => undefined);
+    return turn;
+  }
+
+  private async replayNow(
     kind: 'undo' | 'redo',
     report: (notice: Notice) => void,
   ): Promise<boolean> {
     const from = kind === 'undo' ? this.undo : this.redo;
     const index = from.findLastIndex(entry => entry.tab === this.tab);
     const entry = from[index];
-    if (
-      this.blockedBy !== undefined ||
-      this.state.busy ||
-      entry === undefined
-    ) {
-      return false;
-    }
+    if (this.blockedBy !== undefined || entry === undefined) return false;
     const rest = from.filter((_, at) => at !== index);
     if (kind === 'undo') this.undo = rest;
     else this.redo = rest;
