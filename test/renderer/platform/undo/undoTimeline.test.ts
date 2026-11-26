@@ -138,6 +138,28 @@ describe('one history per tab', () => {
     expect(undoTimeline.get()).toMatchObject({undo: 1, redo: 1});
   });
 
+  it('puts back the steps of a history that came back, last in its tab, and keeps what can be redone', async () => {
+    const log: string[] = [];
+    const song = made('song', log);
+    const deletes = made('deletes', log);
+    undoTimeline.showTab('library');
+    undoTimeline.record(song);
+    undoTimeline.record(deletes);
+    undoTimeline.forget(song);
+    await undoTimeline.replay('undo', report);
+    undoTimeline.resume(song, 2, 'library');
+    expect(undoTimeline.get()).toMatchObject({undo: 2, redo: 1});
+    await undoTimeline.replay('undo', report);
+    await undoTimeline.replay('redo', report);
+    await undoTimeline.replay('redo', report);
+    expect(log).toEqual([
+      'deletes:undo',
+      'song:undo',
+      'song:redo',
+      'deletes:redo',
+    ]);
+  });
+
   it('drops the steps a history made in another tab once it makes one here', async () => {
     const log: string[] = [];
     const renames = made('renames', log);

@@ -18,6 +18,7 @@ import {
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
 import {useThemes} from '@renderer/platform/documents/themes';
+import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
 import {
   editorFixture,
@@ -214,4 +215,26 @@ it('has no back button, since the 준비 tab of the toolbar leaves the song', as
   await setup();
   act(() => openSongDraft(editorSong(1)));
   expect(screen.queryByRole('button', {name: /라이브러리/})).toBeNull();
+});
+
+it('closes a song deleted while open and brings it back as it was, unsaved changes and steps, when it returns (USER Nov 26)', async () => {
+  const fixture = await setup();
+  act(() => openSongDraft(fixture.first));
+  act(() => editSong(song => ({...song, title: `${song.title} 수정`})));
+  const edited = draft().song;
+  act(() => fixture.removeSong(fixture.first.song.id));
+  expect(useSongDraft.getState().draft).toBeNull();
+  expect(useSongDraft.getState().question).toBeNull();
+
+  const restored = {...fixture.first, revision: fixture.first.revision + 1};
+  act(() => openSongDraft(restored));
+  expect(draft().song).toEqual(edited);
+  expect(draft().document).toBe(restored);
+  expect(draft().past).toHaveLength(1);
+  undoTimeline.showTab('library');
+  expect(undoTimeline.get().undo).toBe(1);
+  act(() => {
+    replaySong('undo');
+  });
+  expect(draft().song.title).toBe(fixture.first.song.title);
 });

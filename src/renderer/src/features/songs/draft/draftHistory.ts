@@ -26,6 +26,11 @@ useSongDraft.subscribe((state, before) => {
   if (fresh) undoTimeline.forget(songUndoHistory);
 });
 
+/** Puts the steps of a song that came back with its history into the window's 실행 취소. */
+export function resumeSongHistory(steps: number): void {
+  undoTimeline.resume(songUndoHistory, steps, 'library');
+}
+
 /** Changes the song and every step of its history alike. */
 export function amend(change: (song: Song) => Song): void {
   const {draft} = view();

@@ -3,7 +3,7 @@ import type {LibrarySong} from '@core/schema/services/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/documents/pendingWrites';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {isUnsaved} from '../songDraftModel';
-import {closeSongDraft, show} from './draftOpen';
+import {parkSongDraft, show} from './draftOpen';
 import {requestLeaveSong} from './draftQuestions';
 import {connectSongDraft, draftView as view, useSongDraft} from './draftStore';
 
@@ -28,7 +28,7 @@ export function startSongDraftSync(
       const {draft} = view();
       if (draft?.document == null || draft.song.id !== songId) return;
       if (document === null) {
-        if (!isUnsaved(draft)) closeSongDraft();
+        parkSongDraft();
         return;
       }
       if (document.revision <= draft.document.revision) return;

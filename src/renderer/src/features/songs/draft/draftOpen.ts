@@ -1,4 +1,4 @@
-import {createSongId} from '@core/schema/common/ids';
+import {createSongId, type SongId} from '@core/schema/common/ids';
 import type {SongDocument} from '@core/schema/services/contentDocuments';
 import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/songs/song';
 import type {TextImportDraft} from '@core/schema/songs/textImport';
@@ -6,8 +6,8 @@ import type {Slide} from '@core/schema/slides/slide';
 import {newSongSlides, songItemBody, songSlides} from '@core/slides';
 import {normalizeSongTitle} from '@core/songs';
 import {slideMaking} from '@renderer/platform/documents/themes';
-import {freshDraft} from '../songDraftModel';
-import {editSong} from './draftHistory';
+import {freshDraft, type SongDraft} from '../songDraftModel';
+import {editSong, resumeSongHistory} from './draftHistory';
 import {
   draftView as view,
   useSongDraft,
@@ -31,12 +31,41 @@ export function show(
   });
 }
 
-/** Opens a song of the library to be edited. */
+/**
+ * The drafts of songs deleted while they were open, each with its changes and
+ * steps, for when 실행 취소 brings the song back (USER Nov 26, "지우기 전 그대로
+ * 되살림").
+ */
+const parked = new Map<SongId, SongDraft>();
+
+/** Closes the song that was deleted, keeping its draft as it was. */
+export function parkSongDraft(): void {
+  const {draft} = view();
+  if (draft === null) return;
+  parked.set(draft.song.id, draft);
+  closeSongDraft();
+}
+
+/**
+ * Opens a song of the library to be edited; a song that was deleted while it
+ * was open comes back as it was then, with its unsaved changes and steps.
+ */
 export function openSongDraft(
   document: SongDocument,
   options: {readonly focusTitle?: boolean | undefined} = {},
 ): void {
-  show(document.song, document);
+  const kept = parked.get(document.song.id);
+  parked.delete(document.song.id);
+  if (kept === undefined) show(document.song, document);
+  else {
+    view().pictures?.source.release();
+    useSongDraft.setState({
+      draft: {...kept, document},
+      pictures: null,
+      question: null,
+    });
+    resumeSongHistory(kept.past.length);
+  }
   if (options.focusTitle === true) focusTitle();
 }
 

@@ -100,6 +100,19 @@ class UndoTimeline {
   }
 
   /**
+   * Puts back `count` steps of an owner whose history came back, such as a
+   * song that 실행 취소 brought back with its edits, last in their tab. What
+   * can be redone stays.
+   */
+  resume(owner: UndoOwner, count: number, tab: UndoTab): void {
+    this.undo = [
+      ...this.undo.filter(entry => entry.owner !== owner),
+      ...Array.from({length: count}, () => ({owner, tab})),
+    ].slice(-LIMIT);
+    this.publish(this.state.busy);
+  }
+
+  /**
    * Takes away the latest step of an owner that the owner ran back on its own,
    * such as from the 되돌리기 of a notice.
    */
