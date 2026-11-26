@@ -533,6 +533,55 @@ describe('a presented output in the other placements', () => {
     handle.destroy();
   });
 
+  it('sends the calls of a window to what draws now: the presenter in full screen, the output window otherwise', async () => {
+    const {handle, fallbacks} = setup();
+    handle.showFullScreen(monitor, false);
+    const child = spawned();
+    const page = mocks.windows[0];
+    handle.setAlwaysOnTop(true);
+    expect(child.posted.at(-1)).toEqual({type: 'top', topmost: true});
+    expect(handle.bounds()).toEqual(monitor);
+    expect(handle.previewContents?.()).toBe(page?.contents);
+    handle.crashRenderer();
+    expect(page?.contents.forcefullyCrashRenderer).toHaveBeenCalledOnce();
+
+    handle.showWindowed(null, false);
+    const window = fallbacks[0];
+    handle.setAlwaysOnTop(true);
+    handle.requestFrame();
+    handle.crashRenderer();
+    await handle.reload();
+    await handle.ping();
+    expect(handle.bounds()).toBeNull();
+    expect(window?.calls).toEqual(
+      expect.arrayContaining([
+        'setAlwaysOnTop',
+        'requestFrame',
+        'crashRenderer',
+      ]),
+    );
+    handle.destroy();
+    expect(handle.previewContents?.()).toBeNull();
+  });
+
+  it('falls back once however often the presenter fails, and opens no window for an output not yet shown', () => {
+    const shown = setup();
+    shown.handle.showFullScreen(monitor, false);
+    const child = spawned();
+    child.emitter.emit('message', {type: 'error', message: 'no device'});
+    child.emitter.emit('message', {type: 'error', message: 'no device'});
+    expect(shown.log.warn).toHaveBeenCalledOnce();
+    expect(shown.fallbacks).toHaveLength(1);
+    shown.handle.destroy();
+
+    const prepared = setup();
+    prepared.handle.prepare(monitor, 'fullscreen');
+    spawned().emitter.emit('message', {type: 'error', message: 'no device'});
+    expect(prepared.log.warn).toHaveBeenCalledOnce();
+    expect(prepared.fallbacks).toHaveLength(0);
+    prepared.handle.destroy();
+  });
+
   it('gives the size of what draws now, or the screen resolution before anything does', () => {
     const {handle} = setup();
     expect(handle.contentSize()).toEqual({width: 1920, height: 1080});
