@@ -601,6 +601,21 @@ describe('media library for the media view', () => {
     ]);
   });
 
+  it('deletes every chosen media in order when they go at once, none dropped while the one before waits for main', async () => {
+    const lists = mediaDocument([mediaItem(1), mediaItem(2), mediaItem(3)], 3);
+    const {library, edit} = setup(mediaFixture(lists));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document?.revision).toBe(3),
+    );
+    const answers = [1, 2, 3].map(id =>
+      library.deleteMedia(mediaId(id), `Invented ${id}`),
+    );
+    expect(await Promise.all(answers)).toEqual([true, true, true]);
+    expect(edit.mock.calls.map(([sent]) => sent)).toEqual(
+      [1, 2, 3].map(id => ({type: 'media.delete', mediaId: mediaId(id)})),
+    );
+  });
+
   it('takes media out of a playlist and deletes media, reporting a refusal', async () => {
     const lists = mediaDocument([mediaItem(1), mediaItem(2)], 3, {
       playlists: [

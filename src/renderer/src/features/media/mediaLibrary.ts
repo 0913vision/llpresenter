@@ -86,6 +86,8 @@ export class MediaLibrary {
   private relinking = false;
   private readonly unsavedName = new UnsavedPlaylistName();
   private readonly deletes = new MediaDeleteHistory();
+  /** The last delete, undo or redo in line; the next one waits for it. */
+  private deleting: Promise<unknown> = Promise.resolve();
 
   constructor(private readonly api: MediaApi) {}
 
@@ -94,7 +96,7 @@ export class MediaLibrary {
 
   /** Its deletions, as one history of the window's 실행 취소. */
   readonly history: UndoOwner = {
-    replay: kind => this.historyDelete(kind),
+    replay: kind => this.inTurn(() => this.historyDelete(kind)),
     place: () =>
       this.restored === undefined
         ? undefined
@@ -363,10 +365,8 @@ export class MediaLibrary {
    *
    * @returns Whether it went.
    */
-  async deleteMedia(mediaId: MediaId, name: string): Promise<boolean> {
-    if (this.deletes.busy) return false;
-    this.deletes.begin();
-    const result = await this.send(
+  deleteMedia(mediaId: MediaId, name: string): Promise<boolean> {
+    return this.deleteInTurn(
       {type: 'media.delete', mediaId},
       {
         log: 'Deleting media was refused',
@@ -377,10 +377,36 @@ export class MediaLibrary {
         ),
       },
     );
-    this.deletes.end();
-    if (result === null) return false;
-    this.recordDelete(result);
-    return true;
+  }
+
+  /**
+   * Runs a delete, an undo or a redo after the ones pressed before it have
+   * their answer from main, so several chosen items deleted at once all go
+   * and none is dropped while another waits.
+   */
+  private inTurn<T>(step: () => Promise<T>): Promise<T> {
+    const turn = this.deleting.then(step);
+    this.deleting = turn.catch(() => undefined);
+    return turn;
+  }
+
+  /** Sends one delete in its turn and makes it an undo step. */
+  private deleteInTurn(
+    edit: Extract<MediaEdit, {type: 'media.delete' | 'media.playlist.delete'}>,
+    failure: Refusal,
+  ): Promise<boolean> {
+    return this.inTurn(async () => {
+      this.deletes.begin();
+      let result: MediaEditOutcome | null;
+      try {
+        result = await this.send(edit, failure);
+      } finally {
+        this.deletes.end();
+      }
+      if (result === null) return false;
+      this.recordDelete(result);
+      return true;
+    });
   }
 
   private async historyDelete(step: HistoryStep): Promise<boolean> {
@@ -389,8 +415,10 @@ export class MediaLibrary {
     this.update({});
     const result = await this.api.media
       .edit({type: step === 'undo' ? 'media.undoDelete' : 'media.redoDelete'})
-      .catch(rejected);
-    this.deletes.end();
+      .catch(rejected)
+      .finally(() => {
+        this.deletes.end();
+      });
     this.restored = step === 'undo' && result.ok ? result.value?.id : undefined;
     if (result.ok || result.error.reason === 'write-failed') {
       if (!this.deletes.recordStep(step, this.writtenRevision(result))) {
@@ -475,10 +503,8 @@ export class MediaLibrary {
   }
 
   /** 삭제 of a playlist; its media stay in 모든 미디어. */
-  async deletePlaylist(playlist: ChosenPlaylist): Promise<boolean> {
-    if (this.deletes.busy) return false;
-    this.deletes.begin();
-    const result = await this.send(
+  deletePlaylist(playlist: ChosenPlaylist): Promise<boolean> {
+    return this.deleteInTurn(
       {type: 'media.playlist.delete', playlist: playlistRef(playlist)},
       {
         log: 'Deleting a playlist was refused',
@@ -489,10 +515,6 @@ export class MediaLibrary {
         ),
       },
     );
-    this.deletes.end();
-    if (result === null) return false;
-    this.recordDelete(result);
-    return true;
   }
 
   /**

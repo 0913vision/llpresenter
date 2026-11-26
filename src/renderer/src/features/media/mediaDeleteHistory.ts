@@ -17,11 +17,6 @@ export class MediaDeleteHistory {
   /** True while a delete, an undo or a redo waits for main. */
   private waiting = false;
 
-  /** Whether a delete, an undo or a redo waits for main. */
-  get busy(): boolean {
-    return this.waiting;
-  }
-
   /** Whether a step can be taken in that direction now. */
   can(step: HistoryStep): boolean {
     return (

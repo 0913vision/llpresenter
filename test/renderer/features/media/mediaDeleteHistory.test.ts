@@ -40,7 +40,6 @@ describe('MediaDeleteHistory', () => {
     const history = new MediaDeleteHistory();
     history.recordDelete(3);
     history.begin();
-    expect(history.busy).toBe(true);
     expect(history.can('undo')).toBe(false);
     history.end();
     expect(history.can('undo')).toBe(true);
