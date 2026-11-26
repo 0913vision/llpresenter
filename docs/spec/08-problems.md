@@ -135,8 +135,9 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 
 - If the file disappears while it plays, keep the last frame on the screens as a
   still. The output never turns black because of a missing background.
-- If the file is missing when the operator outputs it, keep the current
-  background unchanged, and show the problem marks (proposal).
+- If the file of a slide's own background is missing when the operator outputs
+  it, the slide goes out on its theme's background, and the problem marks show
+  (USER, November 26). The screens never try a file that is missing.
 
 ### Relinking
 

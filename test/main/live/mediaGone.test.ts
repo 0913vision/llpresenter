@@ -103,7 +103,7 @@ describe('a background that left the library', () => {
 });
 
 describe('a slide whose background file is missing', () => {
-  it('keeps the background on screen instead of showing the missing one, and shows it once the file is back', () => {
+  it('goes out on the background of its theme, and with its own picture once the file is back', () => {
     const {store} = started([0, 1]);
     const [present, gone] = IMAGES;
     if (present === undefined || gone === undefined) throw new Error('No id');
@@ -123,10 +123,15 @@ describe('a slide whose background file is missing', () => {
 
     store.dispatch(slide('날마다', gone, 2));
     expect(store.state.layers.slide?.texts).toEqual({가사: '날마다'});
-    expect(store.state.layers.media?.mediaId).toBe(present);
+    expect(store.state.layers.slide?.background).toBeUndefined();
+    expect(store.state.layers.media).toBeNull();
 
     missing.clear();
     store.dispatch(slide('날마다 둘째 줄', gone, 3));
+    expect(store.state.layers.slide?.background).toEqual({
+      kind: 'media',
+      media: gone,
+    });
     expect(store.state.layers.media?.mediaId).toBe(gone);
   });
 });

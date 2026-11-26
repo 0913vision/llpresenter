@@ -42,6 +42,26 @@ function chosenTheme(
   return state.item?.id === slide.itemId ? state.themeMode?.id : undefined;
 }
 
+/**
+ * The slide as it goes out: one whose own background file is missing shows
+ * the background of its theme instead (USER Nov 26, spec 08 "Missing media
+ * file"), so the screens never try a file that is gone.
+ */
+export function withShownBackground(
+  slide: SlideLayer,
+  context: Pick<SliceContext, 'isMissingMedia'>,
+): SlideLayer {
+  const {background} = slide;
+  if (
+    background?.kind !== 'media' ||
+    context.isMissingMedia?.(background.media) !== true
+  ) {
+    return slide;
+  }
+  const {background: _missing, ...shown} = slide;
+  return shown;
+}
+
 /** Puts what is behind a slide on the media layer. */
 export function showBackground(
   history: LiveHistory,
@@ -58,11 +78,10 @@ export function showBackground(
   const background: SlideBackground = slide.background ??
     context.themes?.background({theme, texts: slide.texts}) ?? {kind: 'none'};
   const library = context.audioMedia?.();
-  if (background.kind === 'media') {
-    // NOTE(0913vision): A background whose file is gone never goes out: the
-    // one on screen stays, so the screens never turn black over a missing
-    // file (spec 08, "Missing media file").
-    if (context.isMissingMedia?.(background.media) === true) return history;
+  if (
+    background.kind === 'media' &&
+    context.isMissingMedia?.(background.media) !== true
+  ) {
     const item = library?.items.find(entry => entry.id === background.media);
     return context.apply(
       showMedia(

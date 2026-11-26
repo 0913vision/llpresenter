@@ -2,7 +2,11 @@ import type {SlideLayer} from '@core/schema/live/live';
 import {sameJson} from '@core/common/sameJson';
 import {setLayer, withLayers} from '../history';
 import {defineSlice} from '../slice';
-import {showBackground, showMedia} from '../media/mediaLayer';
+import {
+  showBackground,
+  showMedia,
+  withShownBackground,
+} from '../media/mediaLayer';
 
 /** Puts content on a layer: a slide, a background, or a message. */
 export const contentSlice = defineSlice({
@@ -29,7 +33,7 @@ export const contentSlice = defineSlice({
         // NOTE(0913vision): The slide stays the same output; only what it shows
         // is new, so a running transition goes on.
         const updated: SlideLayer = {
-          ...command.slide,
+          ...withShownBackground(command.slide, context),
           ...(slide.transitionStartedAt === undefined
             ? {}
             : {transitionStartedAt: slide.transitionStartedAt}),
@@ -67,7 +71,7 @@ export const contentSlice = defineSlice({
         };
       case 'slide.show': {
         const previous = history.state.layers.slide;
-        const incoming = command.slide;
+        const incoming = withShownBackground(command.slide, context);
         const changed =
           previous?.itemId !== incoming.itemId ||
           previous.slideId !== incoming.slideId ||
