@@ -230,6 +230,38 @@ it('duplicates, deletes, and undoes the selection', async () => {
   expect(current.slides).toEqual(song());
 });
 
+it('cuts the chosen slides to paste them elsewhere, and selects all', async () => {
+  const {current} = renderEditor(song());
+  const user = userEvent.setup();
+  await user.click(row(2));
+  act(() => surface().focus());
+  await user.keyboard('{Control>}x{/Control}');
+  expect(textsOf(current.slides)).not.toContain('빛을 따라가요');
+  expect(current.slides).toHaveLength(2);
+  await user.click(row(0));
+  act(() => surface().focus());
+  await user.keyboard('{Control>}v{/Control}');
+  await vi.waitFor(() =>
+    expect(textsOf(current.slides)[1]).toBe('빛을 따라가요'),
+  );
+  await user.keyboard('{Control>}a{/Control}');
+  expect(selected()).toEqual([0, 1, 2]);
+});
+
+it('deletes several chosen slides at once, as one step that 실행 취소 brings back', async () => {
+  const {current} = renderEditor(song());
+  const user = userEvent.setup();
+  await user.click(row(1));
+  await user.keyboard('{Shift>}');
+  fireEvent.click(row(2), {shiftKey: true});
+  await user.keyboard('{/Shift}');
+  act(() => surface().focus());
+  await user.keyboard('{Delete}');
+  expect(current.slides).toHaveLength(1);
+  await user.keyboard('{Control>}z{/Control}');
+  expect(current.slides).toEqual(song());
+});
+
 it('adds a slide in the theme that follows the one before', async () => {
   const {current} = renderEditor(song());
   await userEvent.click(row(0));
