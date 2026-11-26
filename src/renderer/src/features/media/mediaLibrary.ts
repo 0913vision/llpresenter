@@ -1,4 +1,5 @@
 import {followLatest} from '@core/common/followLatest';
+import {InTurn} from '@core/common/inTurn';
 import {
   undoTimeline,
   type UndoOwner,
@@ -86,8 +87,12 @@ export class MediaLibrary {
   private relinking = false;
   private readonly unsavedName = new UnsavedPlaylistName();
   private readonly deletes = new MediaDeleteHistory();
-  /** The last delete, undo or redo in line; the next one waits for it. */
-  private deleting: Promise<unknown> = Promise.resolve();
+  /**
+   * Deletes, undos and redos, one after another in the order pressed, so
+   * several chosen items deleted at once all go and none is dropped while
+   * another waits for main.
+   */
+  private readonly deleting = new InTurn();
 
   constructor(private readonly api: MediaApi) {}
 
@@ -96,7 +101,7 @@ export class MediaLibrary {
 
   /** Its deletions, as one history of the window's 실행 취소. */
   readonly history: UndoOwner = {
-    replay: kind => this.inTurn(() => this.historyDelete(kind)),
+    replay: kind => this.deleting.run(() => this.historyDelete(kind)),
     place: () =>
       this.restored === undefined
         ? undefined
@@ -379,23 +384,12 @@ export class MediaLibrary {
     );
   }
 
-  /**
-   * Runs a delete, an undo or a redo after the ones pressed before it have
-   * their answer from main, so several chosen items deleted at once all go
-   * and none is dropped while another waits.
-   */
-  private inTurn<T>(step: () => Promise<T>): Promise<T> {
-    const turn = this.deleting.then(step);
-    this.deleting = turn.catch(() => undefined);
-    return turn;
-  }
-
   /** Sends one delete in its turn and makes it an undo step. */
   private deleteInTurn(
     edit: Extract<MediaEdit, {type: 'media.delete' | 'media.playlist.delete'}>,
     failure: Refusal,
   ): Promise<boolean> {
-    return this.inTurn(async () => {
+    return this.deleting.run(async () => {
       this.deletes.begin();
       let result: MediaEditOutcome | null;
       try {

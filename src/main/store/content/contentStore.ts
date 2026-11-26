@@ -1,3 +1,4 @@
+import {InTurn} from '@core/common/inTurn';
 import type {
   LibrarySong,
   ServiceEntry,
@@ -118,7 +119,7 @@ export class ContentStore {
   private readonly songs: DocumentCollection<Song>;
   private readonly services: DocumentCollection<Service>;
   private readonly templates: DocumentCollection<Template>;
-  private editing: Promise<void> = Promise.resolve();
+  private readonly editing = new InTurn();
   private currentServiceId: string | null;
   private readonly writes: ContentWritePort;
   private readonly announcements: ContentAnnouncements;
@@ -262,12 +263,7 @@ export class ContentStore {
   }
 
   private serial<T>(work: () => T | Promise<T>): Promise<T> {
-    const applied = this.editing.then(work);
-    this.editing = applied.then(
-      () => undefined,
-      () => undefined,
-    );
-    return applied;
+    return this.editing.run(work);
   }
 
   private editFailure(error: unknown): EditResult {
@@ -482,7 +478,7 @@ export class ContentStore {
 
   /** Saves every change that waits, for quitting. */
   async flush(): Promise<void> {
-    await this.editing;
+    await this.editing.idle();
     await this.writes.flushAutosave();
     await this.writes.flushPersistence();
   }

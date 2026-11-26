@@ -1,3 +1,4 @@
+import {InTurn} from '@core/common/inTurn';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import type {
   ServiceOpenRefusal,
@@ -37,14 +38,14 @@ interface ServiceSwitchOptions {
 
 /** Opens one 예배 순서 after another, in the order they were asked for. */
 class ServiceSwitches {
-  private last: Promise<void> = Promise.resolve();
+  private readonly line = new InTurn();
   private pending = 0;
 
   constructor(private readonly options: ServiceSwitchOptions) {}
 
   /** Settles once every accepted switch has ended. */
   ended(): Promise<void> {
-    return this.last;
+    return this.line.idle();
   }
 
   async open(
@@ -60,17 +61,16 @@ class ServiceSwitches {
       return refused('busy');
     }
     this.pending++;
-    const result = this.last
-      .then(() => this.switchTo(session, request))
-      .catch((error: unknown): ServiceOpenResult => {
+    return this.line.run(async (): Promise<ServiceOpenResult> => {
+      try {
+        return await this.switchTo(session, request);
+      } catch (error) {
         log.error('could not open a service', error);
         return refused('failed');
-      })
-      .finally(() => {
+      } finally {
         this.pending--;
-      });
-    this.last = result.then(() => undefined);
-    return result;
+      }
+    });
   }
 
   private async switchTo(

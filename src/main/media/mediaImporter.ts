@@ -1,3 +1,4 @@
+import {InTurn} from '@core/common/inTurn';
 import {realpath, rm, stat} from 'node:fs/promises';
 import {basename, extname, join, relative} from 'node:path';
 import type {MediaId} from '@core/schema/common/ids';
@@ -172,7 +173,8 @@ function cancelled(job: ImportJob): boolean {
  */
 export class MediaImporter {
   private readonly jobs = new Map<MediaId, ImportJob>();
-  private queue: Promise<void> = Promise.resolve();
+  /** The imports, one after another in the order they came. */
+  private readonly queue = new InTurn();
   private disposed = false;
 
   constructor(private readonly options: MediaImporterOptions) {}
@@ -272,7 +274,7 @@ export class MediaImporter {
   dispose(): Promise<void> {
     this.disposed = true;
     for (const job of this.jobs.values()) job.abort.abort();
-    return this.queue;
+    return this.queue.idle();
   }
 
   private enqueue({
@@ -312,7 +314,14 @@ export class MediaImporter {
       admitting: false,
     };
     this.jobs.set(mediaId, job);
-    this.queue = this.queue.then(() => this.run(job));
+    this.queue
+      .run(() => this.run(job))
+      .catch((error: unknown) =>
+        this.options.log.error('media import failed', {
+          file: job.source,
+          error,
+        }),
+      );
     return progress(job, 'queued', 0);
   }
 

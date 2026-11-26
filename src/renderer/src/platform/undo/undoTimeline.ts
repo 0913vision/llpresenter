@@ -1,4 +1,5 @@
 import {useSyncExternalStore} from 'react';
+import {InTurn} from '@core/common/inTurn';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {NOTHING_TO_REDO, NOTHING_TO_UNDO} from '../problemReasons';
 
@@ -65,8 +66,8 @@ class UndoTimeline {
   private redo: Entry[] = [];
   private tab: UndoTab = 'prep';
   private blockedBy: string | undefined;
-  /** The step that runs or the last one that ran; the next press waits for it. */
-  private running: Promise<unknown> = Promise.resolve();
+  /** The steps that run, one after another in the order pressed. */
+  private readonly running = new InTurn();
   private state: UndoTimelineState = {undo: 0, redo: 0, busy: false};
   private readonly listeners = new Set<() => void>();
   private readonly placeListeners = new Set<(place: UndoPlace) => void>();
@@ -159,9 +160,7 @@ class UndoTimeline {
     kind: 'undo' | 'redo',
     report: (notice: Notice) => void,
   ): Promise<boolean> {
-    const turn = this.running.then(() => this.replayNow(kind, report));
-    this.running = turn.catch(() => undefined);
-    return turn;
+    return this.running.run(() => this.replayNow(kind, report));
   }
 
   private async replayNow(

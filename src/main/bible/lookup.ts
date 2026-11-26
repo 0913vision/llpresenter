@@ -1,4 +1,5 @@
 import {BibleChapterCache} from './chapterCache';
+import {InTurn} from '@core/common/inTurn';
 import {BOOK_SUGGESTION_LIMIT, findBibleBooks, matchBooks} from '@core/bible';
 import type {SettingsReader} from '@core/schema/app/settingsReader';
 import {
@@ -61,21 +62,24 @@ export class BibleLookupSession {
   private readonly warnedFiles = new Set<string>();
   private translationsKey: string | null = null;
   private defaultTranslation: string | undefined;
-  private pending: Promise<void> = Promise.resolve();
+  /** The startup index, then the lookups, one after another. */
+  private readonly line = new InTurn();
   private waiting = 0;
   private disposed = false;
   private needsRefresh = false;
 
   constructor(private readonly options: BibleLookupOptions) {
     this.cache = options.cache ?? new BibleChapterCache();
-    this.pending = this.refresh().then(
-      () => undefined,
-      (error: unknown) => {
-        if (!this.disposed) {
-          this.options.log.warn('could not index Bible translations', error);
-        }
-      },
-    );
+    this.line
+      .run(() => this.refresh())
+      .then(
+        () => undefined,
+        (error: unknown) => {
+          if (!this.disposed) {
+            this.options.log.warn('could not index Bible translations', error);
+          }
+        },
+      );
   }
 
   lookup(
@@ -87,17 +91,13 @@ export class BibleLookupSession {
       return Promise.reject(new Error('Bible lookup is unavailable'));
     }
     this.waiting++;
-    const answer = this.pending.then(() =>
+    const answer = this.line.run(() =>
       this.resolve(request, {cacheOnly, operatorLookup}),
     );
-    this.pending = answer.then(
-      () => {
-        this.waiting--;
-      },
-      () => {
-        this.waiting--;
-      },
-    );
+    const done = (): void => {
+      this.waiting--;
+    };
+    void answer.then(done, done);
     return answer;
   }
 

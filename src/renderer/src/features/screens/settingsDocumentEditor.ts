@@ -1,3 +1,4 @@
+import {InTurn} from '@core/common/inTurn';
 import {logFailure} from '@renderer/platform/logFailure';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
@@ -23,7 +24,7 @@ export interface SettingsDocumentEditorOptions<T extends SettingsDocument> {
 /** Serializes settings changes, including queued operations in the close flush. */
 export class SettingsDocumentEditor<T extends SettingsDocument> {
   private base: T | null = null;
-  private queue: Promise<void> = Promise.resolve();
+  private readonly queue = new InTurn();
   private unsavedRevision: number | null = null;
 
   constructor(
@@ -54,14 +55,9 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
       refused: false,
       sent: applied => applied,
       write: () => {
-        const result = this.queue.then(() =>
+        return this.queue.run(() =>
           this.save(transform, completion, onApplied),
         );
-        this.queue = result.then(
-          () => undefined,
-          () => undefined,
-        );
-        return result;
       },
     });
   }

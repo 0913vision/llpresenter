@@ -1,3 +1,4 @@
+import {InTurn} from '@core/common/inTurn';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import type {EditResult} from '@core/schema/services/contentEdit';
 import {defaultPreferences} from '@core/schema/app/preferences';
@@ -34,7 +35,7 @@ const UNAVAILABLE: EditResult = {
 
 /** Renames labels one after another. */
 class LabelRenames {
-  private last: Promise<void> = Promise.resolve();
+  private readonly line = new InTurn();
 
   constructor(
     private readonly rename: (edit: LabelRename) => Promise<EditResult>,
@@ -43,21 +44,21 @@ class LabelRenames {
 
   /** Settles once every accepted rename has ended. */
   ended(): Promise<void> {
-    return this.last;
+    return this.line.idle();
   }
 
   apply(edit: LabelRename): Promise<EditResult> {
-    const result = this.last
-      .then(() => this.rename(edit))
-      .catch((error: unknown): EditResult => {
+    return this.line.run(async (): Promise<EditResult> => {
+      try {
+        return await this.rename(edit);
+      } catch (error) {
         this.log.error('could not rename a label', error);
         return {
           ok: false,
           error: {reason: 'invalid', message: 'Could not rename the label'},
         };
-      });
-    this.last = result.then(() => undefined);
-    return result;
+      }
+    });
   }
 }
 

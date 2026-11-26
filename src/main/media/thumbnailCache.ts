@@ -1,3 +1,4 @@
+import {InTurnByKey} from '@core/common/inTurn';
 import {readdir, readFile, rm, stat} from 'node:fs/promises';
 import {join} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/common/ids';
@@ -38,7 +39,8 @@ export class ThumbnailCache {
   // NOTE(0913vision): The lookups, writes, and removals of one media id run
   // one after another, so a removal can't slip between a lookup's check and
   // its answer. Only ids with work in flight are here.
-  private readonly queues = new Map<MediaId, Promise<void>>();
+  /** Work on one thumbnail runs in turn; different thumbnails do not wait. */
+  private readonly queues = new InTurnByKey<MediaId>();
   private loaded: Promise<void> | null = null;
 
   constructor(private readonly options: ThumbnailCacheOptions) {}
@@ -110,18 +112,7 @@ export class ThumbnailCache {
   }
 
   private serial<T>(mediaId: MediaId, work: () => Promise<T>): Promise<T> {
-    const previous = this.queues.get(mediaId) ?? Promise.resolve();
-    const next = previous.then(work);
-    const settled = next.then(
-      () => undefined,
-      () => undefined,
-    );
-    this.queues.set(mediaId, settled);
-    const release = (): void => {
-      if (this.queues.get(mediaId) === settled) this.queues.delete(mediaId);
-    };
-    settled.then(release, release);
-    return next;
+    return this.queues.run(mediaId, work);
   }
 
   private pathOf(mediaId: MediaId): string {

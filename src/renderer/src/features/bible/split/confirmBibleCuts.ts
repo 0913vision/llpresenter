@@ -1,3 +1,4 @@
+import {InTurnByKey} from '@core/common/inTurn';
 import type {LlpApi} from '@contracts/ipc/api';
 import {type VerseInput, entryFor, saveCuts} from '@core/bible';
 import type {
@@ -5,7 +6,8 @@ import type {
   BibleCutSelection,
 } from '@core/schema/bible/bibleCuts';
 
-const confirmations = new WeakMap<LlpApi['settings'], Promise<void>>();
+/** Confirmations of one settings channel, one after another. */
+const confirmations = new InTurnByKey<LlpApi['settings']>();
 
 /** Serializes confirmations and merges against the current settings revision. */
 export function confirmBibleCuts(
@@ -13,20 +15,7 @@ export function confirmBibleCuts(
   verse: VerseInput,
   cuts: readonly number[] | BibleCutSelection,
 ): Promise<BibleCutEntry> {
-  const previous = confirmations.get(api) ?? Promise.resolve();
-  const write = previous.then(() => saveConfirmedCuts(api, verse, cuts));
-  const settled = write.then(
-    () => undefined,
-    () => undefined,
-  );
-  confirmations.set(api, settled);
-  settled.then(
-    () => {
-      if (confirmations.get(api) === settled) confirmations.delete(api);
-    },
-    () => undefined,
-  );
-  return write;
+  return confirmations.run(api, () => saveConfirmedCuts(api, verse, cuts));
 }
 
 async function saveConfirmedCuts(

@@ -155,7 +155,10 @@ full bar is "Quality bar" in `docs/TECH.md`.
 - Validate every value from outside the process (files, IPC messages, the
   clipboard, media metadata) with a schema before you use it.
 - The main process owns the live output state. Windows hold copies only and
-  change it by sending commands to the main process.
+  change it by sending commands to the main process. A press that turns
+  something on or off, or that may have nothing to do, is sent every time as a
+  command main decides from its own state (`output.toggle`, `item.toggle`); a
+  window's copy can be one press behind.
 - Write files atomically: write a temporary file, flush it, then rename it.
   Preserve unknown fields.
 - An exception in the output path (output windows, live state handling) must
@@ -164,6 +167,8 @@ full bar is "Quality bar" in `docs/TECH.md`.
   - A value the main process keeps and pushes (a list, a status): follow it with
     `followLatest` (`src/core/common/followLatest.ts`), which drops a first read
     that answers after a newer push.
+  - Work that must run one after another, none dropped and none overtaking:
+    `InTurn` or, one line per key, `InTurnByKey` (`src/core/common/inTurn.ts`).
   - A failure in a window: `logFailure` (`src/renderer/src/platform`), or, in
     the `ui`, `rendering`, and `output` layers, `rendererErrorEntry`
     (`src/core/schema/app/ipcPayloads.ts`), which cuts the line to the lengths
