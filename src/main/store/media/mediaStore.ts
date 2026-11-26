@@ -241,23 +241,29 @@ export class MediaStore implements MediaLibrary {
   }
 
   /**
-   * Brings back a removed item by its record, with its id, name, settings and
-   * playlist places, as when its file is in the media folder again; null when
-   * the list keeps no record of it.
+   * Brings back removed items by their records, in the order given, with their
+   * ids, names, settings and playlist places, as when their files are in the
+   * media folder again: one change and one save for all of them, as `retire`
+   * takes them out. Null when the list keeps no record of any of them.
    */
-  revive(mediaId: MediaId): Promise<MediaEditResult> | null {
-    const record = this.document.value.removed?.find(
-      row => row.item.id === mediaId,
-    );
-    if (record === undefined) return null;
+  revive(mediaIds: readonly MediaId[]): Promise<MediaEditResult> | null {
+    const removed = this.document.value.removed ?? [];
+    const records = mediaIds.flatMap(id => {
+      const record = removed.find(row => row.item.id === id);
+      return record === undefined ? [] : [record];
+    });
+    const first = records[0];
+    if (first === undefined) return null;
     return this.safely(() => {
       const refusal = this.refusal(undefined);
       if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
-      const value = withoutRecord(this.document.value, record.item.id);
-      const change = undoMediaDeletion(value, {kind: 'item', ...record});
-      return change.ok
-        ? this.commit(change.value, true)
-        : this.commit({id: record.item.id, value}, true);
+      let value = this.document.value;
+      for (const record of records) {
+        const without = withoutRecord(value, record.item.id);
+        const change = undoMediaDeletion(without, {kind: 'item', ...record});
+        value = change.ok ? change.value.value : without;
+      }
+      return this.commit({id: first.item.id, value}, true);
     });
   }
 

@@ -84,9 +84,10 @@ function mockStore(
       }
       return done();
     }),
-    revive: vi.fn((id: MediaId) => {
-      if (!records.delete(fileOf(id))) return null;
-      shown.add(id);
+    revive: vi.fn((ids: readonly MediaId[]) => {
+      const back = ids.filter(id => records.delete(fileOf(id)));
+      if (back.length === 0) return null;
+      for (const id of back) shown.add(id);
       return done();
     }),
     removedFiles: () => records,
@@ -129,7 +130,7 @@ it('takes an item whose file left the folder out of the list, and brings it back
 
   await rename(join(away, 'video.webm'), join(folder, 'video.webm'));
   await sync.sync();
-  expect(store.revive).toHaveBeenCalledExactlyOnceWith(VIDEO);
+  expect(store.revive).toHaveBeenCalledExactlyOnceWith([VIDEO]);
   expect(listedIds(store)).toEqual([VIDEO, IMAGE]);
 });
 
@@ -267,7 +268,7 @@ it('brings items back newest first, so items that left one after another come ba
     await rename(join(away, name), join(folder, name));
   }
   await sync.sync();
-  expect(store.revive.mock.calls.map(([id]) => id)).toEqual([VIDEO, IMAGE]);
+  expect(store.revive.mock.calls).toEqual([[[VIDEO, IMAGE]]]);
 });
 
 it('brings back a file that was just put into the list, left and came back, without waiting for the import to time out', async () => {
@@ -281,7 +282,7 @@ it('brings back a file that was just put into the list, left and came back, with
   expect(store.retire).toHaveBeenCalledExactlyOnceWith([VIDEO]);
   await rename(join(away, 'video.webm'), join(folder, 'video.webm'));
   await sync.sync();
-  expect(store.revive).toHaveBeenCalledExactlyOnceWith(VIDEO);
+  expect(store.revive).toHaveBeenCalledExactlyOnceWith([VIDEO]);
 });
 
 it('reads the folder again at once on 새로 고침, hearing it anew', async () => {

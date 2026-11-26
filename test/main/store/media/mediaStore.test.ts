@@ -336,7 +336,7 @@ describe('media list edits and saves', () => {
     expect(store.get().value.playlists[0]?.items).toEqual([IMAGE]);
     expect(store.get().value.removed).toHaveLength(2);
     expect(store.removedFiles().get(resolve(FOLDER, 'video.webm'))).toBe(VIDEO);
-    const revived = store.revive(VIDEO);
+    const revived = store.revive([VIDEO]);
     if (revived === null) throw new Error('No record of the video');
     expect((await saved(revived)).ok).toBe(true);
     expect(store.get().value.items.find(item => item.id === VIDEO)).toEqual(
@@ -344,8 +344,24 @@ describe('media list edits and saves', () => {
     );
     expect(store.get().value.playlists[0]?.items).toEqual([VIDEO, IMAGE]);
     expect(store.get().value.removed?.map(row => row.item.id)).toEqual([AUDIO]);
-    expect(store.revive(IMAGE)).toBeNull();
+    expect(store.revive([IMAGE])).toBeNull();
     expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(false);
+  });
+
+  it('brings back several removed items in one change, in the order given, so a folder that came back is one save', async () => {
+    const {store} = setup();
+    const original = store.get().value;
+    expect((await saved(store.retire([VIDEO]))).ok).toBe(true);
+    expect((await saved(store.retire([AUDIO]))).ok).toBe(true);
+    const revision = store.get().revision;
+    const revived = store.revive([AUDIO, VIDEO]);
+    if (revived === null) throw new Error('No records');
+    expect((await saved(revived)).ok).toBe(true);
+    expect(store.get().revision).toBe(revision + 1);
+    expect(store.get().value.items.map(item => item.id)).toEqual(
+      original.items.map(item => item.id),
+    );
+    expect(store.get().value.removed ?? []).toEqual([]);
   });
 
   it('restores a deletion without overwriting a later edit to another media item', async () => {

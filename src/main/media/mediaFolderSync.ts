@@ -45,7 +45,7 @@ export interface FolderSyncStore {
   readonly folder: string;
   fileOf(mediaId: string): string | null;
   retire(mediaIds: readonly MediaId[]): Promise<MediaEditResult>;
-  revive(mediaId: MediaId): Promise<MediaEditResult> | null;
+  revive(mediaIds: readonly MediaId[]): Promise<MediaEditResult> | null;
   removedFiles(): ReadonlyMap<string, MediaId>;
   holdsDeleted(file: string): boolean;
 }
@@ -330,19 +330,19 @@ export class MediaFolderSync {
   }
 
   /**
-   * Brings back the items of records whose files came back. Records are kept
-   * oldest first, each with its place in the list as it was when it left;
-   * bringing them back newest first undoes the removals in reverse, so items
-   * that left together come back in their order.
+   * Brings back the items of records whose files came back, in one change.
+   * Records are kept oldest first, each with its place in the list as it was
+   * when it left; bringing them back newest first undoes the removals in
+   * reverse, so items that left together come back in their order.
    */
   private async reviveInOrder(
     revive: ReadonlyArray<{readonly id: MediaId; readonly order: number}>,
   ): Promise<void> {
+    if (revive.length === 0) return;
     const {store, log} = this.options;
-    for (const {id} of [...revive].sort((a, b) => b.order - a.order)) {
-      const revived = store.revive(id);
-      if (revived !== null) await logged(revived, log);
-    }
+    const ids = [...revive].sort((a, b) => b.order - a.order).map(({id}) => id);
+    const revived = store.revive(ids);
+    if (revived !== null) await logged(revived, log);
   }
 
   /** The files of the items in the list, as Windows compares them. */
