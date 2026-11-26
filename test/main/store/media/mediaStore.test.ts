@@ -335,7 +335,8 @@ describe('media list edits and saves', () => {
     expect(store.get().value.items.map(item => item.id)).toEqual([IMAGE]);
     expect(store.get().value.playlists[0]?.items).toEqual([IMAGE]);
     expect(store.get().value.removed).toHaveLength(2);
-    const revived = store.revive(resolve(FOLDER, 'video.webm'));
+    expect(store.removedFiles().get(resolve(FOLDER, 'video.webm'))).toBe(VIDEO);
+    const revived = store.revive(VIDEO);
     if (revived === null) throw new Error('No record of the video');
     expect((await saved(revived)).ok).toBe(true);
     expect(store.get().value.items.find(item => item.id === VIDEO)).toEqual(
@@ -343,7 +344,7 @@ describe('media list edits and saves', () => {
     );
     expect(store.get().value.playlists[0]?.items).toEqual([VIDEO, IMAGE]);
     expect(store.get().value.removed?.map(row => row.item.id)).toEqual([AUDIO]);
-    expect(store.revive(resolve(FOLDER, 'other.png'))).toBeNull();
+    expect(store.revive(IMAGE)).toBeNull();
     expect((await apply(store, {type: 'media.undoDelete'})).ok).toBe(false);
   });
 

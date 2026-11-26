@@ -143,6 +143,10 @@ async function mediaStore(): Promise<MediaBackendStore> {
         ok: true,
         value: {id: commit.items[0]?.id ?? '', revision: 2},
       }),
+    retire: () => Promise.resolve({ok: true, value: null}),
+    revive: () => null,
+    removedFiles: () => new Map(),
+    holdsDeleted: () => false,
   };
 }
 

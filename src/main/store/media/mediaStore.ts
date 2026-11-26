@@ -241,12 +241,13 @@ export class MediaStore implements MediaLibrary {
   }
 
   /**
-   * Brings back the item whose record names this file of the media folder,
-   * with its id, name, settings and playlist places; null when no record does.
+   * Brings back a removed item by its record, with its id, name, settings and
+   * playlist places, as when its file is in the media folder again; null when
+   * the list keeps no record of it.
    */
-  revive(file: string): Promise<MediaEditResult> | null {
+  revive(mediaId: MediaId): Promise<MediaEditResult> | null {
     const record = this.document.value.removed?.find(
-      row => this.recordFile(row) === file,
+      row => row.item.id === mediaId,
     );
     if (record === undefined) return null;
     return this.safely(() => {
@@ -258,6 +259,21 @@ export class MediaStore implements MediaLibrary {
         ? this.commit(change.value, true)
         : this.commit({id: record.item.id, value}, true);
     });
+  }
+
+  /** The absolute file of each removed item the list keeps a record of. */
+  removedFiles(): ReadonlyMap<string, MediaId> {
+    return new Map(
+      (this.document.value.removed ?? []).map(row => [
+        this.recordFile(row),
+        row.item.id,
+      ]),
+    );
+  }
+
+  /** Whether a deleted item's file waits in its place for the 휴지통. */
+  holdsDeleted(file: string): boolean {
+    return this.options.held?.holds(file) ?? false;
   }
 
   /** The absolute file of a removed item's record. */

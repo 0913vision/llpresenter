@@ -17,11 +17,14 @@ import {MediaImporter, type ImportStore} from './mediaImporter';
 import {mediaDialogFilters, type MediaKind} from './mediaKinds';
 import {MediaRelinker, type RelinkStore} from './mediaRelinker';
 import {MissingFiles, type MissingFilesSource} from './missingFiles';
+import {MediaFolderSync, type FolderSyncStore} from './mediaFolderSync';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 
 /** What the media backend uses of the media store. */
 export type MediaBackendStore = ImportStore &
   RelinkStore &
-  MissingFilesSource & {
+  MissingFilesSource &
+  FolderSyncStore & {
     /** The folders media files may come from; 파일 위치 열기 stays inside them. */
     readonly roots: readonly string[];
   };
@@ -142,6 +145,55 @@ function watchMissingFiles(
   return () => missing;
 }
 
+/**
+ * Keeps the 미디어 list to the files of the media folder (USER Nov 26): new
+ * files join it as imports of files already in the folder do.
+ *
+ * @returns A function that stops following the folder.
+ */
+function followMediaFolder(
+  {media, log}: MediaBackendRegistration,
+  importer: MediaImporter,
+): () => void {
+  let sync: MediaFolderSync | null = null;
+  let stopped = false;
+  const adopting = new AbortController();
+  media.then(
+    store => {
+      if (stopped || store === null) return;
+      sync = new MediaFolderSync({
+        store,
+        log,
+        adopt: async files => {
+          for (let at = 0; at < files.length; at += MEDIA_LIMITS.importBatch) {
+            await importer.import(
+              {
+                source: {
+                  kind: 'files',
+                  paths: files.slice(at, at + MEDIA_LIMITS.importBatch),
+                },
+                playlist: null,
+              },
+              adopting.signal,
+            );
+          }
+        },
+      });
+      sync.start();
+    },
+    (error: unknown) => {
+      log.error('could not follow the media folder', error);
+    },
+  );
+  return () => {
+    stopped = true;
+    adopting.abort();
+    sync?.dispose().catch((error: unknown) => {
+      log.warn('could not stop following the media folder', error);
+    });
+  };
+}
+
 // NOTE(0913vision): A window names only a media id, and the file must be
 // inside the media folders after links are followed, as the media scheme
 // checks, so 파일 위치 열기 can't open any other path.
@@ -210,6 +262,8 @@ export function registerMediaBackend(
       defaultPreferences.media.defaults,
   });
   const missing = watchMissingFiles(options, ipc);
+  const stopFolderSync = followMediaFolder(options, importer);
+  ipc.whenClosed(stopFolderSync);
   const stopMissingLive = options.live?.connectMissingMedia(
     mediaId => missing()?.isMissing(mediaId) ?? false,
   );
