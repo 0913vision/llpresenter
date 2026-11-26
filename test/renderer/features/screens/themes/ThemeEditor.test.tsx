@@ -147,6 +147,52 @@ describe('elements', () => {
     expect(save().getAttribute('aria-disabled')).toBe('true');
   });
 
+  it('keeps the 긴 글 settings of a text as typed and saves them', async () => {
+    const {user, saved} = await setup();
+    await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));
+    await user.click(elementRow('가사'));
+    const steps = properties().getByRole('textbox', {name: '크기 단계'});
+    await user.click(steps);
+    await user.clear(steps);
+    await user.type(steps, '60, 80, 70, 80{Enter}');
+    expect(steps).toHaveProperty('value', '80, 70, 60');
+    await user.click(properties().getByRole('checkbox', {name: '최대 줄 수'}));
+    const balance = properties().getByRole('checkbox', {name: '줄 고르게'});
+    const balanced =
+      balance instanceof HTMLInputElement
+        ? balance.checked
+        : balance.getAttribute('aria-checked') === 'true';
+    await user.click(balance);
+    await overwrite(user);
+    await waitFor(() => {
+      const layout = saved(BUILT_IN_THEME_IDS.lyrics)?.screens.audience;
+      const text =
+        layout?.mode === 'own'
+          ? layout.elements.find(element => element.kind === 'text')
+          : undefined;
+      expect(text).toMatchObject({fit: {sizes: [80, 70, 60], rows: 2}});
+      expect(text?.kind === 'text' ? text.wrap : undefined).toBe(
+        balanced ? undefined : 'balance',
+      );
+    });
+  });
+
+  it('takes a 긴 글 setting away again, leaving nothing to save', async () => {
+    const {user} = await setup();
+    await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));
+    await user.click(elementRow('가사'));
+    const rows = () => properties().getByRole('checkbox', {name: '최대 줄 수'});
+    await user.click(rows());
+    expect(
+      properties().getByRole('spinbutton', {name: '최대 줄 수'}),
+    ).toBeTruthy();
+    await user.click(rows());
+    expect(
+      properties().queryByRole('spinbutton', {name: '최대 줄 수'}),
+    ).toBeNull();
+    expect(save().getAttribute('aria-disabled')).toBe('true');
+  });
+
   it('steps back through the changes that are not saved', async () => {
     const {user} = await setup();
     await user.click(themeRow(BUILT_IN_THEME_IDS.lyrics));
