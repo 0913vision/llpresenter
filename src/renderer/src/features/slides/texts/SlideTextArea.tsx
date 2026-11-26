@@ -1,4 +1,10 @@
-import {useLayoutEffect, useRef, type JSX, type KeyboardEvent} from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  type JSX,
+  type KeyboardEvent,
+  type RefObject,
+} from 'react';
 import {SLIDE_LIMITS} from '@core/schema/slides/slide';
 import type {ShowTile} from '@core/schema/services/showService';
 import type {ThemeFile} from '@core/schema/screens/theme';
@@ -11,6 +17,7 @@ import {
 } from '@core/slides';
 import {classNames} from '@renderer/ui/classNames';
 import {isComposing} from '@renderer/ui/fields/ime';
+import {useTypedValue} from '@renderer/ui/fields/typedValue';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import field from '@renderer/ui/fields/TextField.module.css';
 import {clearTextFocus, focusSlides, useTextFocus} from '../deckSelection';
@@ -27,10 +34,10 @@ export interface SlideBox {
 
 /** Takes the caret when an edit of the list puts it into this text. */
 function useWantedCaret(
+  input: RefObject<HTMLTextAreaElement | null>,
   {tile: {slide}, box}: SlideBox,
   inList: boolean,
-): (node: HTMLTextAreaElement | null) => void {
-  const input = useRef<HTMLTextAreaElement | null>(null);
+): void {
   const focus = useTextFocus();
   const wanted =
     inList && focus?.id === slide.id && focus.box === box ? focus : null;
@@ -40,10 +47,7 @@ function useWantedCaret(
     node.focus({preventScroll: true});
     node.setSelectionRange(wanted.at, wanted.at);
     clearTextFocus();
-  }, [wanted]);
-  return node => {
-    input.current = node;
-  };
+  }, [input, wanted]);
 }
 
 /** The text of one box of a slide, or the text its slide before shows. */
@@ -66,7 +70,9 @@ export function SlideTextArea({
   const value = ownText(slide, box);
   const many = takesManyRows(theme, box);
   const readOnly = deck.readOnly || locked;
-  const caret = useWantedCaret(place, inList);
+  const input = useRef<HTMLTextAreaElement>(null);
+  useWantedCaret(input, place, inList);
+  const shown = useTypedValue(input, value);
   const set = (text: string): void => {
     const own = many ? text : text.replace(/\s*\n\s*/gu, ' ');
     deck.edit(
@@ -95,7 +101,7 @@ export function SlideTextArea({
   };
   return (
     <textarea
-      ref={caret}
+      ref={input}
       id={id}
       data-slide-field={slide.id}
       data-slide-box={box}
@@ -103,12 +109,14 @@ export function SlideTextArea({
       className={classNames(field.textarea, styles.input)}
       rows={many ? Math.max(1, value.split('\n').length) : 1}
       maxLength={SLIDE_LIMITS.text}
-      value={value}
+      defaultValue={shown.initial}
       placeholder={filledText(theme, tile, box)}
       readOnly={readOnly}
       spellCheck={false}
       onChange={event => {
-        if (!readOnly) set(event.currentTarget.value);
+        if (readOnly) return;
+        set(event.currentTarget.value);
+        shown.typed(event.currentTarget.value);
       }}
       onKeyDown={keyDown}
     />

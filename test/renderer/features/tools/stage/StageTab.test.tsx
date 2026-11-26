@@ -15,6 +15,7 @@ import {
   stageFixture,
   TIMER_ID,
 } from '@fixtures/renderer/features/tools/stageTesting';
+import {fieldValue} from '@fixtures/renderer/ui/fieldValue';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -145,7 +146,7 @@ describe('stage tool', () => {
     fireEvent.change(input, {target: {value: '아직 준비 중'}});
     act(() => fixture.live({stageMessage: '후렴 한 번 더'}));
     expect(screen.getByText('LIVE')).toBeTruthy();
-    expect(input.getAttribute('value')).toBe('아직 준비 중');
+    expect(fieldValue(input)).toBe('아직 준비 중');
     fireEvent.click(screen.getByRole('button', {name: '지우기'}));
     expect(fixture.send).toHaveBeenLastCalledWith({
       type: 'stage.message.set',
@@ -158,7 +159,7 @@ describe('stage tool', () => {
         .getByRole('button', {name: '지우기'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
-    expect(input.getAttribute('value')).toBe('아직 준비 중');
+    expect(fieldValue(input)).toBe('아직 준비 중');
   });
 
   it('disables sends when the stage screen disappears', async () => {

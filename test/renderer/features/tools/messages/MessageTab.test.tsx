@@ -20,6 +20,7 @@ import {
 import {useShowToolTab} from '@renderer/features/tools/showToolTab';
 import {MessageTab} from '@renderer/features/tools/messages/MessageTab';
 import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
+import {fieldValue} from '@fixtures/renderer/ui/fieldValue';
 
 const first = {
   id: '00000000-0000-4000-8000-000000000021',
@@ -196,9 +197,7 @@ it('loads stored defaults, offers every duration, and resets the draft when swit
     );
   }
   fireEvent.click(screen.getByRole('option', {name: '차량 이동'}));
-  expect(
-    screen.getByRole('textbox', {name: '차량 번호'}).getAttribute('value'),
-  ).toBe('');
+  expect(fieldValue(screen.getByRole('textbox', {name: '차량 번호'}))).toBe('');
   expect(
     screen
       .getByRole('button', {name: '모든 화면'})
@@ -224,9 +223,7 @@ it('keeps a draft on unrelated pushes, resets changed defaults, and follows temp
       .getAttribute('aria-pressed'),
   ).toBe('true');
   fixture.pushMessages([{...first, duration: 30}, second], 3);
-  expect(
-    screen.getByRole('textbox', {name: '차량 번호'}).getAttribute('value'),
-  ).toBe('');
+  expect(fieldValue(screen.getByRole('textbox', {name: '차량 번호'}))).toBe('');
   expect(
     screen.getByRole('button', {name: '메시지 표시 시간'}).textContent,
   ).toBe('30초');

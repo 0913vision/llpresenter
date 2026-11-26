@@ -1,6 +1,12 @@
-import type {ComponentPropsWithRef, JSX} from 'react';
+import {
+  useImperativeHandle,
+  useRef,
+  type ComponentPropsWithRef,
+  type JSX,
+} from 'react';
 import {classNames} from '../classNames';
 import {useFieldReason} from './fieldFrame';
+import {useTypedValue} from './typedValue';
 import {titleTooltip, useTooltip, withTooltipProps} from '../popups/Tooltip';
 import styles from './TextField.module.css';
 
@@ -21,6 +27,7 @@ export interface TextAreaProps extends Omit<
  * scrolls inside past eight lines.
  */
 export function TextArea({
+  ref: externalRef,
   value,
   onChange,
   invalid = false,
@@ -37,6 +44,13 @@ export function TextArea({
     title,
   });
   const {targetProps, tooltip} = useTooltip(titleTooltip(reason.tooltip));
+  const box = useRef<HTMLTextAreaElement>(null);
+  useImperativeHandle<HTMLTextAreaElement | null, HTMLTextAreaElement | null>(
+    externalRef,
+    () => box.current,
+    [],
+  );
+  const shown = useTypedValue(box, value);
   return (
     <>
       <textarea
@@ -45,10 +59,14 @@ export function TextArea({
           {...rest, 'aria-describedby': reason.describedBy},
           targetProps,
         )}
-        value={value}
+        ref={box}
+        defaultValue={shown.initial}
         aria-invalid={invalid ? true : undefined}
         className={classNames(styles.textarea, className)}
-        onChange={event => onChange(event.target.value)}
+        onChange={event => {
+          onChange(event.target.value);
+          shown.typed(event.target.value);
+        }}
       />
       {reason.element}
       {tooltip}

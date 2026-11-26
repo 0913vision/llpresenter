@@ -307,3 +307,19 @@ describe('TextField typed text', () => {
     expect(input.value).toBe('3');
   });
 });
+
+describe('TextArea typed text', () => {
+  it('keeps what was just typed when a render with the older value lands before its change is heard', () => {
+    const onChange = vi.fn();
+    const {rerender} = render(
+      <TextArea aria-label="메모" value="날마다" onChange={onChange} />,
+    );
+    const box = screen.getByRole('textbox', {name: '메모'});
+    if (!(box instanceof HTMLTextAreaElement)) throw new Error('no box');
+    box.value = '날마다 숨';
+    rerender(<TextArea aria-label="메모" value="날마다" onChange={onChange} />);
+    expect(box.value).toBe('날마다 숨');
+    rerender(<TextArea aria-label="메모" value="" onChange={onChange} />);
+    expect(box.value).toBe('');
+  });
+});

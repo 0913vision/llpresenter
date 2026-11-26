@@ -14,6 +14,7 @@ import {stageFixture} from '@fixtures/renderer/features/tools/stageTesting';
 import {MacroPanel} from '@renderer/features/tools/macros/MacroPanel';
 import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import type {EditResult} from '@core/schema/services/contentEdit';
+import {fieldValue} from '@fixtures/renderer/ui/fieldValue';
 
 const first = {
   id: '00000000-0000-4000-8000-000000000002',
@@ -115,7 +116,7 @@ it('adds and selects a collection before main answers without starting rename', 
   fireEvent.click(screen.getByRole('menuitem', {name: '이름 바꾸기'}));
   const field = await screen.findByRole('textbox', {name: '모음 이름'});
   expect(document.activeElement).toBe(field);
-  expect(field.getAttribute('value')).toBe('새 모음');
+  expect(fieldValue(field)).toBe('새 모음');
   expect(field.closest('[role="option"]')?.getAttribute('aria-selected')).toBe(
     'true',
   );

@@ -30,6 +30,7 @@ import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import * as labelMenus from '@renderer/features/labels/labelMenuEntries';
 import {useThemes} from '@renderer/platform/documents/themes';
 import {themes, themeScreens} from '@fixtures/core/themeOutput';
+import {fieldValue} from '@fixtures/renderer/ui/fieldValue';
 
 const source: TextImportSource = {
   source: 'file',
@@ -208,9 +209,9 @@ describe('text import dialog', () => {
     ).toBeNull();
     fireEvent.scroll(viewport, {target: {scrollTop: 19999}});
     expect(
-      within(dialog)
-        .getByRole('textbox', {name: '[Header 19998] 이름표'})
-        .getAttribute('value'),
+      fieldValue(
+        within(dialog).getByRole('textbox', {name: '[Header 19998] 이름표'}),
+      ),
     ).toBe('Last choice');
     expect(within(dialog).getAllByRole('textbox').length).toBeLessThan(20);
     fireEvent.click(within(dialog).getByRole('button', {name: '적용'}));
@@ -323,11 +324,11 @@ describe('text import dialog', () => {
       />,
     );
     const dialog = await screen.findByRole('dialog', {name: '이름표 맞추기'});
-    expect(
-      within(dialog)
-        .getAllByRole('textbox')
-        .map(field => field.getAttribute('value')),
-    ).toEqual(['후렴', '후렴', 'Tag']);
+    expect(within(dialog).getAllByRole('textbox').map(fieldValue)).toEqual([
+      '후렴',
+      '후렴',
+      'Tag',
+    ]);
     expect(within(dialog).getAllByRole('row')).toHaveLength(4);
     expect(within(dialog).getByText('First')).toBeTruthy();
     expect(within(dialog).queryByText('Third')).toBeNull();
@@ -360,7 +361,7 @@ describe('text import dialog', () => {
     await userEvent.click(field);
     expect(screen.getByRole('menu', {name: '[Tag] 이름표'})).toBeTruthy();
     await userEvent.keyboard('직접 입력');
-    expect(field.getAttribute('value')).toBe('직접 입력');
+    expect(fieldValue(field)).toBe('직접 입력');
     expect(screen.queryByRole('menu')).toBeNull();
     await userEvent.click(within(dialog).getByRole('button', {name: '적용'}));
     expect(
@@ -377,9 +378,7 @@ describe('text import dialog', () => {
     fireEvent.click(screen.getByRole('checkbox', {name: '이름표 인식'}));
     const reopened = await screen.findByRole('dialog', {name: '이름표 맞추기'});
     expect(
-      within(reopened)
-        .getByRole('textbox', {name: '[Tag] 이름표'})
-        .getAttribute('value'),
+      fieldValue(within(reopened).getByRole('textbox', {name: '[Tag] 이름표'})),
     ).toBe('직접 입력');
     await userEvent.click(within(reopened).getByRole('button', {name: '적용'}));
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
@@ -434,9 +433,9 @@ describe('text import dialog', () => {
     ).toBe('true');
     await userEvent.click(screen.getByRole('menuitemradio', {name: '1절'}));
     expect(
-      within(dialog)
-        .getByRole('textbox', {name: '[Chrous] 이름표'})
-        .getAttribute('value'),
+      fieldValue(
+        within(dialog).getByRole('textbox', {name: '[Chrous] 이름표'}),
+      ),
     ).toBe('1절');
     await userEvent.click(
       within(dialog).getByRole('button', {name: '[Tag] 이름표 목록'}),
@@ -445,9 +444,7 @@ describe('text import dialog', () => {
       screen.getByRole('menuitemradio', {name: '이름표 없음'}),
     );
     expect(
-      within(dialog)
-        .getByRole('textbox', {name: '[Tag] 이름표'})
-        .getAttribute('value'),
+      fieldValue(within(dialog).getByRole('textbox', {name: '[Tag] 이름표'})),
     ).toBe('');
     expect(within(dialog).queryByText('새 이름표')).toBeNull();
     await userEvent.click(within(dialog).getByRole('button', {name: '적용'}));

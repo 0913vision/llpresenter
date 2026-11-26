@@ -32,6 +32,7 @@ import {
   MAIN_ID,
   screensDocument,
 } from '@fixtures/core/screenDocuments';
+import {fieldValue} from '@fixtures/renderer/ui/fieldValue';
 
 const monitors: MonitorList = [
   {
@@ -138,7 +139,7 @@ describe('the screen properties', () => {
     ).toBe('#000000');
     act(() => useScreensSelection.getState().select(CAPTIONS_ID));
     const color = await screen.findByRole('textbox', {name: '빈 화면 색'});
-    expect(color.getAttribute('value')).toBe('#00B140');
+    expect(fieldValue(color)).toBe('#00B140');
     await userEvent.clear(color);
     await userEvent.type(color, '#123456{Enter}');
     await waitFor(() =>
