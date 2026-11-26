@@ -52,8 +52,7 @@ function BoundAudioShortcuts({
             active: audio?.playback?.source,
             missingFiles: missing,
           }).some(track => !track.missing);
-        const command = audioPlayCommand({audio, selected, playable});
-        if (command !== null) api?.live.send(command);
+        api?.live.send(audioPlayCommand({selected, playable}));
       },
     },
     ...(['next', 'previous', 'fadeOut'] as const).map(action => ({

@@ -78,6 +78,26 @@ function setup(extraTimers: readonly object[] = []) {
 }
 
 describe('timer slice', () => {
+  it('turns a 타이머 the other way from where main has it on each toggle, so quick presses all count', () => {
+    const {store} = setup();
+    const toggle = (off: 'pause' | 'reset'): string => {
+      const parsed = parseLiveCommand({
+        type: 'timer.toggle',
+        timerId: SERMON,
+        off,
+      });
+      if (!parsed.ok) throw new Error(JSON.stringify(parsed.error));
+      store.dispatch(parsed.value);
+      return runOf(store, SERMON)?.state ?? 'stopped';
+    };
+    expect([toggle('pause'), toggle('pause'), toggle('pause')]).toEqual([
+      'running',
+      'paused',
+      'running',
+    ]);
+    expect([toggle('reset'), toggle('reset')]).toEqual(['stopped', 'running']);
+  });
+
   it('starts, pauses with the counted time, and resumes from it on its first day', () => {
     const {store, advance, timer, wall} = setup();
     const day = localDay(WALL_START);

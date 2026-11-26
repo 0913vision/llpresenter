@@ -40,7 +40,11 @@ it('starts, pauses and resets one timer without commanding another', async () =>
   await screen.findByRole('group', {name: '설교'});
   expect(group().textContent).toContain('0:30');
   fireEvent.click(within(group()).getByRole('button', {name: '시작'}));
-  expect(f.send).toHaveBeenLastCalledWith({type: 'timer.start', timerId: id});
+  expect(f.send).toHaveBeenLastCalledWith({
+    type: 'timer.toggle',
+    timerId: id,
+    off: 'pause',
+  });
   act(() =>
     f.live({
       timers: {
@@ -56,7 +60,11 @@ it('starts, pauses and resets one timer without commanding another', async () =>
   fireEvent.click(
     await within(group()).findByRole('button', {name: '일시 정지'}),
   );
-  expect(f.send).toHaveBeenLastCalledWith({type: 'timer.pause', timerId: id});
+  expect(f.send).toHaveBeenLastCalledWith({
+    type: 'timer.toggle',
+    timerId: id,
+    off: 'pause',
+  });
   act(() =>
     f.live({
       timers: {
@@ -193,7 +201,8 @@ it('keeps a new start disabled at the live cap while allowing an existing paused
   );
   fireEvent.click(start);
   expect(f.send).toHaveBeenCalledExactlyOnceWith({
-    type: 'timer.start',
+    type: 'timer.toggle',
     timerId: id,
+    off: 'pause',
   });
 });

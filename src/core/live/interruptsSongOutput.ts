@@ -21,6 +21,9 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'media.properties.refresh':
     case 'output.set':
     case 'output.toggle':
+    case 'prop.toggle':
+    case 'timer.toggle':
+    case 'audio.toggle':
     case 'black.toggle':
     case 'slide.update':
     case 'stage.timer.set':

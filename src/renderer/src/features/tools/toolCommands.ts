@@ -1,6 +1,5 @@
 import {type PropId} from '@core/schema/common/ids';
 import type {Timer} from '@core/schema/tools/timers';
-import {MAX_LIVE_TIMERS} from '@core/schema/tools/timerState';
 import {sendLive, useLive} from '@renderer/session/live';
 
 /** Takes the text off the 무대 screens, if one is shown. */
@@ -10,33 +9,24 @@ export function hideStageMessage(): void {
   }
 }
 
-/** Shows the 그래픽 `propId` if it is off air, and hides it if it is on. */
+/**
+ * Shows the 그래픽 `propId` if it is off air, and hides it if it is on, as
+ * main has it, so a press made before the window hears the one before counts.
+ */
 export function toggleProp(propId: PropId): void {
-  const current = useLive.getState().state?.layers.prop;
-  const on = current?.items
-    ? current.items.some(item => item.propId === propId)
-    : current?.propId === propId;
-  sendLive({type: 'prop.set', propId, on: !on});
+  sendLive({type: 'prop.toggle', propId});
 }
 
 /**
- * Pauses a running 타이머 or starts one that is not running; clocks do nothing,
- * and so does a start when as many timers run as may.
+ * Pauses a running 타이머 or starts one that is not running, as main has it;
+ * clocks do nothing, and main starts none when as many timers run as may.
  */
 export function toggleTimer(
   timer: Timer,
   send: typeof sendLive = sendLive,
 ): void {
   if (timer.kind === 'clock') return;
-  const timers = useLive.getState().state?.timers ?? {};
-  const run = timers[timer.id];
-  if (run === undefined && Object.keys(timers).length >= MAX_LIVE_TIMERS) {
-    return;
-  }
-  send({
-    type: run?.state === 'running' ? 'timer.pause' : 'timer.start',
-    timerId: timer.id,
-  });
+  send({type: 'timer.toggle', timerId: timer.id, off: 'pause'});
 }
 
 /** Resets a 타이머 that has a run, not a clock. */

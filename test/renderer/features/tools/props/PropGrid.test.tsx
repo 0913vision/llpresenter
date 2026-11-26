@@ -62,12 +62,12 @@ it('shows prop contents and activates tiles with keyboard and mouse', () => {
   fireEvent.keyUp(firstTile, {key: 'Enter'});
   fireEvent.click(screen.getByRole('option', {name: '로고'}));
   expect(fixture.send.mock.calls.map(([command]) => command)).toEqual([
-    {type: 'prop.set', propId: first, on: true},
-    {type: 'prop.set', propId: second, on: true},
+    {type: 'prop.toggle', propId: first},
+    {type: 'prop.toggle', propId: second},
   ]);
 });
 
-it('reflects live state and reads the latest state when toggled', () => {
+it('reflects the live state and leaves turning the 그래픽 the other way to main', () => {
   const fixture = stageFixture();
   render(<PropGrid props={props} screens={[]} />);
   const state = useLive.getState().state;
@@ -81,9 +81,8 @@ it('reflects live state and reads the latest state when toggled', () => {
   expect(tile.getAttribute('data-state')).toContain('live');
   fireEvent.click(tile);
   expect(fixture.send.mock.calls[0]?.[0]).toEqual({
-    type: 'prop.set',
+    type: 'prop.toggle',
     propId: first,
-    on: false,
   });
 });
 
@@ -106,9 +105,8 @@ it('marks a 그래픽 whose image left the library and shows it only to take it 
   });
   fireEvent.click(tile);
   expect(fixture.send.mock.calls[0]?.[0]).toEqual({
-    type: 'prop.set',
+    type: 'prop.toggle',
     propId: second,
-    on: false,
   });
 });
 

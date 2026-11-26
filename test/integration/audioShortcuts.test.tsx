@@ -65,7 +65,9 @@ it('controls audio from the stage tab with default, removed and reassigned keys'
   expect(screen.queryByRole('button', {name: '일시 정지'})).toBeNull();
   const altP = {code: 'KeyP', key: 'p', altKey: true};
   fireEvent.keyDown(document.body, altP);
-  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'audio.pause'});
+  expect(send).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({type: 'audio.toggle'}),
+  );
 
   await act(async () => commandBindingStore.set({'audio.playPause': []}));
   expect(stopMedia).toHaveBeenCalledOnce();
@@ -89,13 +91,17 @@ it('controls audio from the stage tab with default, removed and reassigned keys'
   fireEvent.keyDown(document.body, altP);
   expect(send).not.toHaveBeenCalled();
   fireEvent.keyDown(document.body, {code: 'F8', key: 'F8'});
-  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'audio.play'});
+  expect(send).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({type: 'audio.toggle'}),
+  );
 
   await act(async () => commandBindingStore.set({}));
   send.mockClear();
   fireEvent.keyDown(document.body, {code: 'F8', key: 'F8'});
   expect(send).not.toHaveBeenCalled();
   fireEvent.keyDown(document.body, altP);
-  expect(send).toHaveBeenCalledExactlyOnceWith({type: 'audio.play'});
+  expect(send).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({type: 'audio.toggle'}),
+  );
   expect(useShowToolTab.getState().tool).toBe('stage');
 });

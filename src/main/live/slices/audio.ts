@@ -157,6 +157,7 @@ export const audioSlice = defineSlice({
   commands: [
     'audio.play',
     'audio.pause',
+    'audio.toggle',
     'audio.next',
     'audio.previous',
     'audio.volume.set',
@@ -213,6 +214,21 @@ export const audioSlice = defineSlice({
             since: null,
           },
         });
+      case 'audio.toggle':
+        if (layer?.playback !== undefined) {
+          return context.apply(
+            history,
+            layer.playback.since === null
+              ? {type: 'audio.play'}
+              : {type: 'audio.pause'},
+          );
+        }
+        return command.source === undefined
+          ? history
+          : context.apply(history, {
+              type: 'audio.play',
+              source: command.source,
+            });
       case 'audio.next':
         if (
           command.trackVersion !== undefined &&

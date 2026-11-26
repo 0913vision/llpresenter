@@ -76,8 +76,9 @@ it('blocks a new quick timer at capacity and re-enables it as soon as a slot is 
   fireEvent.click(f.row);
   await waitFor(() =>
     expect(f.send).toHaveBeenCalledExactlyOnceWith({
-      type: 'timer.start',
+      type: 'timer.toggle',
       timerId: target,
+      off: 'reset',
     }),
   );
 });
@@ -99,8 +100,9 @@ it('keeps an existing running reset and paused resume available at capacity', as
   fireEvent.click(f.row);
   await waitFor(() =>
     expect(f.send).toHaveBeenLastCalledWith({
-      type: 'timer.start',
+      type: 'timer.toggle',
       timerId: target,
+      off: 'reset',
     }),
   );
   f.send.mockClear();
@@ -117,8 +119,9 @@ it('keeps an existing running reset and paused resume available at capacity', as
   fireEvent.click(f.row);
   await waitFor(() =>
     expect(f.send).toHaveBeenCalledExactlyOnceWith({
-      type: 'timer.reset',
+      type: 'timer.toggle',
       timerId: target,
+      off: 'reset',
     }),
   );
 });

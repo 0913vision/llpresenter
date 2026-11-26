@@ -118,19 +118,10 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           return;
         }
         case 'prop':
-          sendLive({
-            type: 'prop.set',
-            propId: item.ref,
-            on: !quickItemOn(item, useLive.getState().state),
-          });
+          sendLive({type: 'prop.toggle', propId: item.ref});
           return;
         case 'timer':
-          sendLive({
-            type: quickItemOn(item, useLive.getState().state)
-              ? 'timer.reset'
-              : 'timer.start',
-            timerId: item.ref,
-          });
+          sendLive({type: 'timer.toggle', timerId: item.ref, off: 'reset'});
           return;
         case 'macro':
           sendLive({type: 'macro.run', macroId: item.ref});

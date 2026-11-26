@@ -1,6 +1,5 @@
 import {describe, expect, it} from 'vitest';
 import {createAudioPlaylistId, createMediaId} from '@core/schema/common/ids';
-import type {AudioLayer} from '@core/schema/live/live';
 import type {AudioPlaylist} from '@core/schema/media/mediaList';
 import {audioPlayCommand} from '@core/media/audioPlayCommand';
 
@@ -12,48 +11,23 @@ const PLAYLIST: AudioPlaylist = {
   loop: false,
 };
 
-function audio(since: number | null): AudioLayer {
-  return {
-    mediaId: TRACK,
-    playback: {
-      source: {kind: 'media', mediaId: TRACK},
-      trackVersion: 1,
-      positionSeconds: 12,
-      since,
-    },
-  };
-}
-
 describe('audioPlayCommand', () => {
-  it('pauses a track that plays and resumes one that is held', () => {
-    const playing = {
-      audio: audio(1000),
-      selected: PLAYLIST,
-      playable: true,
-    };
-    expect(audioPlayCommand(playing)).toEqual({type: 'audio.pause'});
-    expect(audioPlayCommand({...playing, audio: audio(null)})).toEqual({
-      type: 'audio.play',
-    });
-  });
-
-  it('starts the chosen playlist from its first track when nothing plays', () => {
-    expect(
-      audioPlayCommand({audio: null, selected: PLAYLIST, playable: true}),
-    ).toEqual({
-      type: 'audio.play',
+  it('hands main the chosen playlist from its first track to start when nothing plays', () => {
+    expect(audioPlayCommand({selected: PLAYLIST, playable: true})).toEqual({
+      type: 'audio.toggle',
       source: {kind: 'playlist', playlistId: PLAYLIST.id, position: 0},
     });
   });
 
-  it('does nothing without a playlist, with an empty one, or when none of its tracks can play', () => {
-    const none = {audio: null, playable: true};
-    expect(audioPlayCommand({...none, selected: undefined})).toBeNull();
+  it('hands main nothing to start without a playlist, with an empty one, or when none of its tracks can play', () => {
+    expect(audioPlayCommand({selected: undefined, playable: true})).toEqual({
+      type: 'audio.toggle',
+    });
     expect(
-      audioPlayCommand({...none, selected: {...PLAYLIST, items: []}}),
-    ).toBeNull();
-    expect(
-      audioPlayCommand({...none, selected: PLAYLIST, playable: false}),
-    ).toBeNull();
+      audioPlayCommand({selected: {...PLAYLIST, items: []}, playable: true}),
+    ).toEqual({type: 'audio.toggle'});
+    expect(audioPlayCommand({selected: PLAYLIST, playable: false})).toEqual({
+      type: 'audio.toggle',
+    });
   });
 });

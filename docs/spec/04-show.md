@@ -520,6 +520,12 @@ selected tab visible and put the remaining tabs in 더 보기 (B21). Per-screen
 output state belongs in the previews, whole-layer take-down in the 지우기 row,
 and per-item controls in the owning tool tab (October 31 B16).
 
+A button that turns something on and off (재생 or 일시 정지, a 타이머's 시작 or
+일시 정지, a 그래픽 tile, and the 그래픽 and 타이머 items of 빠른 실행) asks main
+to turn it the other way from where main has it, not from what the button
+showed, so quick presses each count: a double click on a 그래픽 puts it on and
+takes it off again.
+
 At the panel's 240px minimum, every tool tab fits its allocated body or scrolls
 inside it. Headers stay visible, and all fields and actions, including 메시지's
 표시 시간 and 보내기, remain fully reachable. Tab content never enlarges its

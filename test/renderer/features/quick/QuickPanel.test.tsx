@@ -267,8 +267,8 @@ describe('quick panel integration', () => {
     expect(
       fixture.send.mock.calls.flatMap(([command]) => liveCommands(command)),
     ).toEqual([
-      {type: 'prop.set', propId: quickId(103), on: true},
-      {type: 'timer.start', timerId: quickId(104)},
+      {type: 'prop.toggle', propId: quickId(103)},
+      {type: 'timer.toggle', timerId: quickId(104), off: 'reset'},
     ]);
     expect(prop.getAttribute('aria-pressed')).toBe('false');
     const live = emptyLiveState();
@@ -282,8 +282,8 @@ describe('quick panel integration', () => {
         .slice(2)
         .flatMap(([command]) => liveCommands(command)),
     ).toEqual([
-      {type: 'prop.set', propId: quickId(103), on: false},
-      {type: 'timer.reset', timerId: quickId(104)},
+      {type: 'prop.toggle', propId: quickId(103)},
+      {type: 'timer.toggle', timerId: quickId(104), off: 'reset'},
     ]);
     act(() => useLive.setState({state: live}));
     expect(prop.getAttribute('aria-pressed')).toBe('false');

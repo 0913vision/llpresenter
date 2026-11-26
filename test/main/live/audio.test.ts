@@ -200,6 +200,29 @@ describe('audio transport', () => {
     );
   });
 
+  it('plays and pauses from where main has it on each 재생 / 일시 정지 press, so quick presses all count', () => {
+    const {store, send} = setup();
+    const source = {kind: 'playlist', playlistId: LIST, position: 0};
+    const state = (): string => {
+      const playback = store.state.layers.audio?.playback;
+      if (playback === undefined) return 'none';
+      return playback.since === null ? 'held' : 'playing';
+    };
+    const states = Array.from({length: 3}, () => {
+      send({type: 'audio.toggle', source});
+      return state();
+    });
+    expect(states).toEqual(['playing', 'held', 'playing']);
+    send({type: 'audio.toggle'});
+    expect(state()).toBe('held');
+  });
+
+  it('starts nothing on a 재생 press with nothing playing and no playlist to start', () => {
+    const {store, send} = setup();
+    expect(send({type: 'audio.toggle'})).toBe(false);
+    expect(store.state.layers.audio?.playback).toBeUndefined();
+  });
+
   it('holds the pause position, ignores duplicate pause/play, and resumes from it', () => {
     const {store, start, send, advance} = setup();
     start();

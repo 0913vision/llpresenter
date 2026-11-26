@@ -1,30 +1,27 @@
-import type {AudioLayer} from '@core/schema/live/live';
 import type {AudioPlaylist} from '@core/schema/media/mediaList';
 
-/** Resolves the same pause, resume, or playlist start for buttons and bindings. */
+/**
+ * The 재생 / 일시 정지 press for buttons and keys: main pauses what plays,
+ * plays on what is held, and with nothing playing starts `selected` from its
+ * first track when one of its tracks can play. Main decides from where it has
+ * the audio, so a press made before the window hears the one before counts.
+ */
 export function audioPlayCommand({
-  audio,
   selected,
   playable,
 }: {
-  readonly audio: AudioLayer | null;
   readonly selected: AudioPlaylist | undefined;
   /** Whether a track of `selected` can play; main skips the ones that can't. */
   readonly playable: boolean;
 }) {
-  if (audio?.playback) {
-    return {
-      type:
-        audio.playback.since !== null
-          ? ('audio.pause' as const)
-          : ('audio.play' as const),
-    };
-  }
-  if (selected !== undefined && selected.items.length > 0 && playable) {
-    return {
-      type: 'audio.play' as const,
-      source: {kind: 'playlist' as const, playlistId: selected.id, position: 0},
-    };
-  }
-  return null;
+  return selected !== undefined && selected.items.length > 0 && playable
+    ? {
+        type: 'audio.toggle' as const,
+        source: {
+          kind: 'playlist' as const,
+          playlistId: selected.id,
+          position: 0,
+        },
+      }
+    : {type: 'audio.toggle' as const};
 }

@@ -6,7 +6,7 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {AudioTransport} from '@renderer/features/tools/audio/AudioTransport';
 
 afterEach(cleanup);
-it('starts the selected playlist, resumes or pauses playback, and sends transport controls', () => {
+it('hands main the selected playlist on each 재생 / 일시 정지 press, and sends transport controls', () => {
   const itemId = '00000000-0000-4000-8000-000000000001';
   const playlistId = '00000000-0000-4000-8000-000000000002';
   const {data} = expectSuccess(
@@ -46,10 +46,11 @@ it('starts the selected playlist, resumes or pauses playback, and sends transpor
     />,
   );
   fireEvent.click(screen.getByRole('button', {name: '재생'}));
-  expect(send).toHaveBeenLastCalledWith({
-    type: 'audio.play',
+  const toggle = {
+    type: 'audio.toggle',
     source: {kind: 'playlist', playlistId, position: 0},
-  });
+  };
+  expect(send).toHaveBeenLastCalledWith(toggle);
   const audio = {
     mediaId: itemId,
     playback: {
@@ -74,7 +75,7 @@ it('starts the selected playlist, resumes or pauses playback, and sends transpor
   );
   expect(screen.getByText('1:05 / 2:00')).toBeTruthy();
   fireEvent.click(screen.getByRole('button', {name: '재생'}));
-  expect(send).toHaveBeenLastCalledWith({type: 'audio.play'});
+  expect(send).toHaveBeenLastCalledWith(toggle);
   fireEvent.click(screen.getByRole('button', {name: '이전'}));
   expect(send).toHaveBeenLastCalledWith({type: 'audio.previous'});
   fireEvent.click(screen.getByRole('button', {name: '다음'}));
@@ -97,5 +98,5 @@ it('starts the selected playlist, resumes or pauses playback, and sends transpor
     />,
   );
   fireEvent.click(screen.getByRole('button', {name: '일시 정지'}));
-  expect(send).toHaveBeenLastCalledWith({type: 'audio.pause'});
+  expect(send).toHaveBeenLastCalledWith(toggle);
 });

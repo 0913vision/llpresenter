@@ -7,9 +7,20 @@ import {
   type SlideLayer,
 } from './live';
 import type {Result} from '@core/common/result';
-import {screenIdSchema} from '../common/ids';
+import {
+  propIdSchema,
+  screenIdSchema,
+  timerIdSchema,
+  type PropId,
+  type TimerId,
+} from '../common/ids';
 import {layerSchemas, mediaChoiceSchema} from './liveState';
-import {liveActionOptions, type LiveAction} from './liveActions';
+import {
+  audioSourceSchema,
+  liveActionOptions,
+  type AudioSource,
+  type LiveAction,
+} from './liveActions';
 import {
   screenCommandOptions,
   type ScreenCommand,
@@ -63,7 +74,23 @@ export type SingleLiveCommand =
    * Turns a screen's output the other way from where main has it, so quick
    * presses each count even before the screens hear the one before.
    */
-  | {readonly type: 'output.toggle'; readonly screenId: string};
+  | {readonly type: 'output.toggle'; readonly screenId: string}
+  /** A 그래픽 button: on or off, the other way from where main has it. */
+  | {readonly type: 'prop.toggle'; readonly propId: PropId}
+  /**
+   * A 타이머 button: a running 타이머 pauses or resets, as `off` says; a
+   * stopped one starts. From where main has it, so quick presses each count.
+   */
+  | {
+      readonly type: 'timer.toggle';
+      readonly timerId: TimerId;
+      readonly off: 'pause' | 'reset';
+    }
+  /**
+   * 재생 / 일시 정지: playing audio pauses, paused audio plays on, and with
+   * nothing playing `source` starts, all from where main has it.
+   */
+  | {readonly type: 'audio.toggle'; readonly source?: AudioSource};
 
 /** A bounded, flat transaction. Nested batches are not supported. */
 export interface LiveBatch {
@@ -109,6 +136,16 @@ const singleCommandOptions = [
     on: v.boolean(),
   }),
   v.object({type: v.literal('output.toggle'), screenId: screenIdSchema}),
+  v.object({type: v.literal('prop.toggle'), propId: propIdSchema}),
+  v.object({
+    type: v.literal('timer.toggle'),
+    timerId: timerIdSchema,
+    off: v.picklist(['pause', 'reset']),
+  }),
+  v.object({
+    type: v.literal('audio.toggle'),
+    source: v.exactOptional(audioSourceSchema),
+  }),
 ] as const;
 
 const singleCommandSchema = v.pipe(

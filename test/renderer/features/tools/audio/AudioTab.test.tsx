@@ -158,7 +158,7 @@ it('starts a playlist whose first file is missing, for main to skip to a track t
   expect(play.getAttribute('aria-disabled')).not.toBe('true');
   fireEvent.click(play);
   expect(f.send).toHaveBeenLastCalledWith({
-    type: 'audio.play',
+    type: 'audio.toggle',
     source: {kind: 'playlist', playlistId: first, position: 0},
   });
 });

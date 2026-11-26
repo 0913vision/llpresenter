@@ -103,12 +103,35 @@ function reset(
 }
 
 /**
+ * A 타이머 button or quick item: a running 타이머 pauses or resets, as the
+ * press says; a stopped one starts, unless as many run as may.
+ */
+function toggle(
+  history: LiveHistory,
+  {timerId, off}: CommandOf<'timer.toggle'>,
+  context: SliceContext,
+): LiveHistory {
+  const runs = history.state.timers ?? {};
+  const run = runs[timerId];
+  if (run?.state === 'running') {
+    return context.apply(history, {
+      type: off === 'pause' ? 'timer.pause' : 'timer.reset',
+      timerId,
+    });
+  }
+  if (run === undefined && Object.keys(runs).length >= MAX_LIVE_TIMERS) {
+    return history;
+  }
+  return context.apply(history, {type: 'timer.start', timerId});
+}
+
+/**
  * Starts, pauses, and resets 타이머: running time on the store's monotonic
  * 타이머 clock, the day and a pause on its wall clock. Clears never touch
  * them, and a 타이머 without a run is stopped (docs/spec/04-show.md).
  */
 export const timersSlice = defineSlice({
-  commands: ['timer.start', 'timer.pause', 'timer.reset'],
+  commands: ['timer.start', 'timer.pause', 'timer.reset', 'timer.toggle'],
   initial: {},
   reduce: (history, command, context) => {
     switch (command.type) {
@@ -118,6 +141,8 @@ export const timersSlice = defineSlice({
         return pause(history, command, context);
       case 'timer.reset':
         return reset(history, command);
+      case 'timer.toggle':
+        return toggle(history, command, context);
     }
   },
 });

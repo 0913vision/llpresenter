@@ -41,8 +41,7 @@ export function AudioTransport({
   const shown =
     duration === undefined ? position : Math.min(position, duration);
   const play = (): void => {
-    const command = audioPlayCommand({audio, selected, playable});
-    if (command !== null) api.live.send(command);
+    api.live.send(audioPlayCommand({selected, playable}));
   };
 
   useWindowShortcuts([

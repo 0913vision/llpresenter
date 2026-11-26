@@ -106,7 +106,11 @@ it('reports persistence failure after the row unmounts without stealing later fo
       {name: '시작'},
     ),
   );
-  expect(f.send).toHaveBeenCalledWith({type: 'timer.start', timerId: otherId});
+  expect(f.send).toHaveBeenCalledWith({
+    type: 'timer.toggle',
+    timerId: otherId,
+    off: 'pause',
+  });
   await act(async () =>
     reply.resolve({
       ok: false,
@@ -169,7 +173,11 @@ it('lets the operator run another timer while a deletion is pending', async () =
   ).getByRole('button', {name: '시작'});
   start.focus();
   fireEvent.click(start);
-  expect(f.send).toHaveBeenCalledWith({type: 'timer.start', timerId: otherId});
+  expect(f.send).toHaveBeenCalledWith({
+    type: 'timer.toggle',
+    timerId: otherId,
+    off: 'pause',
+  });
   await act(async () =>
     reply.resolve({
       ok: false,
