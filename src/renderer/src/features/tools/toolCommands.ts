@@ -1,12 +1,10 @@
 import {type PropId} from '@core/schema/common/ids';
 import type {Timer} from '@core/schema/tools/timers';
-import {sendLive, useLive} from '@renderer/session/live';
+import {sendLive} from '@renderer/session/live';
 
-/** Takes the text off the 무대 screens, if one is shown. */
+/** Takes the text off the 무대 screens; main does nothing when none is shown. */
 export function hideStageMessage(): void {
-  if (useLive.getState().state?.stageMessage) {
-    sendLive({type: 'stage.message.set', text: null});
-  }
+  sendLive({type: 'stage.message.set', text: null});
 }
 
 /**
@@ -29,15 +27,10 @@ export function toggleTimer(
   send({type: 'timer.toggle', timerId: timer.id, off: 'pause'});
 }
 
-/** Resets a 타이머 that has a run, not a clock. */
+/** Resets a 타이머, not a clock; main does nothing when it has no run. */
 export function resetTimer(
   timer: Timer,
   send: typeof sendLive = sendLive,
 ): void {
-  if (
-    timer.kind !== 'clock' &&
-    useLive.getState().state?.timers?.[timer.id] !== undefined
-  ) {
-    send({type: 'timer.reset', timerId: timer.id});
-  }
+  if (timer.kind !== 'clock') send({type: 'timer.reset', timerId: timer.id});
 }

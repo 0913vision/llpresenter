@@ -1,6 +1,6 @@
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
-import {emptyLayers, emptyLiveState} from '@core/schema/live/live';
+import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {clearLayer, toggleItem, undoClear} from '@renderer/session/show/clear';
 import {useLive} from '@renderer/session/live';
@@ -24,46 +24,24 @@ afterEach(() => {
 });
 
 describe('undoClear', () => {
-  it('sends clear.undo while the live state says there is something to undo', () => {
-    useLive.setState({state: {...emptyLiveState(), canUndo: true}});
-    undoClear();
-    expect(sent).toEqual([{type: 'clear.undo'}]);
-  });
-
-  it('sends nothing when there is nothing to undo', () => {
+  it('sends every 되돌리기 press to main, which has the only say on what can be undone', () => {
     useLive.setState({state: {...emptyLiveState(), canUndo: false}});
     undoClear();
-    expect(sent).toHaveLength(0);
-  });
-
-  it('sends nothing before the first live state arrives', () => {
     undoClear();
-    expect(sent).toHaveLength(0);
+    expect(sent).toEqual([{type: 'clear.undo'}, {type: 'clear.undo'}]);
   });
 });
 
 describe('clearLayer', () => {
-  it('still clears only a layer that has something', () => {
-    const base = emptyLiveState();
-    useLive.setState({
-      state: {
-        ...base,
-        layers: {
-          ...emptyLayers(),
-          media: {mediaId: 'm', loop: true, startedAt: 0},
-        },
-      },
-    });
+  it('sends every clear key press to main, even when this window has not heard of the content yet', () => {
+    useLive.setState({state: null});
     clearLayer('slide');
-    expect(sent).toHaveLength(0);
+    useLive.setState({state: emptyLiveState()});
     clearLayer('media');
-    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'media'}]);
-  });
-
-  it('sends the toggle even when the layer is empty but has a captured clear', () => {
-    useLive.setState({state: {...emptyLiveState(), clearToggles: ['slide']}});
-    clearLayer('slide');
-    expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
+    expect(sent).toEqual([
+      {type: 'layer.clear.toggle', target: 'slide'},
+      {type: 'layer.clear.toggle', target: 'media'},
+    ]);
   });
 });
 

@@ -1,19 +1,10 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
-import {emptyLiveState, type LiveState} from '@core/schema/live/live';
-import {parseLiveState} from '@core/schema/live/liveState';
-import {expectSuccess} from '@fixtures/core/schema/testHelpers';
+import {emptyLiveState} from '@core/schema/live/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {hideStageMessage} from '@renderer/features/tools/toolCommands';
 import {useLive} from '@renderer/session/live';
 const send = vi.fn<(command: LiveCommand) => void>();
-
-function live(change: object): void {
-  const state: LiveState = expectSuccess(
-    parseLiveState({...emptyLiveState(), ...change}),
-  );
-  useLive.setState({state});
-}
 
 beforeEach(() => {
   send.mockClear();
@@ -25,17 +16,12 @@ afterEach(() => {
 });
 
 describe('hideStageMessage', () => {
-  it('clears a shown stage message and does nothing without one', () => {
-    live({stageMessage: '창작 무대 안내'});
+  it('asks main to take the 무대 text down on each press, even before this window hears it was shown', () => {
+    useLive.setState({state: emptyLiveState()});
     hideStageMessage();
-    expect(send).toHaveBeenLastCalledWith({
+    expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'stage.message.set',
       text: null,
     });
-
-    send.mockClear();
-    live({});
-    hideStageMessage();
-    expect(send).not.toHaveBeenCalled();
   });
 });

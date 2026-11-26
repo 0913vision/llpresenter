@@ -2,12 +2,13 @@ import type {ClearTarget} from '@core/schema/live/live';
 import {hasSomethingToClear} from '@core/live';
 import {sendLive, useLive} from '../live';
 
-/** Stops the live item while leaving independent overlays and audio running. */
+/**
+ * Stops the live item while leaving independent overlays and audio running.
+ * Main does nothing when no item is live; the window sends every press, so one
+ * made before it hears the state still counts.
+ */
 export function stopItem(): void {
-  const state = useLive.getState().state;
-  if (state?.item || state?.testPatterns?.length) {
-    sendLive({type: 'item.stop'});
-  }
+  sendLive({type: 'item.stop'});
 }
 
 /**
@@ -35,17 +36,11 @@ export function useClearRestores(target: ClearTarget): boolean {
   return useLive(view => view.state?.clearToggles?.includes(target) ?? false);
 }
 
-/** Toggles a key's clear, doing nothing only when it has no content or capture. */
+/**
+ * Toggles a key's clear. Main clears what it has, brings back what the key
+ * cleared, and does nothing when there is neither.
+ */
 export function clearLayer(target: ClearTarget): void {
-  const state = useLive.getState().state;
-  if (
-    !state ||
-    (!(target === 'all' && state.testPatterns?.length) &&
-      !hasSomethingToClear(state.layers, target) &&
-      !state.clearToggles?.includes(target))
-  ) {
-    return;
-  }
   sendLive({type: 'layer.clear.toggle', target});
 }
 
@@ -54,8 +49,7 @@ export function useCanUndo(): boolean {
   return useLive(view => view.state?.canUndo ?? false);
 }
 
-/** Undoes the last clear. With nothing to undo it does nothing. */
+/** Undoes the last clear; main does nothing when there is nothing to undo. */
 export function undoClear(): void {
-  if (!useLive.getState().state?.canUndo) return;
   sendLive({type: 'clear.undo'});
 }
