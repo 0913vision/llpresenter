@@ -14,6 +14,7 @@ import {applyService} from '@renderer/session/show/show';
 import {useLive} from '@renderer/session/live';
 import {ServiceOrderHeader} from '@renderer/features/service/order/picker/ServiceOrderHeader';
 import {useShow} from '@renderer/session/show/showStore';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 const first = createServiceId('00000000-0000-4000-8000-000000000001');
 const second = createServiceId('00000000-0000-4000-8000-000000000002');
@@ -125,7 +126,7 @@ describe('service picker', () => {
     expect(stopList).toHaveBeenCalledOnce();
   });
 
-  it('opens the rename dialog for the open service from 이름 바꾸기', async () => {
+  it('opens the rename dialog for the open service from 이름 바꾸기, stopping at the longest name a 예배 file takes', async () => {
     const {user} = setup();
     await openMenu(user);
     await user.click(screen.getByRole('menuitem', {name: '이름 바꾸기…'}));
@@ -134,6 +135,7 @@ describe('service picker', () => {
     });
     expect(screen.queryByRole('menu')).toBeNull();
     expect(dialog.querySelector('input')?.value).toBe('주일 예배');
+    expect(dialog.querySelector('input')?.maxLength).toBe(NAME_LIMIT);
   });
 
   it('opens a service through the merged contract without sending output commands', async () => {

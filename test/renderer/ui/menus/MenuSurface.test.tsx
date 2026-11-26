@@ -43,6 +43,7 @@ describe('MenuSurface', () => {
                 onSelect: select,
                 rename: editing
                   ? {
+                      maxLength: 256,
                       onCommit: name => {
                         commit(name);
                         return true;

@@ -253,7 +253,10 @@ describe('ListGroup rename', () => {
     const onCommit = vi.fn().mockReturnValue(true);
     const onCancel = vi.fn();
     render(
-      <ListGroup label="찬양" rename={{onCommit, onClose: onCancel}}>
+      <ListGroup
+        label="찬양"
+        rename={{maxLength: 256, onCommit, onClose: onCancel}}
+      >
         <span>rows</span>
       </ListGroup>,
     );
@@ -270,7 +273,11 @@ describe('ListGroup rename', () => {
     render(
       <ListGroup
         label="새 구역"
-        rename={{onCommit: vi.fn().mockReturnValue(true), onClose: vi.fn()}}
+        rename={{
+          maxLength: 256,
+          onCommit: vi.fn().mockReturnValue(true),
+          onClose: vi.fn(),
+        }}
       >
         <span>rows</span>
       </ListGroup>,
@@ -286,7 +293,10 @@ describe('ListGroup rename', () => {
     const onCommit = vi.fn().mockReturnValue(true);
     const onCancel = vi.fn();
     render(
-      <ListGroup label="찬양" rename={{onCommit, onClose: onCancel}}>
+      <ListGroup
+        label="찬양"
+        rename={{maxLength: 256, onCommit, onClose: onCancel}}
+      >
         <span>rows</span>
       </ListGroup>,
     );
@@ -307,7 +317,7 @@ describe('ListRow rename', () => {
         <ListRow
           value="a"
           title="Old name"
-          rename={{onCommit, onClose: onCancel}}
+          rename={{maxLength: 256, onCommit, onClose: onCancel}}
         />
       </ListBox>,
     );

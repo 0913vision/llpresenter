@@ -17,6 +17,7 @@ import {useShow} from '@renderer/session/show/showStore';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 import {RENAME_FAILED} from '@renderer/session/service/serviceProblem';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 /**
  * Opens the context menu of a service row of the picker and runs its actions,
@@ -92,6 +93,7 @@ export function useServiceRowMenu(
     renaming?.id !== entry.id
       ? undefined
       : {
+          maxLength: NAME_LIMIT,
           onCommit: name => commit(entry, name),
           onClose: () => setRenaming(null),
         };

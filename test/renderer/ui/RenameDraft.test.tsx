@@ -11,6 +11,7 @@ function Harness({save}: {readonly save: RenameContract['onCommit']}) {
     <NameField
       label="기존 이름"
       rename={{
+        maxLength: 256,
         validate: name => (name === '' ? '이름 필요' : undefined),
         onCommit: save,
         onClose: () => setOpen(false),
@@ -28,7 +29,7 @@ it('lets a valid modal draft retry from its save button after failure', async ()
     <RenameDialog
       name="기존"
       title="이름 바꾸기"
-      rename={{onCommit: save, onClose: close}}
+      rename={{maxLength: 256, onCommit: save, onClose: close}}
     />,
   );
   fireEvent.change(screen.getByRole('textbox'), {target: {value: '새 이름'}});
@@ -97,7 +98,7 @@ it.each(['Enter', 'blur', 'reverted draft'])(
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(true);
     const close = vi.fn();
-    const rename = {onCommit: save, onClose: close};
+    const rename = {maxLength: 256, onCommit: save, onClose: close};
     const view = render(
       <RenameDialog name="기존" title="이름 바꾸기" rename={rename} />,
     );
@@ -154,7 +155,12 @@ it('commits a suggested name that the user left unchanged when the contract asks
     <RenameDialog
       name="찬양 복사본"
       title="다른 이름으로 저장"
-      rename={{onCommit: save, onClose: close, commitsUnchanged: true}}
+      rename={{
+        maxLength: 256,
+        onCommit: save,
+        onClose: close,
+        commitsUnchanged: true,
+      }}
     />,
   );
   fireEvent.click(screen.getByRole('button', {name: '저장'}));

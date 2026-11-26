@@ -3,8 +3,11 @@
  * happens on commit and close.
  */
 export interface RenameContract {
-  /** The longest name; the field stops there and a longer one is refused. */
-  readonly maxLength?: number | undefined;
+  /**
+   * The longest name the file takes; the field stops there and a longer one
+   * is refused. Every rename names it, so none can reach main too long.
+   */
+  readonly maxLength: number;
   /** A rule of its own, such as a name that is taken, before the shared one. */
   readonly validate?: ((value: string) => string | undefined) | undefined;
   readonly onCommit: (name: string) => boolean | Promise<boolean>;

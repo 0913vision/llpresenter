@@ -12,6 +12,7 @@ import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {useShow} from '@renderer/session/show/showStore';
 import type {ServiceEntry} from '@core/schema/services/contentDocuments';
 import {RENAME_FAILED} from '@renderer/session/service/serviceProblem';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 const PICKER_WIDTH = 300;
 
@@ -102,6 +103,7 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
           name={renaming.name}
           title="예배 이름 바꾸기"
           rename={{
+            maxLength: NAME_LIMIT,
             onCommit: async name => {
               const done = await renameService(api, renaming.id, name);
               if (done) setRenaming(null);

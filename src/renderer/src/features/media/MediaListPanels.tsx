@@ -32,6 +32,7 @@ import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 import type {RenameContract} from '@renderer/ui/fields/renameContract';
 import {ListBox} from '@renderer/ui/lists/ListBox';
 import {playlistMenuEntries} from './playlistMenuEntries';
+import {MEDIA_LIMITS} from '@core/schema/media/mediaList';
 
 const ALL = 'all';
 
@@ -96,6 +97,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
   const renameOf = (id: string): RenameContract | undefined =>
     renaming === id
       ? {
+          maxLength: MEDIA_LIMITS.name,
           onCommit: name => {
             const playlist = playlistOf(id);
             return playlist === null

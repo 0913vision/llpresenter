@@ -58,6 +58,7 @@ describe('Menu', () => {
               label: '예배',
               rename: editing
                 ? {
+                    maxLength: 256,
                     onCommit: commit,
                     onClose: () => setEditing(false),
                   }

@@ -1,5 +1,9 @@
 import {useState, type JSX} from 'react';
-import {slidePurposes, type ThemeFile} from '@core/schema/screens/theme';
+import {
+  slidePurposes,
+  THEME_FILE_LIMITS,
+  type ThemeFile,
+} from '@core/schema/screens/theme';
 import {IconButton} from '@renderer/ui/buttons/IconButton';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {
@@ -111,6 +115,7 @@ export function ThemeList({
               : {
                   id: renaming,
                   handlers: {
+                    maxLength: THEME_FILE_LIMITS.name,
                     onCommit: async name => {
                       const theme = find(renaming);
                       return theme === undefined

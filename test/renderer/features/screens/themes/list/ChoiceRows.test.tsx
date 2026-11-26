@@ -235,7 +235,10 @@ it('opens row menus with pointer and keyboard only when a menu is provided', () 
 it('leaves rename keystrokes in the field and commits its draft before scrolling', async () => {
   const onCommit = vi.fn().mockReturnValue(true);
   const {container, select} = setup({
-    renaming: {id: 'layout-0', handlers: {onCommit, onClose: vi.fn()}},
+    renaming: {
+      id: 'layout-0',
+      handlers: {maxLength: 80, onCommit, onClose: vi.fn()},
+    },
   });
   const input = await screen.findByRole('textbox');
   input.focus();

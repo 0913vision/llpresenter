@@ -40,7 +40,11 @@ it('mounts the rename field after menu cleanup without committing its first blur
         {renaming ? (
           <NameField
             label="기존 이름"
-            rename={{onCommit: save, onClose: () => setRenaming(false)}}
+            rename={{
+              maxLength: 256,
+              onCommit: save,
+              onClose: () => setRenaming(false),
+            }}
           />
         ) : null}
       </>

@@ -20,6 +20,7 @@ import {ServiceOrderHeader} from '@renderer/features/service/order/picker/Servic
 import {serviceRowMenuEntries} from '@renderer/features/service/order/picker/serviceRowMenu';
 import {menuItems} from '@renderer/ui/menus/menuModel';
 import {useShow} from '@renderer/session/show/showStore';
+import {NAME_LIMIT} from '@core/schema/common/primitives';
 
 const pastName = pastDocument.service.name;
 
@@ -223,6 +224,7 @@ it('renames inline through the existing service revision/save path and preserves
   );
   const field = await screen.findByRole('textbox', {name: `${pastName} 이름`});
   expect(document.activeElement).toBe(field);
+  expect(field.getAttribute('maxlength')).toBe(String(NAME_LIMIT));
   fireEvent.change(field, {target: {value: '  새 예배 이름  '}});
   fireEvent.keyDown(field, {key: 'Enter', code: 'Enter'});
   await waitFor(() =>
