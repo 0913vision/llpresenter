@@ -1,13 +1,6 @@
 import {useState, type JSX} from 'react';
 import {BIBLE_BOOKS} from '@core/bible';
-import {
-  isCutOfVerse,
-  slidesOfVerse,
-  replaceVerse,
-  sameVerse,
-  verseSlides,
-  versesOfPassage,
-} from '@core/slides';
+import {slidesOfVerse, replaceVerse, verseSlides} from '@core/slides';
 import type {BiblePassage} from '@core/schema/bible/biblePassage';
 import type {SlideId} from '@core/schema/common/ids';
 import type {VerseReference} from '@core/schema/slides/slide';
@@ -25,6 +18,7 @@ import {confirmBibleCuts} from './confirmBibleCuts';
 import {passageSplitter, type BibleSplit} from '../passageSplitter';
 import {usePassageText} from '../passageText';
 import {SplitReview} from './SplitReview';
+import {verseSplitReason} from './verseSplitReason';
 
 const NO_DECK = {id: '', slides: []};
 
@@ -72,22 +66,7 @@ export function useVerseSplit(
     deck === null ? undefined : passageOf(deck, verse),
   );
   const [cut, setCut] = useState<Cut | null>(null);
-  const original =
-    verse === undefined || text === null
-      ? undefined
-      : versesOfPassage(text).find(entry => sameVerse(entry.reference, verse));
-  const reason =
-    deck === null || verse === undefined
-      ? '말씀 슬라이드를 고르십시오.'
-      : deck.readOnly
-        ? '지금은 편집할 수 없습니다.'
-        : text === null
-          ? '본문을 불러오는 중입니다.'
-          : original === undefined
-            ? '이 절의 본문을 찾을 수 없습니다.'
-            : isCutOfVerse(deck.slides, original)
-              ? undefined
-              : '직접 고친 절은 여기서 나눌 수 없습니다.';
+  const reason = verseSplitReason(deck, verse, text);
   const open = (): void => {
     if (
       deck === null ||
