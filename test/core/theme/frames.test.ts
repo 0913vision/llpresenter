@@ -172,6 +172,43 @@ describe('drawnFrame', () => {
   });
 });
 
+describe('drawnFrame of other elements', () => {
+  it('draws a shape where the layout placed it, else at its own frame', () => {
+    const {screen, element} = screenWith(entry => entry.kind === 'shape');
+    const placed = {x: 5, y: 6, w: 7, h: 8};
+    expect(
+      drawnFrame(screen, element, {
+        texts: new Map(),
+        shapes: new Map([[element.id, placed]]),
+      }),
+    ).toEqual({...element.frame, ...placed});
+    expect(
+      drawnFrame(screen, element, {texts: new Map(), shapes: new Map()}),
+    ).toEqual(element.frame);
+  });
+
+  it('draws a free text and a picture or background at their own frames, whatever the layout says', () => {
+    const free = screenWith(
+      (entry, own) =>
+        entry.kind === 'text' &&
+        stackOf(own, entry.id) === undefined &&
+        splitOf(own, entry.id) === undefined,
+    );
+    const other = screenWith(
+      entry => entry.kind === 'background' || entry.kind === 'picture',
+    );
+    const elsewhere = {x: 1, y: 2, w: 3, h: 4, size: 60, keepRows: false};
+    for (const {screen, element} of [free, other]) {
+      expect(
+        drawnFrame(screen, element, {
+          texts: new Map([[element.id, elsewhere]]),
+          shapes: new Map(),
+        }),
+      ).toEqual(element.frame);
+    }
+  });
+});
+
 describe('changeStack and changeSplit', () => {
   it('change the stack or split of a text, and nothing for a text in none', () => {
     const {screen, element} = screenWith(
