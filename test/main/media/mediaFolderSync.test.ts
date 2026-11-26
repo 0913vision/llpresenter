@@ -283,3 +283,22 @@ it('brings back a file that was just put into the list, left and came back, with
   await sync.sync();
   expect(store.revive).toHaveBeenCalledExactlyOnceWith(VIDEO);
 });
+
+it('reads the folder again at once on 새로 고침, hearing it anew', async () => {
+  const {folder, store, adopt, log} = await setup();
+  const watch = vi.fn(() => () => undefined);
+  const sync = new MediaFolderSync({
+    store,
+    adopt,
+    log,
+    now: () => Date.now() + SETTLE_MS * 2,
+    watch,
+  });
+  sync.start();
+  await new Promise(resolve => setTimeout(resolve, 10));
+  await writeFile(join(folder, '새 배경.jpg'), 'picture');
+  await sync.refresh();
+  expect(watch).toHaveBeenCalledTimes(2);
+  expect(adopt).toHaveBeenCalledWith([join(folder, '새 배경.jpg')]);
+  await sync.dispose();
+});

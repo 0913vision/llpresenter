@@ -25,6 +25,7 @@ import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
 import {
   createdId,
   MEDIA_LOAD_FAILED,
+  MEDIA_REFRESH_FAILED,
   type MediaEditOutcome,
   type PlaylistChange,
   playlistRef,
@@ -568,6 +569,19 @@ export class MediaLibrary {
       },
     );
     return result !== null;
+  }
+
+  /**
+   * 새로 고침: main reads the media folder again now, and the list follows it,
+   * as Explorer's 새로 고침 does. Tells the operator when it fails.
+   */
+  async refresh(): Promise<void> {
+    try {
+      await this.api.media.refresh();
+    } catch (cause: unknown) {
+      console.error('Could not refresh the media list', cause);
+      this.onProblem(warningNotice('media-view:refresh', MEDIA_REFRESH_FAILED));
+    }
   }
 
   /** 파일 위치 열기: main shows the file in Explorer, if it is in a media folder. */

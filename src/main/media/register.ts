@@ -153,6 +153,7 @@ function watchMissingFiles(
 function followMediaFolder(
   {media, log}: MediaBackendRegistration,
   importer: MediaImporter,
+  ipc: IpcHost,
 ): () => void {
   let sync: MediaFolderSync | null = null;
   let stopped = false;
@@ -171,6 +172,11 @@ function followMediaFolder(
       log.error('could not follow the media folder', error);
     },
   );
+  ipc.query(mediaEndpoints.refresh, async () => {
+    await media.catch(() => null);
+    await sync?.refresh();
+    return true;
+  });
   return () => {
     stopped = true;
     adopting.abort();
@@ -248,7 +254,7 @@ export function registerMediaBackend(
       defaultPreferences.media.defaults,
   });
   const missing = watchMissingFiles(options, ipc);
-  const stopFolderSync = followMediaFolder(options, importer);
+  const stopFolderSync = followMediaFolder(options, importer, ipc);
   ipc.whenClosed(stopFolderSync);
   let resolved: MediaBackendStore | null = null;
   options.media.then(

@@ -22,6 +22,7 @@ import {
 } from '@core/schema/media/mediaUses';
 import {
   parseMediaCheckRequest,
+  parseMediaRefreshed,
   parseMediaRevealRequest,
   parseMediaStamps,
   parseMissingMedia,
@@ -72,6 +73,7 @@ export const mediaEndpoints = {
   stamps: query<MediaStamps>('media:stamps:get', parseMediaStamps),
   stampsChanged: push<MediaStamps>('media:stamps:changed', parseMediaStamps),
   check: message<MediaFileRequest>('media:check', parseMediaCheckRequest),
+  refresh: query<true>('media:refresh', parseMediaRefreshed),
   reveal: message<MediaFileRequest>('media:reveal', parseMediaRevealRequest),
 };
 
@@ -117,6 +119,11 @@ export function mediaApi(port: IpcPort, platform: WindowPlatform) {
     subscribeStamps: port.subscribe(mediaEndpoints.stampsChanged),
     /** Asks main to check one media file again, as after it failed to play. */
     check: (mediaId: MediaId): void => check({mediaId}),
+    /**
+     * Reads the media folder again now and brings the list to it (새로 고침);
+     * resolves once the list follows the folder.
+     */
+    refresh: port.query(mediaEndpoints.refresh),
     /** Shows the media file in Explorer (파일 위치 열기). */
     reveal: (mediaId: MediaId): void => reveal({mediaId}),
   };

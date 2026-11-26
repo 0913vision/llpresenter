@@ -45,6 +45,11 @@ export function parseMissingMedia(value: unknown) {
   return parsePayload(missingMediaSchema, value);
 }
 
+/** Checks the answer to `media:refresh`: the list was brought to the folder. */
+export function parseMediaRefreshed(value: unknown) {
+  return parsePayload(v.literal(true), value);
+}
+
 /** Checks a `media:check` request. Unknown fields are dropped. Never throws. */
 export function parseMediaCheckRequest(value: unknown) {
   return parsePayload(mediaCheckSchema, value);

@@ -118,6 +118,20 @@ export class MediaFolderSync {
     return this.running;
   }
 
+  /**
+   * Hears the folder again, as a new folder made in its place, and brings the
+   * list to it now: the 새로 고침 of the 미디어 list.
+   */
+  refresh(): Promise<void> {
+    if (this.disposed) return Promise.resolve();
+    this.stopWatch?.();
+    this.stopWatch = undefined;
+    clearTimeout(this.checkTimer);
+    clearTimeout(this.refollowTimer);
+    this.follow();
+    return this.sync();
+  }
+
   /** Brings the list to the folder once, after any sync under way. */
   sync(): Promise<void> {
     this.running = this.running.then(

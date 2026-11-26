@@ -1,6 +1,6 @@
 import {EmptyState} from '@renderer/ui/lists/EmptyState';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useMemo, type JSX} from 'react';
+import {useMemo, useState, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media';
 import {type MediaItem, MEDIA_LIMITS} from '@core/schema/media/mediaList';
@@ -155,6 +155,16 @@ export function MediaView({
     isPending,
     startImport,
   });
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = (): void => {
+    setRefreshing(true);
+    library
+      .refresh()
+      .catch((cause: unknown) =>
+        console.error('Could not refresh the media list', cause),
+      )
+      .finally(() => setRefreshing(false));
+  };
   return (
     <>
       <Panel label="미디어 보기" className={styles.panel}>
@@ -172,6 +182,14 @@ export function MediaView({
               onClick={() => startImport()}
             >
               가져오기
+            </Button>
+            <Button
+              icon="refresh"
+              disabled={refreshing}
+              aria-busy={refreshing}
+              onClick={refresh}
+            >
+              새로 고침
             </Button>
             {onCollapse === undefined ? null : (
               <Button

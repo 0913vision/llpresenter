@@ -821,13 +821,16 @@ product log (빠른 실행 shortcuts: no default keys).
   440px; do not restore it closed or shrink panels below their minimums. Long
   bin content scrolls inside panel bodies, with fixed headers and footers, and
   never increases the bin height.
-- When open, its center header places 접기 beside 가져오기, using the same
-  button style with a down chevron and 미디어 접기 tooltip. When closed, a thin
-  bar remains at the bottom of the workspace, showing an up chevron, 미디어, the
-  chosen list's name and its media count. Clicking the bar or pressing Enter on
-  it opens the bin. Its position stays anchored at the bottom. 보기 > 미디어
-  (Ctrl Shift V) toggles this same state. These controls follow the October 31
-  B19 placement decision and use design-system tokens.
+- When open, its center header places 새로 고침 and 접기 beside 가져오기, in the
+  same button style. 새로 고침 reads the media folder again at once, as
+  Explorer's 새로 고침 does (the list also follows the folder by itself, 02); it
+  is unavailable while it runs, and a folder that can't be read shows a 미디어
+  새로 고침 실패 card. 접기 has a down chevron and the 미디어 접기 tooltip. When
+  closed, a thin bar remains at the bottom of the workspace, showing an up
+  chevron, 미디어, the chosen list's name and its media count. Clicking the bar
+  or pressing Enter on it opens the bin. Its position stays anchored at the
+  bottom. 보기 > 미디어 (Ctrl Shift V) toggles this same state. These controls
+  follow the October 31 B19 placement decision and use design-system tokens.
 - A saved open or closed `mediaStrip` choice applies in both workspaces and wins
   over size defaults, including a saved open choice in a narrow window. With no
   saved choice, the bin starts open in regular and wide windows at least 900 DIP

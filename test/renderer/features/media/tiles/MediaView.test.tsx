@@ -96,6 +96,36 @@ async function tile(name: string): Promise<HTMLElement> {
 }
 
 describe('media view', () => {
+  it('reads the media folder again with 새로 고침, as Explorer does, and says so when it cannot', async () => {
+    const f = setup();
+    await tile('Dawn');
+    let finish = (): void => undefined;
+    const refresh = vi
+      .spyOn(f.api.media, 'refresh')
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = () => resolve(true);
+          }),
+      )
+      .mockRejectedValueOnce(new Error('Invented failure'));
+    const button = screen.getByRole('button', {name: '새로 고침'});
+    await userEvent.click(button);
+    expect(refresh).toHaveBeenCalledOnce();
+    expect(button.getAttribute('aria-busy')).toBe('true');
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    act(() => finish());
+    await waitFor(() => expect(button.getAttribute('aria-busy')).toBe('false'));
+    expect(f.problems).not.toHaveBeenCalled();
+    vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await userEvent.click(button);
+    await waitFor(() =>
+      expect(f.problems).toHaveBeenCalledWith(
+        expect.objectContaining({title: '미디어 새로 고침 실패'}),
+      ),
+    );
+  });
+
   it('restores and saves the media list view', async () => {
     const fixture = mediaFixture();
     vi.spyOn(fixture.api.ui, 'get').mockResolvedValue({
