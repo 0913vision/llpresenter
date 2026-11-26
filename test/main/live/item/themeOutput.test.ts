@@ -42,9 +42,13 @@ const NO_MEDIA: MediaDocument = {
 };
 
 describe('liveItemOf', () => {
-  function sunday(openServiceId: string | null = SUNDAY_ID) {
+  function sunday(
+    openServiceId: string | null = SUNDAY_ID,
+    more: readonly object[] = [],
+  ) {
     const slides = songFile().data.slides;
     const second = slides[1]?.id ?? '';
+    const third = slides[2]?.id ?? second;
     const {store} = setUp(
       [
         serviceFile(SUNDAY_ID, [
@@ -64,6 +68,7 @@ describe('liveItemOf', () => {
                 screens: [],
                 content: {text: '함께 찬양합니다'},
               },
+              ...more.map(overlay => ({...overlay, from: third, to: third})),
             ],
           },
         ]),
@@ -102,6 +107,21 @@ describe('liveItemOf', () => {
         },
       ],
     });
+  });
+
+  it('leaves out an overlay whose media file is missing, so no screen tries it', () => {
+    const video = {
+      id: '00000000-0000-4000-8000-000000000302',
+      name: 'MR',
+      screens: [],
+      content: {media: OTHER_SONG, loop: false, sound: true},
+    };
+    const content = sunday(SUNDAY_ID, [video]);
+    expect(liveItemOf(content, itemId(2))?.overlays).toHaveLength(2);
+    expect(
+      liveItemOf(content, itemId(2), mediaId => mediaId === OTHER_SONG)
+        ?.overlays,
+    ).toEqual([expect.objectContaining({id: OVERLAY})]);
   });
 
   it('names nothing for an item without slides, or when no 예배 is open', () => {

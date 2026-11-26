@@ -3,7 +3,7 @@ import type {SettingsReader} from '@core/schema/app/settingsReader';
 import type {LiveItem} from '@core/schema/live/liveTheme';
 import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
 import {hasSlides} from '@core/schema/services/service';
-import {songIdSchema} from '@core/schema/common/ids';
+import {songIdSchema, type MediaId} from '@core/schema/common/ids';
 import {parsePayload} from '@core/schema/common/payload';
 import {itemTitle} from '@core/slides';
 import type {ContentStore} from '../../store/content/contentStore';
@@ -22,15 +22,17 @@ export type LiveItemContent = Pick<
 
 /**
  * The item an output shows by its id: a song of the 라이브러리
- * (`library:<song id>`), or an item with slides of the open 예배.
+ * (`library:<song id>`), or an item with slides of the open 예배, without the
+ * overlays whose media file `isMissing` says can't be found.
  */
 export function liveItemOf(
   content: LiveItemContent,
   id: string,
+  isMissing: (mediaId: MediaId) => boolean = () => false,
 ): LiveItem | undefined {
   return id.startsWith(LIBRARY_ITEM)
     ? librarySong(content, id)
-    : serviceItem(content, id);
+    : serviceItem(content, id, isMissing);
 }
 
 function librarySong(
@@ -47,6 +49,7 @@ function librarySong(
 function serviceItem(
   content: LiveItemContent,
   id: string,
+  isMissing: (mediaId: MediaId) => boolean,
 ): LiveItem | undefined {
   const serviceId = content.openServiceId;
   const item =
@@ -63,7 +66,17 @@ function serviceItem(
     title: short(itemTitle(item)),
     ...(item.overlays === undefined
       ? {}
-      : {overlays: placedOverlays(item.overlays, item.slides)}),
+      : {
+          // NOTE(0913vision): An overlay whose file is missing is left out, so
+          // no screen tries it (spec 08, "Missing media file").
+          overlays: placedOverlays(
+            item.overlays.filter(
+              ({content: shown}) =>
+                !('media' in shown) || !isMissing(shown.media),
+            ),
+            item.slides,
+          ),
+        }),
   };
 }
 
@@ -106,7 +119,8 @@ export function registerThemeOutput({
       if (stopped || settings === null || content === null) return;
       const runtime = new ThemeRuntime({
         settings,
-        item: id => liveItemOf(content, id),
+        item: id =>
+          liveItemOf(content, id, mediaId => store.isMediaMissing(mediaId)),
         onError: error =>
           log.warn('could not read theme output settings', error),
         onMissingTheme: id => log.warn('missing theme; using fallback', {id}),

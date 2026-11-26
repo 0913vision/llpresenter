@@ -121,6 +121,11 @@ export class LiveStore {
     };
   }
 
+  /** Whether a media item's file can't be found now, as far as it is known. */
+  isMediaMissing(mediaId: MediaId): boolean {
+    return this.isMissingMedia?.(mediaId) ?? false;
+  }
+
   /** Follows which media files can't be found, so a slide never shows one. */
   connectMissingMedia(isMissing: (mediaId: MediaId) => boolean): () => void {
     this.isMissingMedia = isMissing;
