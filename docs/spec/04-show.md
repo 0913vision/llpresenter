@@ -443,11 +443,11 @@ each preview follows ProPresenter's rule: it shows what goes out.
   shows its standby theme behind those independent layers (12). Clear undo
   restores the item. After stopping, the button stays bright and pressed with
   the tooltip 항목 되돌리기. Pressing it again restores only that item's
-  content; independent layers keep their current state and playback. Each
-  press turns it the other way from where main has it, so two quick presses
-  stop the item and bring it back even before the window hears the first one.
-  Like the other clear keys, new output content invalidates the capture. The
-  command has no default shortcut. The menu and shortcut command keeps the name 항목 끄기.
+  content; independent layers keep their current state and playback. Each press
+  turns it the other way from where main has it, so two quick presses stop the
+  item and bring it back even before the window hears the first one. Like the
+  other clear keys, new output content invalidates the capture. The command has
+  no default shortcut. The menu and shortcut command keeps the name 항목 끄기.
   Separate 대기 화면 from the six clears with a `space-12` group gap (`space-4`
   row gap plus `space-8` after the button), including in the narrow icon-only
   row.
@@ -521,8 +521,8 @@ output state belongs in the previews, whole-layer take-down in the 지우기 row
 and per-item controls in the owning tool tab (October 31 B16).
 
 A button that turns something on and off (재생 or 일시 정지, a 타이머's 시작 or
-일시 정지, a 그래픽 tile, and the 그래픽 and 타이머 items of 빠른 실행) asks main
-to turn it the other way from where main has it, not from what the button
+일시 정지, a 그래픽 tile, and the 그래픽 and 타이머 items of 빠른 실행) asks
+main to turn it the other way from where main has it, not from what the button
 showed, so quick presses each count: a double click on a 그래픽 puts it on and
 takes it off again.
 
