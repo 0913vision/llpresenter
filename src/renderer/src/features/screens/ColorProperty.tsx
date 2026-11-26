@@ -15,6 +15,8 @@ interface Channels {
   blue: number;
 }
 const MAX_CHANNEL = 255;
+/** The longest color code a field takes: `#RRGGBB`. */
+const COLOR_CODE_LENGTH = '#RRGGBB'.length;
 const CHANNELS = [
   {key: 'red', label: '빨강'},
   {key: 'green', label: '초록'},
@@ -70,6 +72,7 @@ export function ColorProperty({
       <StringProperty
         label={label}
         value={value}
+        maxLength={COLOR_CODE_LENGTH}
         reason={reason}
         placeholder={allowNone ? noneLabel : undefined}
         validate={text =>

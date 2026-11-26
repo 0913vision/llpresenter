@@ -211,6 +211,7 @@ function BoxProperties({
       <StringProperty
         label="이름"
         value={box.name}
+        maxLength={THEME_FILE_LIMITS.name}
         reason={reason ?? fixed}
         validate={name => {
           const problem = boxNameProblem(theme, name, box.name);

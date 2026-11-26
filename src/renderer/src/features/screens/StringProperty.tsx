@@ -3,10 +3,15 @@ import {PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {isComposing} from '@renderer/ui/fields/ime';
 
-/** Buffers a string until blur or Enter; Escape and invalid values keep the saved value. */
+/**
+ * Buffers a string until blur or Enter; Escape and invalid values keep the
+ * saved value. The field stops at `maxLength`, which every use names, so no
+ * value reaches main longer than its file takes.
+ */
 export function StringProperty({
   label,
   value,
+  maxLength,
   reason,
   commit,
   validate = () => undefined,
@@ -18,6 +23,7 @@ export function StringProperty({
 }: {
   label: string;
   value: string;
+  maxLength: number;
   reason: string | undefined;
   commit: (value: string) => void;
   validate?: (value: string) => string | undefined;
@@ -40,6 +46,7 @@ export function StringProperty({
             block
             autoFocus={autoFocus}
             placeholder={placeholder}
+            maxLength={maxLength}
             value={shown}
             readOnly={reason !== undefined}
             title={reason}

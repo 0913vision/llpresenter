@@ -26,6 +26,8 @@ import {type ThemeModel} from '../useThemeEditor';
 import {themeCanvasBounds} from '../elements/useThemeElements';
 import {fitAfter, sizeSteps, type TextFitUpdate} from './themeTextFit';
 
+/** The longest 크기 단계 text: every step as `400, `. */
+const SIZE_STEPS_TEXT = THEME_FILE_LIMITS.sizeSteps * '400, '.length;
 const NO_OUTLINE: TextOutline = {on: false, width: 2, color: '#000000'};
 const NO_SHADOW: TextShadow = {
   on: false,
@@ -363,6 +365,7 @@ export function ThemeFitProperties({
       <StringProperty
         label="크기 단계"
         value={fit.sizes?.join(', ') ?? ''}
+        maxLength={SIZE_STEPS_TEXT}
         reason={reason}
         placeholder="없음"
         commit={text => change({sizes: sizeSteps(text)})}
