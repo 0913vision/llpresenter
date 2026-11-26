@@ -53,7 +53,12 @@ export type SingleLiveCommand =
       readonly type: 'output.set';
       readonly screenId: string;
       readonly on: boolean;
-    };
+    }
+  /**
+   * Turns a screen's output the other way from where main has it, so quick
+   * presses each count even before the screens hear the one before.
+   */
+  | {readonly type: 'output.toggle'; readonly screenId: string};
 
 /** A bounded, flat transaction. Nested batches are not supported. */
 export interface LiveBatch {
@@ -97,6 +102,7 @@ const singleCommandOptions = [
     screenId: screenIdSchema,
     on: v.boolean(),
   }),
+  v.object({type: v.literal('output.toggle'), screenId: screenIdSchema}),
 ] as const;
 
 const singleCommandSchema = v.pipe(

@@ -103,6 +103,10 @@ screen's output on and off. There is no confirmation.
   button is on and off when it is off. A screen without its own layout in a 테마
   shows what the first screen of its kind shows (12).
 - Clicking a button in the monitor missing state turns the output off.
+- Each press turns the output the other way from where the app has it, not from
+  what the button showed, so quick presses each count: a double click turns it
+  off and on again, as in other Windows toggle buttons. The same holds for the
+  screen's shortcut and its check item in the menus.
 - Turning an output off keeps the output state (the live 슬라이드, background,
   그래픽, and so on). Turning it back on shows that content at once. While the
   output is off, the preview keeps showing the same picture.

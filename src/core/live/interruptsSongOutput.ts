@@ -19,6 +19,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'message.show':
     case 'media.properties.refresh':
     case 'output.set':
+    case 'output.toggle':
     case 'black.toggle':
     case 'slide.update':
     case 'stage.timer.set':

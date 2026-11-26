@@ -2,14 +2,20 @@ import {defineSlice} from '../slice';
 import {MissingLiveTargetError} from '../commandErrors';
 
 /**
- * Turns each screen's output on and off. Turning one off also hides its 테스트
- * 패턴, so a pattern never waits on a screen for its next output.
+ * Turns each screen's output on and off, to a given state or, for
+ * `output.toggle`, the other way from where it is. Turning one off also hides
+ * its 테스트 패턴, so a pattern never waits on a screen for its next output.
  */
 export const outputsSlice = defineSlice({
-  commands: ['output.set'],
+  commands: ['output.set', 'output.toggle'],
   initial: {outputs: {}},
-  reduce: (history, {screenId, on}, {settings}) => {
+  reduce: (history, command, {settings}) => {
     const state = history.state;
+    const {screenId} = command;
+    const on =
+      command.type === 'output.set'
+        ? command.on
+        : state.outputs[screenId] !== true;
     const document = settings?.get('screens');
     const saved =
       document?.name === 'screens'

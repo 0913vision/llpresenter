@@ -21,8 +21,7 @@ export function screenOutputEntries(
         target: screen.target,
         state: on ? 'live' : 'off',
       }),
-      onSelect: () =>
-        sendLive({type: 'output.set', screenId: screen.id, on: !on}),
+      onSelect: () => sendLive({type: 'output.toggle', screenId: screen.id}),
     };
   });
 }

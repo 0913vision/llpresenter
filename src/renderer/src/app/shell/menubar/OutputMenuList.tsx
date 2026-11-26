@@ -67,11 +67,7 @@ export function OutputMenuList({
       run: () => {
         const id = parseScreenId(screen.id);
         if (id.ok) {
-          sendLive({
-            type: 'output.set',
-            screenId: id.value,
-            on: outputs[screen.id] !== true,
-          });
+          sendLive({type: 'output.toggle', screenId: id.value});
         }
       },
     })),

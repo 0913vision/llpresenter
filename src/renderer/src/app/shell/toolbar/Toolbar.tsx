@@ -55,7 +55,7 @@ function OutputToggles({compact}: {readonly compact: boolean}): JSX.Element {
             state={on ? 'live' : 'off'}
             compact={compact}
             onToggle={() =>
-              sendLive({type: 'output.set', screenId: screen.id, on: !on})
+              sendLive({type: 'output.toggle', screenId: screen.id})
             }
           />
         );

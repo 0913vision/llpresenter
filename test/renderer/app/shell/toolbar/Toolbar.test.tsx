@@ -76,9 +76,8 @@ describe('saved output overflow', () => {
       within(menu).getByRole('menuitemcheckbox', {name: last.statusLabel}),
     );
     expect(send).toHaveBeenCalledExactlyOnceWith({
-      type: 'output.set',
+      type: 'output.toggle',
       screenId: last.id,
-      on: true,
     });
     act(() =>
       useLive.setState({
@@ -94,9 +93,8 @@ describe('saved output overflow', () => {
     expect(checked.getAttribute('aria-checked')).toBe('true');
     await userEvent.click(checked);
     expect(send).toHaveBeenLastCalledWith({
-      type: 'output.set',
+      type: 'output.toggle',
       screenId: last.id,
-      on: false,
     });
     expect(screen.queryByRole('menu')).toBeNull();
     expect(screen.getByRole('combobox', {name: '검색'})).toBeTruthy();
@@ -143,18 +141,19 @@ describe('Toolbar', () => {
     expect(onWorkspace).toHaveBeenCalledWith('library');
   });
 
-  it('turns an output on through the live command channel', async () => {
+  it('asks main to turn an output the other way on every press, also two quick ones before the screens answer', async () => {
     const send = vi.fn();
     installApi(send);
     render(
       <Toolbar sizeClass="normal" workspace="show" onWorkspace={() => {}} />,
     );
-    await userEvent.click(screen.getByRole('button', {name: '무대 화면'}));
-    expect(send).toHaveBeenCalledWith({
-      type: 'output.set',
-      screenId: STAGE_SCREEN,
-      on: true,
-    });
+    const button = screen.getByRole('button', {name: '무대 화면'});
+    await userEvent.click(button);
+    await userEvent.click(button);
+    expect(send.mock.calls).toEqual([
+      [{type: 'output.toggle', screenId: STAGE_SCREEN}],
+      [{type: 'output.toggle', screenId: STAGE_SCREEN}],
+    ]);
   });
 
   it('shows an output as on when the live state says so', () => {
