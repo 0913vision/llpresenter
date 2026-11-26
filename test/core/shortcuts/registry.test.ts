@@ -31,6 +31,12 @@ it('registers Item Off without a default key and accepts assigned theme commands
   ).toMatchObject({group: '테마', defaults: []});
 });
 
+it('keeps moving a row while Alt+Up or Alt+Down is held, as an editing key does, and runs live commands once per press', () => {
+  expect(shortcutCommand('list.moveUp')?.repeat).toBe(true);
+  expect(shortcutCommand('list.moveDown')?.repeat).toBe(true);
+  expect(shortcutCommand('show.next')?.repeat).toBe(false);
+});
+
 function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
   return {
     code: 'KeyC',

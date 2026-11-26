@@ -81,9 +81,12 @@ function command([
         'media.nextBackground',
         'media.previousBackground',
       ].includes(id),
+    // NOTE(0913vision): Moving a row is an editing key, so a held Alt+Up or
+    // Alt+Down keeps moving it (spec 10, key repeat), as in PowerPoint.
     repeat:
       id.startsWith('ui.zoom') ||
       id.startsWith('stageEditor.move') ||
+      id.startsWith('list.move') ||
       id === 'service.nextItem' ||
       id === 'service.previousItem' ||
       id === 'service.revealLive',

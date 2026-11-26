@@ -321,7 +321,8 @@ has no ProPresenter source, so this proposal's choice applies.
 - **Ignore key repeat for live commands.** Holding → must not run through the
   song. Live commands run once per press and ignore repeated `keydown` events
   (`event.repeat`) (decided). Editing keys, such as arrows in a text field, keep
-  their repeat.
+  their repeat; so does Alt Up or Alt Down moving a list row, which keeps moving
+  it while held, as in PowerPoint.
 
 ### Matching keys with the Korean IME on
 
