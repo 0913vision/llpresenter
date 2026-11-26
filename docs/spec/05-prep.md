@@ -247,6 +247,9 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 - The right-click menu of a 라이브러리 row has 삭제. It deletes immediately
   without a confirmation or notice; undo restores the song.
+- Saving a song over its own file keeps its steps, so 실행 취소 still runs back
+  what was saved, as in PowerPoint (USER, November 26). A song saved as another
+  one (다른 이름으로 저장) starts with no steps.
 - A song open in the editor closes when it is deleted. When undo brings it back,
   it opens again as it was: with its unsaved changes, still unsaved, and its
   steps. Nothing asks to save (USER, November 26).
