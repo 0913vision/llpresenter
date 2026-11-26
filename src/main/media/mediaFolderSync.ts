@@ -212,6 +212,16 @@ export class MediaFolderSync {
       log.info('following the media folder again', {folder});
     }
     const present = new Map(files.map(file => [key(file.path), file]));
+    const now = (this.options.now ?? Date.now)();
+    // NOTE(0913vision): A file handed to adopt is waited for until it is in
+    // the list. Once it was, it leaves and comes back as any listed file does,
+    // so it is forgotten here, before items whose files left are taken out.
+    const listedBefore = this.listedFiles();
+    for (const [file, since] of this.adopting) {
+      if (listedBefore.has(file) || now - since > ADOPT_TIMEOUT_MS) {
+        this.adopting.delete(file);
+      }
+    }
     const gone = store
       .get()
       .value.items.filter(item => {
@@ -225,12 +235,7 @@ export class MediaFolderSync {
       })
       .map(item => item.id);
     if (gone.length > 0) await logged(store.retire(gone), log);
-    const listed = new Set(
-      store
-        .get()
-        .value.items.map(item => store.fileOf(item.id))
-        .flatMap(file => (file === null ? [] : [key(file)])),
-    );
+    const listed = this.listedFiles();
     // NOTE(0913vision): Records are kept oldest first, each with its place in
     // the list as it was when it left. Bringing them back newest first undoes
     // the removals in reverse, so items that left together come back in their
@@ -241,12 +246,6 @@ export class MediaFolderSync {
         {id, order},
       ]),
     );
-    const now = (this.options.now ?? Date.now)();
-    for (const [file, since] of this.adopting) {
-      if (listed.has(file) || now - since > ADOPT_TIMEOUT_MS) {
-        this.adopting.delete(file);
-      }
-    }
     const adopt: string[] = [];
     const revive: Array<{id: MediaId; order: number}> = [];
     let waiting = false;
@@ -274,6 +273,17 @@ export class MediaFolderSync {
     for (const file of adopt) this.adopting.set(key(file), now);
     if (adopt.length > 0) await this.options.adopt(adopt);
     if (waiting) this.schedule(SETTLE_MS);
+  }
+
+  /** The files of the items in the list, as Windows compares them. */
+  private listedFiles(): ReadonlySet<string> {
+    const {store} = this.options;
+    return new Set(
+      store
+        .get()
+        .value.items.map(item => store.fileOf(item.id))
+        .flatMap(file => (file === null ? [] : [key(file)])),
+    );
   }
 
   /**

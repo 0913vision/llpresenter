@@ -91,7 +91,9 @@ function mockStore(
     }),
     removedFiles: () => records,
     holdsDeleted: (file: string) => held.has(file),
-  } satisfies FolderSyncStore;
+    /** Lists an item as an import does once its file is analysed. */
+    list: (id: MediaId) => shown.add(id),
+  } satisfies FolderSyncStore & {list: (id: MediaId) => unknown};
 }
 
 async function setup(options?: Parameters<typeof mockStore>[1]) {
@@ -266,4 +268,18 @@ it('brings items back newest first, so items that left one after another come ba
   }
   await sync.sync();
   expect(store.revive.mock.calls.map(([id]) => id)).toEqual([VIDEO, IMAGE]);
+});
+
+it('brings back a file that was just put into the list, left and came back, without waiting for the import to time out', async () => {
+  const {folder, store, adopt, sync} = await setup({listed: [IMAGE]});
+  await sync.sync();
+  expect(adopt).toHaveBeenCalledExactlyOnceWith([join(folder, 'video.webm')]);
+  store.list(VIDEO);
+  const away = await makeTempDir();
+  await rename(join(folder, 'video.webm'), join(away, 'video.webm'));
+  await sync.sync();
+  expect(store.retire).toHaveBeenCalledExactlyOnceWith([VIDEO]);
+  await rename(join(away, 'video.webm'), join(folder, 'video.webm'));
+  await sync.sync();
+  expect(store.revive).toHaveBeenCalledExactlyOnceWith(VIDEO);
 });
