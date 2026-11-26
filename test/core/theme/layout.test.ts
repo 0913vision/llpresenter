@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {OwnThemeScreen} from '@core/schema/screens/theme';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
+import {newElement} from '@core/theme/elements';
 import {layoutTheme, type MeasuredText} from '@core/theme/layout';
 import {builtIn} from '@fixtures/core/themeOutput';
 
@@ -136,5 +137,52 @@ describe('layoutTheme', () => {
     expect(placed.texts.get(split.lower)?.size).toBeLessThan(
       next?.style.size ?? 0,
     );
+  });
+});
+
+describe('layoutTheme shapes', () => {
+  it('stands a shape around its texts, above or below them, or at its own frame', () => {
+    const base = screenOf('lyrics', 'audience');
+    const [lyrics] = textElements(base);
+    const made = Array.from({length: 5}, () => newElement('shape'));
+    const [around, above, below, free, lost] = made;
+    if (
+      lyrics === undefined ||
+      around?.kind !== 'shape' ||
+      above?.kind !== 'shape' ||
+      below?.kind !== 'shape' ||
+      free?.kind !== 'shape' ||
+      lost?.kind !== 'shape'
+    ) {
+      throw new Error('No elements');
+    }
+    const texts = [lyrics.id];
+    const screen: OwnThemeScreen = {
+      ...base,
+      elements: [
+        ...base.elements,
+        {...around, around: {texts, padding: {top: 20, bottom: 30}}},
+        {...above, beside: {texts, side: 'above', gap: 10}},
+        {...below, beside: {texts, side: 'below', gap: 10}},
+        free,
+        {
+          ...lost,
+          around: {texts: [free.id], padding: {top: 0, bottom: 0}},
+        },
+      ],
+    };
+    const placed = layoutTheme(screen, new Map([[lyrics.id, rows(2)]]));
+    const text = placed.texts.get(lyrics.id);
+    if (text === undefined) throw new Error('No placed text');
+    expect(placed.shapes.get(around.id)).toEqual({
+      x: around.frame.x,
+      y: text.y - 20,
+      w: around.frame.w,
+      h: text.h + 50,
+    });
+    expect(placed.shapes.get(above.id)?.y).toBe(text.y - 10 - above.frame.h);
+    expect(placed.shapes.get(below.id)?.y).toBe(text.y + text.h + 10);
+    expect(placed.shapes.get(free.id)).toEqual(free.frame);
+    expect(placed.shapes.has(lost.id)).toBe(false);
   });
 });
