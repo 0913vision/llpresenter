@@ -1,10 +1,8 @@
 import type {JSX} from 'react';
 import {Select, type SelectProps} from '@renderer/ui/choices/Select';
-import {Icon} from '@renderer/ui/Icon';
-import {Tooltip} from '@renderer/ui/popups/Tooltip';
+import {MissingReference} from '@renderer/ui/choices/MissingReference';
 import {Section, SpecGroup, SpecItem, Stateful} from './Spec';
 import warmLight from '../../../../design/system/upload/Media/warm-light.jpg';
-import styles from './SelectSection.module.css';
 
 function Dropdown(
   props: Omit<SelectProps, 'expanded' | 'onExpandedChange'> & {
@@ -92,7 +90,7 @@ export function SelectSection(): JSX.Element {
       </SpecGroup>
       <SpecGroup title="States" surface="panel">
         <SpecItem label="Missing saved reference, effective fallback">
-          <div className={styles.reference}>
+          <MissingReference reason={MISSING_ARRANGEMENT_REASON}>
             <Dropdown
               size="sm"
               aria-label="화면"
@@ -100,16 +98,7 @@ export function SelectSection(): JSX.Element {
               value="기본"
               title={MISSING_ARRANGEMENT_REASON}
             />
-            <Tooltip text={MISSING_ARRANGEMENT_REASON}>
-              <span
-                role="img"
-                aria-label={MISSING_ARRANGEMENT_REASON}
-                className={styles.warning}
-              >
-                <Icon name="warning" size={14} />
-              </span>
-            </Tooltip>
-          </div>
+          </MissingReference>
         </SpecItem>
         <SpecItem label="Default" width={150}>
           <Dropdown block value="1분마다" />

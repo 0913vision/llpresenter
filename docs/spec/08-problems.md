@@ -119,13 +119,13 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 
 ### Showing it
 
-| Place                                              | Appearance                                                                  | Tooltip                                                                                                  |
-| -------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Media tile (media strip, media view)               | Hatched frame with an amber file icon. The picture and duration are hidden. | "파일을 찾을 수 없습니다: D:\예배 미디어\배경\따뜻한 빛.mp4" (file not found, with the path)             |
-| Background select in the 슬라이드 panel header     | Amber file icon before the name, and a 다시 연결 button                     | "배경 파일을 찾을 수 없음" (background file not found)                                                   |
-| 예배 순서 row                                      | Amber warning icon after the name                                           | "미디어 파일 없음" (media file missing)                                                                  |
-| 슬라이드 thumbnail with an image                   | Hatched canvas with an amber file icon                                      | The path, as above                                                                                       |
-| 표시 중 row and preview of a background that froze | Pause icon                                                                  | "배경 영상 파일을 찾을 수 없어 정지 화면으로 표시 중" (background video file not found, showing a still) |
+| Place                                              | Appearance                                                                                                                        | Tooltip                                                                                                         |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Media tile (media strip, media view)               | Hatched frame with an amber file icon. The picture and duration are hidden.                                                       | "파일을 찾을 수 없습니다: D:\예배 미디어\배경\따뜻한 빛.mp4" (file not found, with the path)                    |
+| Background select in the 슬라이드 panel header     | No picture, and a 14px amber warning icon beside the select (`Select` README, missing saved reference)                            | "배경 파일을 찾을 수 없습니다: 따뜻한 빛. 다른 배경을 선택하십시오." (background file not found, with its name) |
+| 예배 순서 row                                      | Amber warning icon after the name                                                                                                 | "미디어 파일을 찾을 수 없습니다." (media file not found)                                                        |
+| 슬라이드 thumbnail with an image                   | Drawn as it goes out, on its theme's background, with a 2px amber ring and an amber file icon at the top left (USER, November 26) | The path, as above                                                                                              |
+| 표시 중 row and preview of a background that froze | Pause icon                                                                                                                        | "배경 영상 파일을 찾을 수 없어 정지 화면으로 표시 중" (background video file not found, showing a still)        |
 
 - A missing media file doesn't open a notification card. It shows in place
   (`Notification` README).
@@ -141,8 +141,8 @@ Source: `Problems`, `Notification` README, `ToolbarButton` README.
 
 ### Relinking
 
-- Clicking a missing tile, choosing 다시 연결 in its right-click menu, or
-  clicking the 다시 연결 button opens a file dialog.
+- Clicking a missing tile, or choosing 다시 연결 in its right-click menu, opens
+  a file dialog.
 - The chosen file replaces the path of that media ID. Every song and item that
   uses the media ID works again.
 - If that media is the current background, playback starts again from the

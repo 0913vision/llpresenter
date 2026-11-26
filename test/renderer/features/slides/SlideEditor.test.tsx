@@ -562,6 +562,26 @@ describe('the background of a slide', () => {
     ).toBeNull();
   });
 
+  it('warns beside the background select when the chosen background file is missing, naming it', async () => {
+    useMedia.setState({missing: new Set([warm])});
+    renderEditor(
+      song().map((slide, index) =>
+        index === 0
+          ? {...slide, background: {kind: 'media' as const, media: warm}}
+          : slide,
+      ),
+    );
+    await openTab('디자인');
+    expect(
+      inspector().getByRole('img', {
+        name: /^배경 파일을 찾을 수 없습니다: 따뜻한 빛\./,
+      }),
+    ).toBeTruthy();
+    expect(
+      inspector().getByRole('button', {name: '배경'}).querySelector('img'),
+    ).toBeNull();
+  });
+
   it('is chosen at the right, and taken away again', async () => {
     const {current} = renderEditor(song());
     await openTab('디자인');

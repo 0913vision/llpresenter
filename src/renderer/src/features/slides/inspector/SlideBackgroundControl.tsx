@@ -13,6 +13,7 @@ import {MediaPicker} from '@renderer/features/media/picker/MediaPicker';
 import {pictureMedia, useMedia} from '@renderer/platform/documents/media';
 import {lentPreviewUrl} from '@renderer/rendering/media/previewMedia';
 import {backgroundPaint} from '@renderer/rendering/theme/themeBackground';
+import {MissingReference} from '@renderer/ui/choices/MissingReference';
 import {Select} from '@renderer/ui/choices/Select';
 import {
   NONE_LABEL,
@@ -89,17 +90,24 @@ export function SlideBackgroundControl({
   readonly onChange: (value: SlideBackground | undefined) => void;
 }): JSX.Element {
   const media = useMedia(view => view.items);
+  const missingFiles = useMedia(view => view.missing);
   const pictures = useMemo(() => pictureMedia(media), [media]);
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const shown = value?.kind === 'media' ? value.media : undefined;
   const lent = shown === undefined ? undefined : lentPreviewUrl(shown);
-  const missing =
+  const gone =
     shown !== undefined &&
     lent === undefined &&
     !pictures.some(item => item.id === shown) &&
     backgroundPicture(shown) === undefined;
+  const fileMissing = shown !== undefined && missingFiles?.has(shown) === true;
+  const reason = gone
+    ? missingBackgroundTip()
+    : fileMissing
+      ? missingBackgroundTip(backgroundName(media, shown))
+      : undefined;
   const choose = (choice: string | undefined): void => {
     if (choice === undefined) {
       onChange(undefined);
@@ -117,25 +125,28 @@ export function SlideBackgroundControl({
   };
   return (
     <>
-      <Select
-        ref={setTrigger}
-        id={id}
-        aria-label="배경"
-        block
-        value={mixed ? MIXED : slideBackgroundName(value, media)}
-        lead={
-          shown === undefined || mixed
-            ? undefined
-            : {kind: 'media', src: lent ?? thumbnailSrc(shown)}
-        }
-        title={missing ? missingBackgroundTip() : undefined}
-        disabled={disabled}
-        expanded={open && !disabled}
-        onExpandedChange={expanded => {
-          if (expanded) setQuery('');
-          setOpen(expanded);
-        }}
-      />
+      <MissingReference reason={mixed ? undefined : reason}>
+        <Select
+          ref={setTrigger}
+          id={id}
+          aria-label="배경"
+          aria-description={mixed ? undefined : reason}
+          block
+          value={mixed ? MIXED : slideBackgroundName(value, media)}
+          lead={
+            shown === undefined || mixed || reason !== undefined
+              ? undefined
+              : {kind: 'media', src: lent ?? thumbnailSrc(shown)}
+          }
+          title={mixed ? undefined : reason}
+          disabled={disabled}
+          expanded={open && !disabled}
+          onExpandedChange={expanded => {
+            if (expanded) setQuery('');
+            setOpen(expanded);
+          }}
+        />
+      </MissingReference>
       {open && !disabled && trigger !== null ? (
         <MediaPicker
           label="배경"
