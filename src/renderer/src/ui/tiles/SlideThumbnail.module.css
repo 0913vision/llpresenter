@@ -167,13 +167,18 @@
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
+.thumb[data-selection-style='plate'][data-state~='warning']::after,
 .thumb[data-selection-style='plate'][data-state~='live']::after {
   position: absolute;
   inset: 0;
   border-radius: var(--radius-sm);
-  box-shadow: var(--ring-live);
+  box-shadow: var(--ring-warning);
   content: '';
   pointer-events: none;
+}
+
+.thumb[data-selection-style='plate'][data-state~='live']::after {
+  box-shadow: var(--ring-live);
 }
 
 .thumb[data-selection-style='plate'] .band {
