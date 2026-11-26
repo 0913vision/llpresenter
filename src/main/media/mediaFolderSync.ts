@@ -22,6 +22,12 @@ export const SETTLE_MS = 5_000;
 /** How long a file handed to `adopt` is left alone before it is tried again. */
 const ADOPT_TIMEOUT_MS = 120_000;
 
+/**
+ * How often the folder is looked for again after it went away or could not be
+ * read, as when it is deleted and restored from the 휴지통.
+ */
+export const REFOLLOW_MS = 10_000;
+
 /** The folder where imports keep a note of the file each one is writing. */
 const IMPORT_NOTES = '.imports';
 
@@ -44,9 +50,18 @@ export interface MediaFolderSyncOptions {
   readonly adopt: (files: readonly string[]) => Promise<void>;
   readonly log: Logger;
   readonly now?: () => number;
-  /** Hears changes in the folder; `fs.watch` by default. */
-  readonly watch?: (folder: string, onChange: () => void) => () => void;
+  /**
+   * Hears changes in the folder, and when it is lost, as when the folder is
+   * deleted; `fs.watch` by default.
+   */
+  readonly watch?: (
+    folder: string,
+    onChange: () => void,
+    onLost: (error: unknown) => void,
+  ) => () => void;
   readonly delayMs?: number;
+  /** How often a lost folder is looked for; {@link REFOLLOW_MS} by default. */
+  readonly refollowMs?: number;
 }
 
 /**
@@ -54,13 +69,17 @@ export interface MediaFolderSyncOptions {
  * a file in the folder is in the list, coming back as it was when the list
  * keeps a record of it; an item whose file left the folder leaves the list as
  * a record. It follows the folder at launch and whenever it changes. A folder
- * that can't be read changes nothing.
+ * that can't be read changes nothing, and is looked for again every
+ * {@link REFOLLOW_MS} until it is back.
  */
 export class MediaFolderSync {
   private running: Promise<void> = Promise.resolve();
   private timer: ReturnType<typeof setTimeout> | undefined;
+  private refollowTimer: ReturnType<typeof setTimeout> | undefined;
   private stopWatch: (() => void) | undefined;
   private disposed = false;
+  /** Whether the folder is lost, so the loss is logged once, not every look. */
+  private lost = false;
   /** Files handed to `adopt`, by when, until they are in the list. */
   private readonly adopting = new Map<string, number>();
 
@@ -68,21 +87,15 @@ export class MediaFolderSync {
 
   /** Follows the folder now and from then on. */
   start(): void {
+    this.follow();
     this.schedule(0);
-    try {
-      this.stopWatch = (this.options.watch ?? watchFolder)(
-        this.options.store.folder,
-        () => this.schedule(this.options.delayMs ?? FOLDER_SYNC_DELAY_MS),
-      );
-    } catch (error: unknown) {
-      this.options.log.warn('could not follow the media folder', error);
-    }
   }
 
   /** Stops following the folder; a sync under way ends on its own. */
   dispose(): Promise<void> {
     this.disposed = true;
     clearTimeout(this.timer);
+    clearTimeout(this.refollowTimer);
     this.stopWatch?.();
     return this.running;
   }
@@ -106,12 +119,54 @@ export class MediaFolderSync {
     }, delay);
   }
 
+  /** Hears the folder's changes, or looks for it again later. */
+  private follow(): void {
+    if (this.disposed) return;
+    try {
+      this.stopWatch = (this.options.watch ?? watchFolder)(
+        this.options.store.folder,
+        () => this.schedule(this.options.delayMs ?? FOLDER_SYNC_DELAY_MS),
+        error => this.lose('lost the media folder', error),
+      );
+    } catch (error: unknown) {
+      this.lose('could not follow the media folder', error);
+      return;
+    }
+    if (this.lost) this.schedule(0);
+  }
+
+  /** Stops hearing a folder that went away and looks for it again later. */
+  private lose(message: string, error: unknown): void {
+    if (!this.lost) {
+      this.lost = true;
+      this.options.log.warn(message, {
+        folder: this.options.store.folder,
+        error,
+      });
+    }
+    this.stopWatch?.();
+    this.stopWatch = undefined;
+    if (this.disposed) return;
+    clearTimeout(this.refollowTimer);
+    this.refollowTimer = setTimeout(
+      () => this.follow(),
+      this.options.refollowMs ?? REFOLLOW_MS,
+    );
+  }
+
   private async once(): Promise<void> {
     if (this.disposed) return;
     const {store, log} = this.options;
     const folder = store.folder;
     const files = await this.filesOf(folder);
-    if (files === null) return;
+    if ('error' in files) {
+      this.lose('could not read the media folder', files.error);
+      return;
+    }
+    if (this.lost) {
+      this.lost = false;
+      log.info('following the media folder again', {folder});
+    }
     const present = new Map(files.map(file => [key(file.path), file]));
     const gone = store
       .get()
@@ -167,21 +222,19 @@ export class MediaFolderSync {
 
   /**
    * The media files in the folder and when each last changed, without the
-   * hidden ones and the files an import is writing; null when the folder
-   * can't be read.
+   * hidden ones and the files an import is writing, or why the folder can't
+   * be read.
    */
   private async filesOf(
     folder: string,
-  ): Promise<ReadonlyArray<{path: string; changed: number}> | null> {
+  ): Promise<
+    ReadonlyArray<{path: string; changed: number}> | {error: unknown}
+  > {
     let entries;
     try {
       entries = await readdir(folder, {withFileTypes: true});
     } catch (error: unknown) {
-      this.options.log.warn('could not read the media folder', {
-        folder,
-        error,
-      });
-      return null;
+      return {error};
     }
     const writing = await importsWriting(folder);
     const files = await Promise.all(
@@ -261,10 +314,17 @@ async function logged(
 // NOTE(0913vision): Windows' watcher asserts and ends the process when the
 // folder is named by its short 8.3 form (C:\Users\RUNNER~1\...), so it
 // watches the folder's full name.
-function watchFolder(folder: string, onChange: () => void): () => void {
+function watchFolder(
+  folder: string,
+  onChange: () => void,
+  onLost: (error: unknown) => void,
+): () => void {
   const watcher = watch(realpathSync.native(folder), {persistent: false}, () =>
     onChange(),
   );
-  watcher.on('error', () => watcher.close());
+  watcher.on('error', (error: unknown) => {
+    watcher.close();
+    onLost(error);
+  });
   return () => watcher.close();
 }

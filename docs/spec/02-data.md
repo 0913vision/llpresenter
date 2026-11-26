@@ -702,11 +702,12 @@ follows the folder at launch and whenever the folder changes:
   its place in the list and in each playlist, and a deleted item is kept the
   same way. When its file is in the folder again, it comes back as it was, so
   the songs and items that use its ID show it again.
-- A folder that can't be read changes nothing. Bundled theme backgrounds and
-  decorations stay in the app assets, with their existing IDs resolved outside
-  `media.json`; they do not appear in Media, media search, or counts and cannot
-  be renamed or deleted. Section themes use gradient presets instead of image
-  files (12).
+- A folder that can't be read, or that went away, changes nothing; the app looks
+  for it again every 10 seconds and follows it once it is back, as when it is
+  restored from the 휴지통. Bundled theme backgrounds and decorations stay in
+  the app assets, with their existing IDs resolved outside `media.json`; they do
+  not appear in Media, media search, or counts and cannot be renamed or deleted.
+  Section themes use gradient presets instead of image files (12).
 
 The `media.sections.prepare` edit retains only its `type` field as a no-op.
 Section insertion chooses a gradient theme and does not add media entries or

@@ -141,6 +141,45 @@ it('changes nothing when the folder can not be read', async () => {
   await sync.sync();
   expect(store.get()).toBe(before);
   expect(log.messages('warn')).toContain('could not read the media folder');
+  await sync.dispose();
+});
+
+it('looks for a lost folder again, and brings the list to it when it is back', async () => {
+  const {folder, store, adopt, log} = await setup();
+  const lost: Array<(error: unknown) => void> = [];
+  let missing = false;
+  const watch = vi.fn(
+    (_folder: string, _onChange: () => void, onLost: (e: unknown) => void) => {
+      if (missing) throw new Error('ENOENT');
+      lost.push(onLost);
+      return () => undefined;
+    },
+  );
+  const sync = new MediaFolderSync({
+    store,
+    adopt,
+    log,
+    now: () => Date.now() + SETTLE_MS * 2,
+    watch,
+    refollowMs: 5,
+  });
+  sync.start();
+  await new Promise(resolve => setTimeout(resolve, 10));
+  await sync.sync();
+
+  missing = true;
+  lost[0]?.(new Error('EPERM'));
+  await rename(join(folder, 'video.webm'), join(folder, '..', 'moved.webm'));
+  await vi.waitFor(() => expect(watch.mock.calls.length).toBeGreaterThan(3));
+  expect(log.messages('warn')).toEqual(['lost the media folder']);
+  expect(store.get().value.items).toHaveLength(2);
+
+  missing = false;
+  await vi.waitFor(() =>
+    expect(store.get().value.items.map(item => item.id)).toEqual([IMAGE]),
+  );
+  expect(log.messages('info')).toContain('following the media folder again');
+  await sync.dispose();
 });
 
 it('leaves the file of a deleted item that waits for the 휴지통 alone', async () => {
