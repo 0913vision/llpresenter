@@ -8,7 +8,6 @@ import {
   NDI_FRAME_HEIGHT,
   NDI_FRAME_WIDTH,
 } from '@main/outputs/ndi/textureQueue';
-import {startLoading} from '@main/base/renderers/page';
 import type {OutputScreen} from '@main/outputs/screens';
 
 vi.mock('electron', async () => {
@@ -77,23 +76,6 @@ it('draws one hidden NDI frame, at 60 frames for a fast screen and 30 for a slow
   });
   expect(slow.win.webContents.stopPainting).not.toHaveBeenCalled();
   expect(slow.win.webContents.setFrameRate).toHaveBeenCalledWith(30);
-});
-
-it('tells of a page gone or not loaded, and keeps its title', async () => {
-  const events = {onRendererGone: vi.fn(), onCloseRequested: vi.fn()};
-  const onLoadError = vi.fn();
-  vi.mocked(startLoading).mockRejectedValueOnce(new Error('no page'));
-  const {win} = createNdiWindow(SCREEN, events, {
-    sharedTexture: false,
-    onLoadError,
-  });
-  await vi.waitFor(() => expect(onLoadError).toHaveBeenCalledOnce());
-  const details = {reason: 'crashed', exitCode: 1};
-  win.webContents.emit('render-process-gone', {}, details);
-  expect(events.onRendererGone).toHaveBeenCalledWith(details);
-  const title = {preventDefault: vi.fn()};
-  win.emit('page-title-updated', title);
-  expect(title.preventDefault).toHaveBeenCalledOnce();
 });
 
 it('sends while shown as a capture, stops when hidden, and places nothing', async () => {

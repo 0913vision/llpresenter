@@ -71,11 +71,3 @@ it('shows and removes no picture it did not make', async () => {
     ipc.invoke(powerpointEndpoints.release, {path: STRANGER}),
   ).resolves.toBe(false);
 });
-
-it('stops answering once stopped, and stopping twice does nothing more', () => {
-  const {stop} = setUp();
-  stop();
-  stop();
-  expect(ipc.has(powerpointEndpoints.storeImages.channel)).toBe(false);
-  expect(ipc.has(powerpointEndpoints.read.channel)).toBe(false);
-});

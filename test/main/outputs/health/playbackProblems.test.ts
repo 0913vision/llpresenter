@@ -1,5 +1,9 @@
+import {EventEmitter} from 'node:events';
 import {describe, expect, it, vi} from 'vitest';
-import {PlaybackProblemBoard} from '@main/outputs/health/playbackProblems';
+import {
+  PlaybackProblemBoard,
+  watchPlaybackProblems,
+} from '@main/outputs/health/playbackProblems';
 
 vi.mock('electron', () => ({}));
 
@@ -67,5 +71,32 @@ describe('PlaybackProblemBoard', () => {
     );
     board.renderer(20, 'running');
     expect(board.snapshot().map(row => row.source)).toEqual(['screen']);
+  });
+
+  it('forgets an output whose page is gone, and once its watch is stopped', () => {
+    const changed = vi.fn();
+    const board = new PlaybackProblemBoard(() => true, changed);
+    const page = Object.assign(new EventEmitter(), {id: 7});
+    const source = {source: 'stage', name: () => '무대 화면', retry: vi.fn()};
+    watchPlaybackProblems(board, page, source);
+    board.report(7, ['device-missing']);
+    expect(board.snapshot()).toHaveLength(1);
+    page.emit('destroyed');
+    expect(board.snapshot()).toEqual([]);
+    const stopWatching = watchPlaybackProblems(board, page, source);
+    board.report(7, ['device-missing']);
+    stopWatching();
+    expect(board.snapshot()).toEqual([]);
+    expect(page.listenerCount('destroyed')).toBe(0);
+  });
+
+  it('takes no more outputs than the problem list holds', () => {
+    const board = new PlaybackProblemBoard(() => true, vi.fn());
+    const source = {source: 'screen', name: () => '청중 화면', retry: vi.fn()};
+    expect(() => {
+      for (let sender = 0; sender < 1000; sender++) {
+        board.register(sender, source);
+      }
+    }).toThrow('Too many playback problem sources');
   });
 });
