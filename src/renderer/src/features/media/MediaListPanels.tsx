@@ -139,6 +139,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
   useWindowShortcuts([
     {
       id: 'edit.delete',
+      context: 'service',
       when: event => focusedPlaylist(event, kind) !== undefined,
       unavailable: () => (editable ? undefined : NEWER_FILE_REASON),
       run: event => {

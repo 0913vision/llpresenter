@@ -127,6 +127,7 @@ export function MacroView({
   useWindowShortcuts([
     {
       id: 'edit.delete',
+      context: 'service',
       when: event => onDelete !== undefined && focused(event) !== undefined,
       unavailable: () => (collectionLocked ? '매크로 편집 불가' : undefined),
       run: event => {

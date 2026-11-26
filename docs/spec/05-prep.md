@@ -899,6 +899,8 @@ never appear in media lists. A notice shows the progress with 취소.
   (proposal).
 - The right-click menu of a tile has 재생목록에서 빼기 (remove from playlist)
   and 삭제 (delete from the media list). Deletion is immediate and undoable.
+  Delete on the chosen tiles does the same, in 진행 and 준비; every chosen tile
+  goes, one after another, and each comes back with one 실행 취소.
 - 새 재생목록 adds a playlist named "새 재생목록" in rename mode (proposal).
 - Selecting an audio playlist shows its tracks in the center as a list
   (proposal).

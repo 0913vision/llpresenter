@@ -31,6 +31,10 @@ export function useMediaShortcuts({
   useWindowShortcuts([
     {
       id: 'edit.delete',
+      // NOTE(0913vision): 삭제 belongs to the editing parts; without the part's
+      // context Delete never reached the 미디어 grid in 진행 or 준비, though
+      // its menu shows the key.
+      context: 'service',
       when: event =>
         selected !== undefined && inside(event, `${VIEW} [role="listbox"]`),
       unavailable: () => reason,
