@@ -9,7 +9,7 @@ import {
   normalizeSongTitle,
 } from '@core/songs';
 import {isUnsaved, songTitleProblem, type SongDraft} from '../songDraftModel';
-import {show} from './draftOpen';
+import {settleSongDraft} from './draftOpen';
 import {withPictureFiles} from './draftPictures';
 import {ask} from './draftQuestions';
 import {
@@ -55,13 +55,18 @@ async function guarded(work: () => Promise<boolean>): Promise<boolean> {
   }
 }
 
-async function reopen(id: SongId): Promise<boolean> {
+/**
+ * Puts the saved file under the open song. The same song keeps its steps, so
+ * 실행 취소 still runs back what was saved (USER Nov 26, as in PowerPoint); a
+ * song saved as another one starts anew.
+ */
+async function reopen(id: SongId, saved: Song): Promise<boolean> {
   const document = (await songDraftApi()?.songs.get(id)) ?? null;
   if (document === null) {
     problem('저장한 곡 불러오기 실패');
     return false;
   }
-  show(document.song, document);
+  settleSongDraft(document, saved);
   return true;
 }
 
@@ -90,7 +95,7 @@ export function overwriteSong(): Promise<boolean> {
       return false;
     }
     if (result?.ok === false) problem('곡 파일 저장 실패', why(result));
-    return reopen(id);
+    return reopen(id, draft.song);
   });
 }
 
@@ -121,7 +126,7 @@ export function saveNewSong(
       return false;
     }
     if (result?.ok === false) problem('곡 파일 저장 실패', why(result));
-    return reopen(id);
+    return reopen(id, draft.song);
   });
 }
 
@@ -144,7 +149,7 @@ export function saveSongAs(title: string): Promise<boolean> {
       problem('다른 이름으로 저장 실패', why(result));
       return false;
     }
-    return reopen(id);
+    return reopen(id, song);
   });
 }
 

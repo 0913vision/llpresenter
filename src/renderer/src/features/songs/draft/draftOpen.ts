@@ -6,7 +6,7 @@ import type {Slide} from '@core/schema/slides/slide';
 import {newSongSlides, songItemBody, songSlides} from '@core/slides';
 import {normalizeSongTitle} from '@core/songs';
 import {slideMaking} from '@renderer/platform/documents/themes';
-import {freshDraft, type SongDraft} from '../songDraftModel';
+import {editingSong, freshDraft, type SongDraft} from '../songDraftModel';
 import {editSong, resumeSongHistory} from './draftHistory';
 import {
   draftView as view,
@@ -67,6 +67,26 @@ export function openSongDraft(
     resumeSongHistory(kept.past.length);
   }
   if (options.focusTitle === true) focusTitle();
+}
+
+/**
+ * Puts the file of a save under the open draft of the same song and keeps its
+ * steps; the song shows as the file has it unless it changed since `saved`
+ * was sent. Another song opens anew.
+ */
+export function settleSongDraft(document: SongDocument, saved: Song): void {
+  const {draft} = view();
+  if (draft?.song.id !== document.song.id) {
+    show(document.song, document);
+    return;
+  }
+  useSongDraft.setState({
+    draft: {
+      ...draft,
+      document,
+      song: draft.song === saved ? editingSong(document.song) : draft.song,
+    },
+  });
 }
 
 /**

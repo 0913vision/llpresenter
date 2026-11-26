@@ -9,6 +9,7 @@ import {
   openImportedSong,
   openNewSong,
   openSongDraft,
+  overwriteSong,
   renameDraftLabel,
   replaySong,
   requestLeaveSong,
@@ -16,6 +17,7 @@ import {
   useSongDraft,
 } from '@renderer/features/songs/draft';
 import {SongDraftDialogs} from '@renderer/features/songs/SongDraftDialogs';
+import {isUnsaved} from '@renderer/features/songs/songDraftModel';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
 import {useThemes} from '@renderer/platform/documents/themes';
 import {undoTimeline} from '@renderer/platform/undo/undoTimeline';
@@ -237,4 +239,21 @@ it('closes a song deleted while open and brings it back as it was, unsaved chang
     replaySong('undo');
   });
   expect(draft().song.title).toBe(fixture.first.song.title);
+});
+
+it('keeps the steps of a song saved over its own file, so 실행 취소 runs back what was saved (USER Nov 26)', async () => {
+  const fixture = await setup();
+  act(() => openSongDraft(fixture.first));
+  act(() => editSong(song => ({...song, title: `${song.title} 수정`})));
+  await act(async () => {
+    expect(await overwriteSong()).toBe(true);
+  });
+  expect(isUnsaved(draft())).toBe(false);
+  expect(draft().document?.revision).toBeGreaterThan(fixture.first.revision);
+  expect(draft().past).toHaveLength(1);
+  act(() => {
+    replaySong('undo');
+  });
+  expect(draft().song.title).toBe(fixture.first.song.title);
+  expect(isUnsaved(draft())).toBe(true);
 });
