@@ -167,6 +167,8 @@ export const preferencesSchema = jsonObject({
       /** 준비, 끝 제목: a song added to the 예배 순서 also ends with its title. */
       closingSongTitle: v.exactOptional(v.boolean()),
       dimPastItems: v.exactOptional(v.boolean()),
+      /** 진행, a double click on an item or a 슬라이드 opens it in 준비 (USER Nov 28). */
+      doubleClickPrep: v.exactOptional(v.boolean()),
       slideDefaults: v.exactOptional(
         jsonObject({
           songTitle: v.exactOptional(slideTransitionSchema),
@@ -284,6 +286,7 @@ export const defaultPreferences: Preferences = {
     continuousGrid: false,
     closingSongTitle: true,
     dimPastItems: false,
+    doubleClickPrep: false,
     slideDefaults: defaultSlideTransitions,
     audio: {transitionSeconds: 0.5, fadeOutSeconds: 3},
   },

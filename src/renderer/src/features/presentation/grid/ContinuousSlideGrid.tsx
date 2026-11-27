@@ -127,6 +127,7 @@ export function ContinuousSlideGrid({
   columns,
   scalePercent,
   onOpenPrep,
+  doubleClickPrep = false,
 }: SlideGridProps): JSX.Element {
   const keeper = useRef<HTMLDivElement>(null);
   const entryRef = useContext(ShowSlideEntry);
@@ -381,6 +382,7 @@ export function ContinuousSlideGrid({
                   }
                   progress={progress}
                   onMenu={setMenu}
+                  onOpen={doubleClickPrep ? onOpenPrep : undefined}
                   className={styles.continuousTiles}
                 />
               </div>

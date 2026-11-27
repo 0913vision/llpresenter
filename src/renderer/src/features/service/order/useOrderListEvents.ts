@@ -23,6 +23,7 @@ export function useOrderListEvents({
   clickCapture,
   openMenu,
   openOrderEditor,
+  openOnDoubleClick,
 }: {
   /** The list is beside the editor of an item, as in 준비. */
   readonly navigator: boolean;
@@ -36,6 +37,8 @@ export function useOrderListEvents({
     anchor: (targets: readonly HTMLElement[]) => MenuAnchor,
   ) => void;
   readonly openOrderEditor: (id: string | null) => boolean;
+  /** What a double click opens instead of the editor of 준비, as 진행 may. */
+  readonly openOnDoubleClick?: ((id: string | null) => void) | undefined;
 }) {
   return {
     onMouseDownCapture: (event: MouseEvent<HTMLDivElement>): void => {
@@ -66,7 +69,9 @@ export function useOrderListEvents({
     },
     onDoubleClick: (event: MouseEvent<HTMLDivElement>): void => {
       if (isInTextEntry(event.target)) return;
-      openOrderEditor(serviceOrderRowId(event.target));
+      const id = serviceOrderRowId(event.target);
+      if (openOnDoubleClick) openOnDoubleClick(id);
+      else openOrderEditor(id);
     },
     onKeyDownCapture: (event: KeyboardEvent<HTMLDivElement>): void => {
       if (isInTextEntry(event.target)) return;

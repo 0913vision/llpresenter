@@ -35,6 +35,7 @@ export function ShowTiles({
   live,
   progress,
   onMenu,
+  onOpen,
   className,
 }: {
   readonly itemId: string | null;
@@ -49,6 +50,8 @@ export function ShowTiles({
   readonly live: number | null;
   readonly progress: TransitionProgress | undefined;
   readonly onMenu: (menu: TileMenu) => void;
+  /** A double click opens the 슬라이드 in 준비, when 환경설정 says so. */
+  readonly onOpen?: ((itemId: string, position: number) => void) | undefined;
   readonly className: string | undefined;
 }): JSX.Element {
   const ids = tileReflowIds(tiles, itemId ?? '');
@@ -70,6 +73,13 @@ export function ShowTiles({
       onMenu={(index, anchor) => {
         if (itemId !== null) onMenu({itemId, index: start + index, anchor});
       }}
+      onDoubleClick={
+        onOpen === undefined
+          ? undefined
+          : index => {
+              if (itemId !== null) onOpen(itemId, start + index);
+            }
+      }
       className={className}
     >
       {tiles.slice(start, end).map((tile, local) => {

@@ -38,6 +38,8 @@ export interface SlideGridProps {
   readonly scalePercent: number;
   readonly onOpenPrep?:
     ((itemId: string, position?: number) => void) | undefined;
+  /** A double click on a 슬라이드 opens it in 준비 (환경설정, USER Nov 28). */
+  readonly doubleClickPrep?: boolean | undefined;
 }
 
 /** The 슬라이드 grid of the open item. A click outputs a tile. */
@@ -45,6 +47,7 @@ export function SlideGrid({
   columns,
   scalePercent,
   onOpenPrep,
+  doubleClickPrep = false,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShownItemId();
   const bibleLookup = useShow(view => isBibleSource(view, openItemId));
@@ -148,6 +151,7 @@ export function SlideGrid({
           live={liveIndex}
           progress={transitionProgress}
           onMenu={setMenu}
+          onOpen={doubleClickPrep ? onOpenPrep : undefined}
           className={styles.grid}
         />
       </div>

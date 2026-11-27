@@ -61,6 +61,8 @@ export interface ShowThumbnailGridProps extends ThumbnailGridBaseProps {
   readonly gridFocus?: boolean | undefined;
   /** A click or Enter outputs that 슬라이드. */
   readonly onOutput: (index: number) => void;
+  /** A double click on a 슬라이드, when it does more than output it. */
+  readonly onDoubleClick?: ((index: number) => void) | undefined;
 }
 
 /** The 슬라이드 grid of 준비, where a click or Enter only selects. */
@@ -115,6 +117,9 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
       onSelect={onSelect}
       onMenu={props.onMenu}
       onActivate={props.workspace === 'show' ? props.onOutput : onSelect}
+      onDoubleClick={
+        props.workspace === 'show' ? props.onDoubleClick : undefined
+      }
       className={classNames(
         styles.grid,
         fixedWidth !== undefined && styles.sized,

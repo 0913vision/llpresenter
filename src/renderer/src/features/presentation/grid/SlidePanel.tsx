@@ -53,6 +53,7 @@ export function SlidePanelBody({
       columns={defaultThumbnailColumns[sizeClass]}
       scalePercent={scalePercent}
       onOpenPrep={onOpenPrep}
+      doubleClickPrep={settings?.value.show?.doubleClickPrep === true}
     />
   );
 }

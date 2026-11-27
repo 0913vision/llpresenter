@@ -51,6 +51,18 @@ export function ServiceOrderPage({edits}: PageProps): JSX.Element | null {
           }))
         }
       />
+      <CheckboxRow
+        label="두 번 클릭하면 준비에서 열기"
+        disabled={lockedReason !== undefined}
+        title={lockedReason}
+        checked={preferences.show.doubleClickPrep}
+        onChange={doubleClickPrep =>
+          change(stored => ({
+            ...stored,
+            show: {...stored.show, doubleClickPrep},
+          }))
+        }
+      />
     </PropertyGroup>
   );
 }

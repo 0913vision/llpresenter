@@ -22,6 +22,7 @@ import type {ServiceTableParts} from './serviceTableParts';
 import {useOrderDrop} from './edits/useOrderDrop';
 import {useOrderEdits} from './edits/useOrderEdits';
 import {useOrderListEvents} from './useOrderListEvents';
+import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {useOrderMenu} from './menu/useOrderMenu';
 import {useOrderRename} from './edits/useOrderRename';
 import {useOrderRowStates} from './rows/useOrderRowStates';
@@ -179,6 +180,11 @@ export function ServiceOrderList({
     openInPrep({kind: 'item', itemId: id});
     return true;
   };
+  const preferences = useSettingsDocument('preferences', '환경설정', undefined);
+  const doubleClickPrep =
+    workspace === 'show' &&
+    preferences?.value.show?.doubleClickPrep === true &&
+    onOpenPrep !== undefined;
   const listEvents = useOrderListEvents({
     navigator,
     workspace,
@@ -186,6 +192,16 @@ export function ServiceOrderList({
     clickCapture: drop.dragProps.onClickCapture,
     openMenu: menu.open,
     openOrderEditor,
+    // NOTE(0913vision): In 진행 a double click opens the item in 준비 only
+    // when 환경설정 says so (USER Nov 28).
+    openOnDoubleClick: doubleClickPrep
+      ? id => {
+          if (id === null || serviceId === null) return;
+          const kind = rows.find(row => row.id === id)?.kind;
+          if (kind === undefined || kind === 'header') return;
+          onOpenPrep(id);
+        }
+      : undefined,
   });
 
   const rowContext: RowContext = {
