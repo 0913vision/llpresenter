@@ -267,7 +267,6 @@ export function usePrepPanels({
   };
   return {
     shownItem: editing ? target.itemId : selectedItem,
-    editing,
     columns,
     partsOf,
   };
@@ -309,10 +308,5 @@ export function useLibraryPanels({
         return {};
     }
   };
-  return {
-    shownItem: undefined,
-    editing: song !== null,
-    columns: SONG_COLUMNS,
-    partsOf,
-  };
+  return {columns: SONG_COLUMNS, partsOf};
 }

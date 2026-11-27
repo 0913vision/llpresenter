@@ -34,7 +34,6 @@ it('keeps the 라이브러리 columns with an empty editor when the open song is
   const view = renderHook(() =>
     useLibraryPanels({prep: undefined, onProblem: undefined}),
   );
-  expect(view.result.current.editing).toBe(true);
   // NOTE(0913vision): A song deleted while it is open closes its draft alone,
   // as here.
   act(closeSongDraft);
@@ -44,7 +43,6 @@ it('keeps the 라이브러리 columns with an empty editor when the open song is
     '편집',
     '슬라이드 속성',
   ]);
-  expect(view.result.current.editing).toBe(false);
 });
 
 it('leaves 준비 to the 예배 순서 and its items while a library song is open in 라이브러리 (USER Nov 27)', () => {
@@ -64,5 +62,4 @@ it('leaves 준비 to the 예배 순서 and its items while a library song is ope
     '예배 순서',
     '세부정보',
   ]);
-  expect(view.result.current.editing).toBe(false);
 });

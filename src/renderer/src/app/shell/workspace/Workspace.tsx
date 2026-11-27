@@ -40,10 +40,6 @@ import {useWorkspaceServiceHistory} from './useWorkspaceServiceHistory';
 import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
 import type {SizeClass} from '@core/schema/app/appConfig';
 
-function ignoreProblem(): void {
-  return undefined;
-}
-
 /**
  * 실행 취소 follows the workspace on screen: it is off in 진행, which sends
  * what is on the screens, so a step run back there would change them behind
@@ -69,14 +65,10 @@ function useWorkspaceUndo(visible: WorkspaceId): void {
 function KeptFrame({
   workspace,
   visible,
-  data,
   children,
 }: {
   readonly workspace: WorkspaceId;
   readonly visible: boolean;
-  readonly data?: Readonly<
-    Record<`data-${string}`, string | boolean | undefined>
-  >;
   readonly children: ReactNode;
 }): JSX.Element {
   // NOTE(0913vision): A hidden frame keeps the content it last showed, the
@@ -89,7 +81,6 @@ function KeptFrame({
     <div
       className={classNames(styles.frameSlot, !visible && styles.hiddenFrame)}
       data-workspace-frame={workspace}
-      {...data}
       inert={!visible}
       aria-hidden={!visible}
     >
@@ -144,6 +135,7 @@ export function Workspace({
   const layoutOf = (workspace: WorkspaceId): WorkspaceId =>
     workspace === 'library' ? 'prep' : workspace;
   const right = layoutOf(id) === 'prep' ? 'prepRight' : 'right';
+  const problem = onProblem ?? logPanelProblem;
   const toggle = useSidebarToggle(sidebar);
   const {gridRef, drag} = useColumnLayout({
     sizeClass,
@@ -160,10 +152,7 @@ export function Workspace({
   const visibleId = id === 'screens' && !screens.ready ? lastVisible : id;
   if (visibleId !== lastVisible) setLastVisible(visibleId);
   const showVisible = visibleId === 'show';
-  useWorkspaceServiceHistory(
-    visibleId !== 'screens',
-    onProblem ?? logPanelProblem,
-  );
+  useWorkspaceServiceHistory(visibleId !== 'screens', problem);
   useUndoReveal(onShowInLibrary);
   useWorkspaceUndo(visibleId);
   // NOTE(0913vision): 진행 stays built, hidden, while another workspace
@@ -195,15 +184,20 @@ export function Workspace({
   const libraryPanels = useLibraryPanels({prep, onProblem});
   const hasMediaView = useHasMediaView();
   const api = mediaApi ?? prep?.api ?? window.llp;
-  const mediaOpen = visibleId !== 'screens' && mediaVisible;
+  const mediaShown = visibleId !== 'screens' && api !== undefined;
+  const mediaOpen = mediaShown && mediaVisible;
   const mediaRows = useRowLayout({
     container: gridRef,
     store,
     sizeClass,
     layoutKey: 'media',
-    enabled: mediaOpen && api !== undefined,
+    enabled: mediaOpen,
     fill: 'first',
   });
+  // NOTE(0913vision): null is 준비 showing no item, apart from undefined,
+  // which leaves the item the app opened.
+  const prepShown =
+    prepPanels.shownItem === undefined ? prepItemId : prepPanels.shownItem;
   const columnFrame = (
     workspace: WorkspaceId,
     panels: WorkspacePanels,
@@ -225,17 +219,14 @@ export function Workspace({
     <main
       ref={gridRef}
       data-workspace-layout={layoutOf(visibleId)}
-      data-workspace-tab={visibleId}
       onKeyDown={navigation.onKeyDown}
       className={classNames(
         styles.workspace,
-        visibleId !== 'screens' && api !== undefined && styles.mediaAvailable,
-        mediaOpen && api !== undefined && styles.mediaOpen,
+        mediaShown && styles.mediaAvailable,
+        mediaOpen && styles.mediaOpen,
       )}
     >
-      {visibleId === 'show' ? (
-        <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
-      ) : null}
+      {showVisible ? <ShowShortcuts onProblem={problem} /> : null}
       <div data-resize-panel="media.upper" className={styles.frames}>
         <KeptFrame workspace="show" visible={showVisible}>
           <Suspense fallback={null}>
@@ -245,34 +236,12 @@ export function Workspace({
             })}
           </Suspense>
         </KeptFrame>
-        <KeptFrame
-          workspace="prep"
-          visible={visibleId === 'prep'}
-          data={{
-            'data-prep-frame': true,
-            'data-prep-item': prepPanels.shownItem ?? prepItemId ?? undefined,
-            'data-prep-editing': prepPanels.editing === true ? 'true' : 'false',
-          }}
-        >
-          <ShownItemProvider
-            shownItem={
-              prepPanels.shownItem === undefined
-                ? prepItemId
-                : prepPanels.shownItem
-            }
-          >
+        <KeptFrame workspace="prep" visible={visibleId === 'prep'}>
+          <ShownItemProvider shownItem={prepShown}>
             {columnFrame('prep', prepPanels, {visible: visibleId === 'prep'})}
           </ShownItemProvider>
         </KeptFrame>
-        <KeptFrame
-          workspace="library"
-          visible={visibleId === 'library'}
-          data={{
-            'data-library-frame': true,
-            'data-prep-editing':
-              libraryPanels.editing === true ? 'true' : 'false',
-          }}
-        >
+        <KeptFrame workspace="library" visible={visibleId === 'library'}>
           {columnFrame('prep', libraryPanels, {
             visible: visibleId === 'library',
           })}
@@ -281,7 +250,7 @@ export function Workspace({
           {columnFrame('screens', screens, {visible: visibleId === 'screens'})}
         </KeptFrame>
       </div>
-      {mediaOpen && api !== undefined ? (
+      {mediaOpen ? (
         <ResizeGap
           axis="row"
           name="media.bin"
@@ -289,12 +258,12 @@ export function Workspace({
           disabled={!mediaRows.canResize(0)}
         />
       ) : null}
-      {visibleId !== 'screens' && api !== undefined ? (
+      {mediaShown ? (
         <MediaBin
           workspace={layoutOf(visibleId) === 'prep' ? 'prep' : 'show'}
           open={mediaOpen}
           onOpenChange={onMediaOpenChange}
-          onProblem={onProblem ?? ignoreProblem}
+          onProblem={problem}
           rowStore={store}
           sizeClass={sizeClass}
           columnGap={column => (
@@ -314,7 +283,7 @@ export function Workspace({
       <MediaViewProvider
         api={api}
         active={visibleId !== 'screens'}
-        onProblem={onProblem ?? ignoreProblem}
+        onProblem={problem}
       >
         {frame}
       </MediaViewProvider>

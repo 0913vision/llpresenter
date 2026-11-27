@@ -34,8 +34,8 @@ export interface PanelParts {
 export interface WorkspacePanels {
   readonly columns: ReadonlyArray<readonly string[]>;
   readonly partsOf: (title: string) => PanelParts;
+  /** The item the panels show; null for none, undefined to leave the app's. */
   readonly shownItem?: string | null | undefined;
-  readonly editing?: boolean | undefined;
 }
 
 /** Logs a panel problem when the workspace has no notification handler. */
