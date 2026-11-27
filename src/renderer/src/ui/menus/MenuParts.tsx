@@ -1,7 +1,7 @@
 import {labelInk} from '@renderer/ui/labels/labelInk';
 import {useShortcutText} from '../keys/commandBindings';
 import {pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
-import {useRef, type JSX} from 'react';
+import {useEffect, useEffectEvent, useRef, type JSX} from 'react';
 import {useTypedValue} from '../fields/typedValue';
 import {Icon} from '../Icon';
 import {
@@ -58,6 +58,11 @@ export interface MenuItemRowProps {
   /** Draws the icon column, empty when this item has no icon. */
   readonly iconColumn: boolean;
   readonly pointed: boolean;
+  /**
+   * Whether the keyboard moved to this row: a disabled row then shows a light
+   * fill and its reason, which the pointer gets by hovering it.
+   */
+  readonly pointedByKeyboard?: boolean | undefined;
   /** Whether the submenu of this item is open. */
   readonly expanded: boolean;
   readonly submenuHighlighted?: boolean | undefined;
@@ -76,6 +81,7 @@ export function MenuItemRow({
   id,
   iconColumn,
   pointed,
+  pointedByKeyboard = false,
   expanded,
   submenuHighlighted = expanded,
   elementRef,
@@ -85,8 +91,20 @@ export function MenuItemRow({
 }: MenuItemRowProps): JSX.Element {
   const shortcut = useShortcutText(item.command);
   const meta = item.command === undefined ? item.meta : shortcut;
-  const {targetProps, tooltip} = useTooltip(titleTooltip(item.title));
+  const {targetProps, tooltip, show, hide} = useTooltip(
+    titleTooltip(item.title),
+  );
   const row = useRef<HTMLDivElement>(null);
+  const keyOnOff = pointed && pointedByKeyboard && item.disabled === true;
+  const showReason = useEffectEvent((shown: boolean): void => {
+    if (shown && row.current !== null) show(row.current);
+    else hide();
+  });
+  useEffect(() => {
+    if (!keyOnOff) return undefined;
+    showReason(true);
+    return () => showReason(false);
+  }, [keyOnOff]);
   const finishRename = (): void => {
     item.rename?.onClose();
     const menu = row.current?.closest<HTMLElement>('[role="menu"]');
@@ -114,6 +132,7 @@ export function MenuItemRow({
       aria-haspopup={hasSubmenu ? 'menu' : undefined}
       aria-expanded={hasSubmenu ? expanded : undefined}
       data-pointed={pointed}
+      data-key-pointed={keyOnOff || undefined}
       data-submenu-highlighted={expanded && submenuHighlighted}
       className={styles.item}
       onPointerEnter={event => {

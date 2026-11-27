@@ -152,6 +152,11 @@
   color: var(--text-off);
 }
 
+/* A disabled row the keyboard moved to: a light fill, so the place shows. */
+.item[aria-disabled='true'][data-key-pointed='true'] {
+  background: var(--bg-menu-open);
+}
+
 .separator {
   flex: none;
   height: var(--size-hairline);

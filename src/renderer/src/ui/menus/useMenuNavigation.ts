@@ -61,6 +61,8 @@ export interface MenuNavigation {
   readonly items: readonly MenuItem[];
   readonly renaming: boolean;
   readonly pointed: number;
+  /** Whether the keyboard, not the pointer, moved to the pointed row last. */
+  readonly pointedByKeyboard: boolean;
   readonly submenu: OpenSubmenu | null;
   readonly itemElements: RefObject<Array<HTMLDivElement | null>>;
   readonly run: (index: number) => void;
@@ -107,6 +109,11 @@ export function useMenuNavigation({
     pointsFirst ? firstRunnable(items) : -1,
   );
   const pointing = useRef<'keyboard' | 'pointer'>('keyboard');
+  const [pointedByKeyboard, setPointedByKeyboard] = useState(true);
+  const setPointing = (by: 'keyboard' | 'pointer'): void => {
+    pointing.current = by;
+    setPointedByKeyboard(by === 'keyboard');
+  };
   const hovered = useRef<number | null>(null);
   // NOTE(0913vision): In a searched menu, a new search term or a new set of
   // results points to the first item again.
@@ -126,7 +133,7 @@ export function useMenuNavigation({
 
   const pointTo = (index: number): void => {
     if (index < 0) return;
-    pointing.current = 'keyboard';
+    setPointing('keyboard');
     hovered.current = null;
     setPointed(index);
     itemElements.current[index]?.scrollIntoView({block: 'nearest'});
@@ -151,7 +158,7 @@ export function useMenuNavigation({
   const hover = (index: number): void => {
     if (renaming) return;
     if (hovered.current === index && pointing.current === 'pointer') return;
-    pointing.current = 'pointer';
+    setPointing('pointer');
     hovered.current = index;
     setPointed(index);
     timers.stop('open');
@@ -188,27 +195,27 @@ export function useMenuNavigation({
   const closeSubmenu = (): void => {
     timers.stop('open', 'close');
     hovered.current = null;
-    pointing.current = 'keyboard';
+    setPointing('keyboard');
     if (submenu !== null) setPointed(submenu.index);
     setSubmenu(null);
     focusMenu(surface.current);
   };
   const keepSubmenuOpen = (): void => {
     timers.stop('open', 'close');
-    pointing.current = 'pointer';
+    setPointing('pointer');
     hovered.current = null;
     setPointed(-1);
   };
   const keepSubmenuForKeyboard = (): void => {
     timers.stop('open', 'close');
-    pointing.current = 'keyboard';
+    setPointing('keyboard');
     hovered.current = null;
   };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const closeChild = submenu === null ? undefined : closeSubmenu;
     const actions = {items, pointed, pointTo, run, closeChild, onBack, onClose};
     if (!handleMenuKey(event, actions)) return;
-    pointing.current = 'keyboard';
+    setPointing('keyboard');
     hovered.current = null;
     event.preventDefault();
     event.stopPropagation();
@@ -217,6 +224,7 @@ export function useMenuNavigation({
     items,
     renaming,
     pointed,
+    pointedByKeyboard,
     submenu,
     itemElements,
     run,

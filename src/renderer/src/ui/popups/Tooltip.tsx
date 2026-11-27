@@ -45,6 +45,10 @@ export interface TooltipHook {
   readonly targetProps: TooltipTargetProps;
   /** The tooltip to render next to the target; `null` while it is hidden. */
   readonly tooltip: ReactNode;
+  /** Shows the tooltip at `target`, as for a row the keyboard points to. */
+  readonly show: (target: HTMLElement) => void;
+  /** Hides the tooltip if it is this one's. */
+  readonly hide: () => void;
 }
 
 /** Tooltip content for a plain `title` prop; `undefined` for no tooltip. */
@@ -169,7 +173,7 @@ export function useTooltip(input: TooltipContent | undefined): TooltipHook {
         )
       : null;
 
-  return {targetProps, tooltip};
+  return {targetProps, tooltip, show, hide};
 }
 
 type Handler<E> = ((event: E) => void) | undefined;

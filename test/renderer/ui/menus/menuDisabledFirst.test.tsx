@@ -5,6 +5,7 @@ import {describe, expect, it} from 'vitest';
 import {
   Harness,
   installMenuTestHooks,
+  pointAt,
   pointedName,
 } from '@fixtures/renderer/ui/menuTesting';
 
@@ -32,6 +33,27 @@ describe('a menu whose first row is off', () => {
       expect(pointedName()).toBe('새 항목');
       await userEvent.keyboard('{ArrowUp}');
       expect(pointedName()).toBe('붙여넣기');
+    } finally {
+      stopWatching();
+    }
+  });
+
+  it('shows the place and the reason of a row that is off when the keys move to it, not when the pointer does', async () => {
+    const stopWatching = watchInputModality(window);
+    try {
+      render(<Harness entries={entries} />);
+      screen.getByRole('button', {name: '파일'}).focus();
+      await userEvent.keyboard('{Enter}{ArrowUp}');
+      const off = screen.getByRole('menuitem', {name: '붙여넣기'});
+      expect(off.getAttribute('data-key-pointed')).toBe('true');
+      // NOTE(0913vision): A tooltip shows after its usual delay.
+      const reason = await screen.findByRole('tooltip', {}, {timeout: 1500});
+      expect(reason.textContent).toContain('복사한 항목이 없습니다.');
+      await userEvent.keyboard('{ArrowDown}');
+      expect(off.getAttribute('data-key-pointed')).toBeNull();
+      expect(screen.queryByRole('tooltip')).toBeNull();
+      pointAt(off);
+      expect(off.getAttribute('data-key-pointed')).toBeNull();
     } finally {
       stopWatching();
     }

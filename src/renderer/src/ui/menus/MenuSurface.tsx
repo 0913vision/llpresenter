@@ -123,6 +123,7 @@ export function MenuSurface(props: MenuSurfaceProps): JSX.Element {
         id={itemId(index)}
         iconColumn={iconColumn}
         pointed={!nav.renaming && index === nav.pointed}
+        pointedByKeyboard={nav.pointedByKeyboard}
         expanded={nav.submenu?.index === index}
         submenuHighlighted={nav.pointed < 0 || nav.pointed === index}
         elementRef={element => {
