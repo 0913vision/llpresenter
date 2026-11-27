@@ -99,11 +99,9 @@ export function ItemRows({
                   : undefined
               }
               rename={renaming === row.id ? rename(row) : undefined}
-              lead={
-                table === undefined && !navigator
-                  ? undefined
-                  : numbers.get(row.id)
-              }
+              // NOTE(0913vision): 진행 numbers the 예배 순서 as 준비 does
+              // (USER Nov 27).
+              lead={numbers.get(row.id)}
               className={navigator ? styles.navigatorRow : table?.rowClass}
               icon={serviceRowIcon(row, tiles[row.id])}
               live={row.id === liveItemId}
