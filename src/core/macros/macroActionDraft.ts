@@ -35,70 +35,44 @@ export function prepareMacroAction(
   ) {
     return undefined;
   }
-  const target = draft.target;
-  let value: unknown;
-  switch (draft.kind) {
+  const parsed = parseKnownMacroAction(actionFields(draft));
+  return parsed.ok ? parsed.value : undefined;
+}
+
+/** The fields of the action the form describes, before they are checked. */
+function actionFields(draft: MacroActionDraft): unknown {
+  const {kind, target, operation} = draft;
+  const fade = draft.transition ? {transition: draft.transition} : {};
+  switch (kind) {
     case 'clearAll':
-      value = {
-        kind: draft.kind,
-        ...(draft.transition ? {transition: draft.transition} : {}),
-      };
-      break;
+      return {kind, ...fade};
     case 'clearLayer':
-      value =
-        draft.clearTarget === 'prop'
-          ? {
-              kind: draft.kind,
-              prop: target,
-              ...(draft.transition ? {transition: draft.transition} : {}),
-            }
-          : {
-              kind: draft.kind,
-              layer: target,
-              ...(draft.transition ? {transition: draft.transition} : {}),
-            };
-      break;
+      return draft.clearTarget === 'prop'
+        ? {kind, prop: target, ...fade}
+        : {kind, layer: target, ...fade};
     case 'media':
-      value = {kind: draft.kind, media: target};
-      break;
+      return {kind, media: target};
     case 'prop':
-      value = {kind: draft.kind, prop: target, mode: draft.operation ?? 'on'};
-      break;
+      return {kind, prop: target, mode: operation ?? 'on'};
     case 'message':
-      value = {
-        kind: draft.kind,
+      return {
+        kind,
         template: target,
         values: draft.values ?? {},
         targets: draft.targets ?? 'all',
         duration: draft.duration ?? null,
       };
-      break;
     case 'audio':
-      value =
-        draft.operation === 'fadeOut' || draft.operation === 'stop'
-          ? {kind: draft.kind, operation: draft.operation}
-          : {
-              kind: draft.kind,
-              operation: draft.operation ?? 'play',
-              media: target,
-            };
-      break;
+      return operation === 'fadeOut' || operation === 'stop'
+        ? {kind, operation}
+        : {kind, operation: operation ?? 'play', media: target};
     case 'audioPlaylist':
-      value = {kind: draft.kind, playlist: target};
-      break;
+      return {kind, playlist: target};
     case 'timer':
-      value = {
-        kind: draft.kind,
-        timer: target,
-        operation: draft.operation ?? 'start',
-      };
-      break;
+      return {kind, timer: target, operation: operation ?? 'start'};
     case 'macro':
-      value = {kind: draft.kind, macro: target};
-      break;
+      return {kind, macro: target};
   }
-  const parsed = parseKnownMacroAction(value);
-  return parsed.ok ? parsed.value : undefined;
 }
 
 /** What a 메시지 동작 needs beyond its own fields. */
