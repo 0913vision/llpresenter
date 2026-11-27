@@ -61,4 +61,29 @@ export class WorkspaceSelections {
         : {}),
     });
   }
+
+  /**
+   * The live item changed: 진행's selection moves to it, on screen at once or
+   * kept for when 진행 shows again; an item the operator clicked to look
+   * ahead stays chosen only until the next change (USER Nov 28: "live에 후하게").
+   */
+  followLive(itemId: string): void {
+    const view = useShow.getState();
+    if (!view.rows.some(row => row.id === itemId)) return;
+    if (this.active === 'show') {
+      if (view.openItemId !== itemId) {
+        useShow.setState({openItemId: itemId, selectedTile: 0});
+      }
+      return;
+    }
+    const saved = this.saved.show;
+    this.saved.show = {
+      serviceId: view.serviceId,
+      serviceEpoch: view.serviceEpoch,
+      librarySong: saved?.librarySong ?? null,
+      bibleSources: saved?.bibleSources ?? [],
+      openItemId: itemId,
+      selectedTile: saved?.openItemId === itemId ? saved.selectedTile : 0,
+    };
+  }
 }

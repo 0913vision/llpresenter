@@ -50,8 +50,12 @@ otherwise it sets the position before the first paint at 40% of the viewport
 height, without visible scrolling. While 진행 is open, only a change of live
 item can move the list; if the new live row is outside the viewport, it is
 brought just into view immediately. Manual scrolling, selection changes, and
-service refreshes do not cause the list to return to the live row. Following
-never changes selection, focus, or output.
+service refreshes do not cause the list to return to the live row. The selection
+leans to LIVE (user decision, November 28: "live에 후하게"): each time the live
+item changes, by a slide, 빠른 실행, a 매크로 or a key, 진행's selection moves
+to it, at once while 진행 shows, else for when 진행 shows again. An item the
+operator clicks to look ahead stays selected until the next live change.
+Following never changes focus or output.
 
 ### Header
 

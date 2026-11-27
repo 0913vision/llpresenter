@@ -84,4 +84,22 @@ describe('workspace selections', () => {
       selectedTile: 0,
     });
   });
+
+  it('moves 진행 to the live item on every live change, and keeps it for 진행 while 준비 shows (USER Nov 28)', () => {
+    const selections = new WorkspaceSelections();
+    selections.followLive('second');
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'second',
+      selectedTile: 0,
+    });
+    useShow.setState({openItemId: 'first'});
+    selections.activate('prep');
+    useShow.setState({openItemId: 'first'});
+    selections.followLive('second');
+    expect(useShow.getState().openItemId).toBe('first');
+    selections.activate('show');
+    expect(useShow.getState().openItemId).toBe('second');
+    selections.followLive('gone');
+    expect(useShow.getState().openItemId).toBe('second');
+  });
 });

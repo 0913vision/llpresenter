@@ -4,6 +4,7 @@ import {usePrepTarget} from '@renderer/session/prepTarget';
 import {WorkspaceSelections} from '@renderer/session/show/workspaceSelections';
 import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
 import {useShow} from '@renderer/session/show/showStore';
+import {useLive} from '@renderer/session/live';
 
 /**
  * Which workspace the window shows, and the switch between them. Every
@@ -23,6 +24,19 @@ export function useWorkspaceSwitch() {
   const [savedPrepItem, setSavedPrepItem] = useState<string | null>(null);
   const [workspaceSelections] = useState(() => new WorkspaceSelections());
   const [themeLeave] = useState(() => new ThemeLeaveGuard());
+  useEffect(
+    () =>
+      useLive.subscribe((next, previous) => {
+        const item = next.state?.item;
+        if (
+          item?.source === 'service' &&
+          item.id !== previous.state?.item?.id
+        ) {
+          workspaceSelections.followLive(item.id);
+        }
+      }),
+    [workspaceSelections],
+  );
 
   const switchTo = (next: WorkspaceId): void => {
     const go = (): void => {
