@@ -515,8 +515,9 @@ page shares the row controls, save and rename behavior, immediate deletion and
 
 ### 테마 바꾸기 메뉴
 
-- Where: Toolbar theme button (ThemeMenu), showing the confirmed live name.
-- Opens: Click 테마 바꾸기 or press its assigned command.
+- Where: 출력 menu, 테마 section. The toolbar has no theme button: 준비 sets
+  each item's 테마 (user decision, November 27).
+- Opens: Open the 출력 menu.
 - Purpose: Pick the live theme until the next item starts or an outside-service
   slide goes out (12). A settings edit does not confirm a live selection. The
   picked theme changes the text and the theme's own look only: a slide's own

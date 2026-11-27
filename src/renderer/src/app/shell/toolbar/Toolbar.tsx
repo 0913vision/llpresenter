@@ -5,7 +5,6 @@ import {OutputToggle} from '@renderer/ui/buttons/OutputToggle';
 import {ToolbarTabs, type ToolbarTab} from '@renderer/ui/buttons/ToolbarTabs';
 import {useScreenSummaries} from '@renderer/platform/screens/ScreenSummaries';
 import {OutputOverflow} from './OutputOverflow';
-import {ThemeMenu} from './ThemeMenu';
 import {ToolbarSearch} from './ToolbarSearch';
 import type {Notice} from '@renderer/ui/popups/notices';
 import styles from './Toolbar.module.css';
@@ -108,11 +107,6 @@ export function Toolbar({
         }
         onOpenPrepSong={frame === 'prep' ? onOpenPrepSong : undefined}
         onProblem={onProblem}
-      />
-      <ThemeMenu
-        compact={compact}
-        onProblem={onProblem}
-        onEdit={() => onWorkspace('screens')}
       />
       <span className={styles.divider} />
       <OutputToggles compact={compact} />

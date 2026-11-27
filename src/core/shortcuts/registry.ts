@@ -158,7 +158,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['output.stage', '무대 화면 출력', '화면', ['control'], ['ctrl Digit2']],
     ['screens.redetect', '모니터 다시 찾기', '화면', ['control'], []],
     ['screens.showFallbackWindow', '창 보기', '화면', ['control'], []],
-    ['theme.menu', '테마 바꾸기', '테마', ['control'], []],
     ['workspace.themes', '테마 편집', '작업 공간', ['control'], []],
     ['panel.order', '예배 순서로', '패널 이동', ['show'], []],
     ['panel.slides', '슬라이드로', '패널 이동', ['show'], []],
