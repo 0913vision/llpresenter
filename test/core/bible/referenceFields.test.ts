@@ -160,10 +160,25 @@ describe('four-field Bible reference validation', () => {
   it('tells an invalid value apart from bounds that are still loading', () => {
     expect(
       referenceFieldsState({...fields, chapter: '22'}, bounds).errors.chapter,
-    ).toBe('장을 확인하십시오.');
+    ).toBe('요한복음은 21장까지 있습니다.');
     expect(referenceFieldsState(fields, undefined).errors.chapter).toBe(
       '장 정보 불러오는 중',
     );
+  });
+
+  it('names how far the book and the chapter go (USER Nov 27)', () => {
+    expect(
+      referenceFieldsState(
+        {book: '창세기', chapter: '51', start: '', end: ''},
+        undefined,
+      ).errors.chapter,
+    ).toBe('창세기는 50장까지 있습니다.');
+    expect(
+      referenceFieldsState({...fields, start: '37'}, bounds).errors.start,
+    ).toBe('3장은 36절까지 있습니다.');
+    expect(
+      referenceFieldsState({...fields, chapter: '0'}, bounds).errors.chapter,
+    ).toBe('장을 확인하십시오.');
   });
 
   it('blocks Tab past the last verse but clamps the lookup endpoint', () => {

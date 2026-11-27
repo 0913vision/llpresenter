@@ -1,4 +1,4 @@
-import {type ReferencePart} from '@core/bible';
+import {LOADING_CHAPTER, type ReferencePart} from '@core/bible';
 import {
   useEffect,
   useId,
@@ -102,6 +102,7 @@ function NumberPartField({
         disabled={disabled}
         invalid={reason !== undefined}
         invalidReason={reason}
+        reasonBubble={reason !== LOADING_CHAPTER}
       />
     </span>
   );

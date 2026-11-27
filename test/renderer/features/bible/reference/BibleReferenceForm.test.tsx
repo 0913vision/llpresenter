@@ -23,6 +23,13 @@ beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
 });
 
+/** What the bubble under a field says, if one shows. */
+function bubble(): string | undefined {
+  return (
+    document.querySelector('[data-field-bubble]')?.textContent ?? undefined
+  );
+}
+
 function setup() {
   const lookup = vi.fn(formLookupReply);
   const onPreview = vi.fn();
@@ -665,13 +672,13 @@ describe('shared Bible reference form', () => {
   });
 
   it.each([
-    ['chapter', '22'],
-    ['chapter', '0'],
-    ['start', '37'],
-    ['end', '15'],
+    ['chapter', '22', '요한복음은 21장까지 있습니다.'],
+    ['chapter', '0', '장을 확인하십시오.'],
+    ['start', '37', '3장은 36절까지 있습니다.'],
+    ['end', '15', '끝절을 확인하십시오.'],
   ] as const)(
-    'blocks invalid %s %s with only a tooltip reason',
-    async (part, value) => {
+    'blocks invalid %s %s and says why under it while it has focus',
+    async (part, value, why) => {
       const view = setup();
       await enterPassage(view);
       await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
@@ -683,11 +690,28 @@ describe('shared Bible reference form', () => {
       const description = document.getElementById(
         view[part].getAttribute('aria-describedby') ?? '',
       );
-      expect(description?.textContent).toContain('확인하십시오');
+      expect(description?.textContent).toBe(why);
+      expect(bubble()).toBe(why);
       await view.user.keyboard('{Enter}');
       expect(view.onSubmit).not.toHaveBeenCalled();
     },
   );
+
+  it('shows the reason under 장 at once as it is typed, and drops it once the chapter is right or focus leaves (USER Nov 27)', async () => {
+    const view = setup();
+    await view.user.type(view.book, '요한복음');
+    await view.user.click(view.chapter);
+    await view.user.keyboard('2');
+    expect(bubble()).toBeUndefined();
+    await view.user.keyboard('2');
+    expect(bubble()).toBe('요한복음은 21장까지 있습니다.');
+    await view.user.keyboard('{Backspace}');
+    expect(bubble()).toBeUndefined();
+    await view.user.keyboard('2');
+    expect(bubble()).toBe('요한복음은 21장까지 있습니다.');
+    act(() => view.chapter.blur());
+    expect(bubble()).toBeUndefined();
+  });
 
   it('lets Shift Tab leave a blocked field and Esc return to 책 without the reason', async () => {
     const view = setup();

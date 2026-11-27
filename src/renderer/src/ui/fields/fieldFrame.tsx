@@ -1,11 +1,13 @@
 import {
   useId,
+  useState,
   type JSX,
   type MouseEvent,
   type ReactNode,
   type RefObject,
 } from 'react';
-import {titleTooltip, useTooltip} from '../popups/Tooltip';
+import {FieldBubble} from '../popups/FieldBubble';
+import {titleTooltip, useTooltip, withTooltipProps} from '../popups/Tooltip';
 import styles from './TextField.module.css';
 
 export interface FieldFrameProps {
@@ -13,6 +15,8 @@ export interface FieldFrameProps {
   /** Tooltip text for the whole field. */
   readonly title: string | undefined;
   readonly inputRef: RefObject<HTMLInputElement | null>;
+  /** A reason shown in a bubble under the field while focus is in it. */
+  readonly bubble?: string | undefined;
   readonly children: ReactNode;
 }
 
@@ -24,8 +28,12 @@ export function FieldFrame({
   className,
   title,
   inputRef,
+  bubble,
   children,
 }: FieldFrameProps): JSX.Element {
+  const [frame, setFrame] = useState<HTMLSpanElement | null>(null);
+  const [focused, setFocused] = useState(false);
+  const bubbleText = focused ? bubble : undefined;
   const focusInput = (event: MouseEvent<HTMLSpanElement>): void => {
     const input = inputRef.current;
     if (input === null || event.target === input) return;
@@ -35,11 +43,28 @@ export function FieldFrame({
     event.preventDefault();
     input.focus();
   };
-  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
+  // NOTE(0913vision): While the bubble shows, the tooltip would say the same
+  // under it.
+  const {targetProps, tooltip} = useTooltip(
+    titleTooltip(bubbleText === undefined ? title : undefined),
+  );
+  const handlers = withTooltipProps(
+    {
+      onFocus: () => setFocused(true),
+      onBlur: () => setFocused(false),
+    },
+    targetProps,
+  );
   return (
-    <span {...targetProps} className={className} onMouseDown={focusInput}>
+    <span
+      ref={setFrame}
+      {...handlers}
+      className={className}
+      onMouseDown={focusInput}
+    >
       {children}
       {tooltip}
+      <FieldBubble target={frame} text={bubbleText} />
     </span>
   );
 }

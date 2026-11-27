@@ -29,6 +29,7 @@ export {
   type ReferencePart,
   changeReferenceField,
   reconcileReferenceFields,
+  LOADING_CHAPTER,
   referenceFieldsState,
   selectedBook,
 } from './referenceFields';
