@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {handleMenuKey, type MenuCloseReason} from './menuKeys';
 import {
+  firstRunnable,
   isRunnable,
   hasSubmenu,
   menuItems,
@@ -102,7 +103,9 @@ export function useMenuNavigation({
   const renaming = items.some(item => item.rename !== undefined);
   const itemElements = useRef<Array<HTMLDivElement | null>>([]);
   const timers = useMenuTimers();
-  const [pointedState, setPointed] = useState(pointsFirst ? 0 : -1);
+  const [pointedState, setPointed] = useState(() =>
+    pointsFirst ? firstRunnable(items) : -1,
+  );
   const pointing = useRef<'keyboard' | 'pointer'>('keyboard');
   const hovered = useRef<number | null>(null);
   // NOTE(0913vision): In a searched menu, a new search term or a new set of
@@ -111,7 +114,7 @@ export function useMenuNavigation({
   const [seen, setSeen] = useState({searchValue, results});
   if (seen.searchValue !== searchValue || seen.results !== results) {
     setSeen({searchValue, results});
-    setPointed(0);
+    setPointed(firstRunnable(items));
   }
   const [submenu, setSubmenu] = useState<OpenSubmenu | null>(null);
   if (renaming && submenu !== null) setSubmenu(null);

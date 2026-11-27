@@ -115,7 +115,17 @@ describe('media list panels', () => {
       });
       if (entry === 'pointer') fireEvent.click(command);
       else {
-        fireEvent.keyDown(screen.getByRole('menu'), {key: 'ArrowDown'});
+        // NOTE(0913vision): A key opens the menu on its first row that can
+        // run, so the keys move on until 이름 바꾸기 is the pointed row.
+        const menu = screen.getByRole('menu');
+        for (
+          let step = 0;
+          step < 10 &&
+          menu.getAttribute('aria-activedescendant') !== command.id;
+          step++
+        ) {
+          fireEvent.keyDown(menu, {key: 'ArrowDown'});
+        }
         fireEvent.keyDown(command, {key: 'Enter'});
       }
       const field = await screen.findByRole('textbox', {name: `${name} 이름`});

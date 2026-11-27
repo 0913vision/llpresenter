@@ -132,6 +132,15 @@ export function movePointer(
 }
 
 /**
+ * The row a menu points to when it opens from the keyboard or its search
+ * changes: the first one that can run, so a row that is off never shows as
+ * chosen before the operator moves to it; -1 when none can run.
+ */
+export function firstRunnable(items: readonly MenuItem[]): number {
+  return items.findIndex(isRunnable);
+}
+
+/**
  * The next item, after the pointed one, whose name starts with the typed
  * character, or -1 when none does.
  */

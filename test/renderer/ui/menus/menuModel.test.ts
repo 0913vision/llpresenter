@@ -6,6 +6,7 @@ import {
   menuBlocks,
   menuItemRole,
   menuItems,
+  firstRunnable,
   movePointer,
   typeaheadTarget,
   type MenuEntry,
@@ -91,6 +92,15 @@ describe('isRunnable', () => {
         title: '지금은 할 수 없습니다.',
       }),
     ).toBe(false);
+  });
+});
+
+describe('firstRunnable', () => {
+  it('passes over rows that are off, so none shows as chosen when a menu opens', () => {
+    const off = item('off', {disabled: true, title: '복사한 항목이 없습니다.'});
+    expect(firstRunnable([off, item('on'), item('last')])).toBe(1);
+    expect(firstRunnable([off])).toBe(-1);
+    expect(firstRunnable([])).toBe(-1);
   });
 });
 

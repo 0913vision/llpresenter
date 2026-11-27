@@ -151,6 +151,7 @@ describe('MenuSurface', () => {
         ]}
       />,
     );
+    fireEvent.keyDown(parent, {key: 'ArrowDown'});
     fireEvent.keyDown(parent, {key: 'ArrowRight'});
     expect(screen.getByRole('menuitem', {name: '이전 대상'})).toBeDefined();
     rerender(
