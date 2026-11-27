@@ -1,5 +1,5 @@
 import type {UpdateAction, UpdateStatus} from '@core/schema/app/update';
-import {objectParticle, subjectParticle} from '@renderer/ui/text/korean';
+import {objectParticle, subjectParticle} from '@core/common/korean';
 
 /** What the update dialog or notice says first for a status. */
 export function updateTitle(status: UpdateStatus): string {

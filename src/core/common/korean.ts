@@ -34,6 +34,14 @@ export function subjectParticle(word: string): '이' | '가' {
 }
 
 /**
+ * Returns the topic particle that follows `word` when it is read aloud:
+ * 은 after a final consonant (요한복음은), 는 otherwise (창세기는).
+ */
+export function topicParticle(word: string): '은' | '는' {
+  return endsInConsonant(word) ? '은' : '는';
+}
+
+/**
  * Returns the particle "and, with" that follows `word` when it is read aloud:
  * 과 after a final consonant (평상시 출력과), 와 otherwise (출력 켜기와).
  */

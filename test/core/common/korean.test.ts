@@ -2,8 +2,9 @@ import {describe, expect, it} from 'vitest';
 import {
   objectParticle,
   subjectParticle,
+  topicParticle,
   withParticle,
-} from '@renderer/ui/text/korean';
+} from '@core/common/korean';
 
 describe('objectParticle', () => {
   it.each([
@@ -44,5 +45,19 @@ describe('subjectParticle', () => {
     ['NDI', '가'],
   ])('puts %s before the particle %s', (word, particle) => {
     expect(subjectParticle(word)).toBe(particle);
+  });
+});
+
+describe('topicParticle', () => {
+  it.each([
+    ['창세기', '는'],
+    ['요한복음', '은'],
+    ['시편', '은'],
+    ['테마', '는'],
+    ['동작', '은'],
+    ['NDI', '는'],
+    ['모니터 3', '은'],
+  ])('puts %s before the particle %s', (word, particle) => {
+    expect(topicParticle(word)).toBe(particle);
   });
 });

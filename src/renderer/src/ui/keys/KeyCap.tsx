@@ -1,6 +1,6 @@
 import type {JSX, ReactNode} from 'react';
 import {Icon} from '../Icon';
-import {withParticle} from '../text/korean';
+import {withParticle} from '@core/common/korean';
 import {useTooltip} from '../popups/Tooltip';
 import styles from './KeyCap.module.css';
 

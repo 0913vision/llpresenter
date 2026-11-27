@@ -9,7 +9,7 @@ import {
   PropertyValue,
 } from '@renderer/ui/panels/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/choices/SegmentedControl';
-import {withParticle} from '@renderer/ui/text/korean';
+import {withParticle} from '@core/common/korean';
 import {ColorProperty} from '../../ColorProperty';
 import type {ThemeModel} from '../useThemeEditor';
 

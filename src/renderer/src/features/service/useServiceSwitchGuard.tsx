@@ -6,7 +6,7 @@ import {
 } from '@core/schema/live/live';
 import {useLive} from '@renderer/session/live';
 import {AlertDialog} from '@renderer/ui/popups/AlertDialog';
-import {objectParticle} from '@renderer/ui/text/korean';
+import {objectParticle} from '@core/common/korean';
 
 /**
  * Whether leaving the open service needs a confirmation: something is on air.

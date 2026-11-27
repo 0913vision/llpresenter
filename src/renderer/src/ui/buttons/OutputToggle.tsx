@@ -1,7 +1,7 @@
 import type {JSX} from 'react';
 import {classNames} from '../classNames';
 import {Icon} from '../Icon';
-import {objectParticle} from '../text/korean';
+import {objectParticle} from '@core/common/korean';
 import {useButtonPress} from './press';
 import {StatusDot} from '../tiles/StatusMarks';
 import {toolbarIconSize} from './toolbarIcons';
