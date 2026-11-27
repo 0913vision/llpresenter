@@ -7,8 +7,12 @@ import {Dialog} from '@renderer/ui/popups/Dialog';
 import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {TextField} from '@renderer/ui/fields/TextField';
-import {prepareMacroAction, type MacroActionDraft} from '@core/macros';
-import {fillMessageText, MAX_MESSAGE_CHARACTERS} from '@core/overlays';
+import {
+  messageShows,
+  prepareMacroAction,
+  type MacroActionDraft,
+} from '@core/macros';
+import {MAX_MESSAGE_CHARACTERS} from '@core/overlays';
 import {MACRO_OPERATIONS} from '../actions/macroActionChoices';
 import {ScreenTargetsRow} from '../../ScreenTargetsRow';
 import {DisplayTimeRow} from '../../DisplayTimeRow';
@@ -81,20 +85,6 @@ export function MacroActionDialog({
   const blanks = selected?.blanks ?? [];
   const valueOf = (name: string): string =>
     Object.hasOwn(values, name) ? (values[name] ?? '') : '';
-  let messageValid = kind !== 'message';
-  if (kind === 'message' && selected?.text !== undefined) {
-    try {
-      const expanded = fillMessageText(
-        {text: selected.text},
-        Object.fromEntries(blanks.map(name => [name, valueOf(name)])),
-      );
-      messageValid = expanded.trim().length > 0;
-    } catch {
-      messageValid = false;
-    }
-  }
-  const messageTargetsValid =
-    currentTargets === 'all' ? screens.length > 0 : currentTargets.length > 0;
   const draft: MacroActionDraft = {
     kind,
     target: selected?.id,
@@ -106,10 +96,10 @@ export function MacroActionDialog({
     transition: initial?.transition,
   };
   const action =
-    (!needsTarget || selected) &&
-    (kind !== 'message' || (messageValid && messageTargetsValid))
-      ? prepareMacroAction(draft)
-      : undefined;
+    kind === 'message' &&
+    !messageShows(draft, {text: selected?.text, screens: screens.length})
+      ? undefined
+      : prepareMacroAction(draft);
   return (
     <Dialog
       title="동작 설정"

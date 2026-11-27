@@ -1,3 +1,4 @@
+import {fillMessageText} from '@core/overlays';
 import type {ClearFade} from '@core/schema/live/clearFade';
 import {
   parseKnownMacroAction,
@@ -101,6 +102,38 @@ export function prepareMacroAction(
   }
   const parsed = parseKnownMacroAction(value);
   return parsed.ok ? parsed.value : undefined;
+}
+
+/** What a 메시지 동작 needs beyond its own fields. */
+export interface MessageContext {
+  /** The text of the chosen message, or undefined when it is gone. */
+  readonly text: string | undefined;
+  /** How many screens there are to show it on. */
+  readonly screens: number;
+}
+
+/**
+ * Whether a 메시지 동작 would show anything: its message exists, every blank is
+ * filled within the length limit and leaves some text, and it has a screen to
+ * go to.
+ */
+export function messageShows(
+  draft: MacroActionDraft,
+  context: MessageContext,
+): boolean {
+  if (context.text === undefined) return false;
+  if ((draft.targets ?? 'all') === 'all' && context.screens === 0) {
+    return false;
+  }
+  try {
+    return (
+      fillMessageText({text: context.text}, draft.values ?? {}).trim() !== ''
+    );
+  } catch {
+    // NOTE(0913vision): fillMessageText throws for a blank left empty or a
+    // text past the limit; both mean the action is not ready.
+    return false;
+  }
 }
 
 /** Turns a saved action back into the fields of the form. */

@@ -5,6 +5,7 @@ import {
 } from '@core/schema/tools/macros';
 import {
   draftMacroAction,
+  messageShows,
   prepareMacroAction,
   type MacroActionDraft,
 } from '@core/macros/macroActionDraft';
@@ -92,4 +93,32 @@ it('round-trips every editable action and its variants', () => {
       expect(prepareMacroAction(draftMacroAction(action))).toEqual(action);
     }
   }
+});
+
+it('counts a message action ready only when it would show some text on a screen', () => {
+  const draft: MacroActionDraft = {
+    kind: 'message',
+    target: id,
+    values: {name: '안내'},
+    targets: 'all',
+  };
+  const context = {text: '{name} 시간입니다', screens: 2};
+  expect(messageShows(draft, context)).toBe(true);
+  expect(messageShows(draft, {...context, text: undefined})).toBe(false);
+  expect(messageShows(draft, {...context, screens: 0})).toBe(false);
+  expect(
+    messageShows({...draft, targets: [id]}, {...context, screens: 0}),
+  ).toBe(true);
+  expect(messageShows({...draft, values: {name: ' '}}, context)).toBe(false);
+  expect(messageShows({...draft, values: {}}, context)).toBe(false);
+  expect(messageShows(draft, {...context, text: '{name}'})).toBe(true);
+  expect(
+    messageShows({...draft, values: {name: '   '}}, {...context, text: '  '}),
+  ).toBe(false);
+  expect(
+    messageShows(
+      {...draft, values: {name: '가'.repeat(5000)}},
+      {...context, text: '{name}'},
+    ),
+  ).toBe(false);
 });

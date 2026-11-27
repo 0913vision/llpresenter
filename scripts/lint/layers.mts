@@ -20,7 +20,7 @@ const CORE_MODULES: Readonly<Record<string, readonly string[]>> = {
   canvas: [],
   hymns: [],
   live: ['overlays'],
-  macros: [],
+  macros: ['overlays'],
   media: [],
   output: [],
   overlays: [],
