@@ -41,16 +41,17 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ## 예배 순서 panel
 
-진행 and 준비 remember their selections separately; selecting or editing an item
-in either workspace does not change the other's selection. On entering 진행, the
-order list follows the live item, or 진행's last selected item when none is
-live. It keeps an item already in the middle band in place; otherwise it sets
-the position before the first paint at 40% of the viewport height, without
-visible scrolling. While 진행 is open, only a change of live item can move the
-list; if the new live row is outside the viewport, it is brought just into view
-immediately. Manual scrolling, selection changes, and service refreshes do not
-cause the list to return to the live row. Following never changes selection,
-focus, or output.
+Each item row starts with its number in the order, as in 준비 (user decision,
+November 27). 진행 and 준비 remember their selections separately; selecting or
+editing an item in either workspace does not change the other's selection. On
+entering 진행, the order list follows the live item, or 진행's last selected
+item when none is live. It keeps an item already in the middle band in place;
+otherwise it sets the position before the first paint at 40% of the viewport
+height, without visible scrolling. While 진행 is open, only a change of live
+item can move the list; if the new live row is outside the viewport, it is
+brought just into view immediately. Manual scrolling, selection changes, and
+service refreshes do not cause the list to return to the live row. Following
+never changes selection, focus, or output.
 
 ### Header
 
@@ -325,21 +326,21 @@ source was found.
 
 The independent `show.continuousGrid` preference is off by default. When on, the
 show grid displays the service in order in one windowed grid. Each item starts
-on a new row with a band naming it and giving its slide count. Service section
-headers use the order list's heading style without a count, and items without
-slides have a band without a count. The panel header shows the live item's name
-and its position within that item; when no slide is live it shows the item at
-the top of the view. Slide numbers remain service-wide. Selecting an order item
-smoothly scrolls to its band; the order selection follows the band at the top.
-다음 항목 and 이전 항목 (Ctrl ↓, Ctrl ↑) go from the item at the top, or the one
-being scrolled to, and scroll to the next or previous item the same way
-(November 25 church check). Clicking a tile outputs it. When off, the grid shows
-only the open item. The grid stays where the operator scrolled; it moves only
-when the live tile leaves the view, or when a key moves the live tile down past
-the lower part of the view, including across items. A click on a tile never
-moves it. While the continuous grid shows, the footer has 현 위치로, which
-smoothly brings the live tile back to the reading line; it is off while the live
-tile is in view. This choice does not change the last-slide action.
+on a new row with a band naming it, without a slide count (user decision,
+November 27). Service section headers use the order list's heading style. The
+panel header shows the live item's name and its position within that item; when
+no slide is live it shows the item at the top of the view. Slide numbers remain
+service-wide. Selecting an order item smoothly scrolls to its band; the order
+selection follows the band at the top. 다음 항목 and 이전 항목 (Ctrl ↓, Ctrl ↑)
+go from the item at the top, or the one being scrolled to, and scroll to the
+next or previous item the same way (November 25 church check). Clicking a tile
+outputs it. When off, the grid shows only the open item. The grid stays where
+the operator scrolled; it moves only when the live tile leaves the view, or when
+a key moves the live tile down past the lower part of the view, including across
+items. A click on a tile never moves it. While the continuous grid shows, the
+footer has 현 위치로, which smoothly brings the live tile back to the reading
+line; it is off while the live tile is in view. This choice does not change the
+last-slide action.
 
 ### Editing a song that is on output
 

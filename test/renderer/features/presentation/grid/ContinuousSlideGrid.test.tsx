@@ -107,7 +107,9 @@ it('windows ordered item bands, scrolls to a requested item, and outputs its til
   const heading = screen.getByRole('heading', {name: 'Section'});
   expect(heading.textContent).toBe('Section');
   expect(screen.getByText('Empty').parentElement?.textContent).toBe('Empty');
-  expect(screen.getByText('Second').parentElement?.textContent).toBe('Second1');
+  // NOTE(0913vision): A band shows the item's name and no slide count (USER
+  // Nov 27).
+  expect(screen.getByText('Second').parentElement?.textContent).toBe('Second');
   expect(screen.getByText('Second')).toBeTruthy();
   expect(screen.getAllByRole('option')).toHaveLength(2);
   act(() => {

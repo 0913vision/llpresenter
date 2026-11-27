@@ -357,9 +357,6 @@ export function ContinuousSlideGrid({
                 className={styles.continuousBand}
               >
                 <span>{section.row.title}</span>
-                {section.tiles.length > 0 ? (
-                  <span>{section.tiles.length}</span>
-                ) : null}
               </div>
             )}
             {end > start ? (
