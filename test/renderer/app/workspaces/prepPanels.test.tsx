@@ -1,5 +1,5 @@
 import {act, renderHook} from '@testing-library/react';
-import {afterEach, expect, it} from 'vitest';
+import {afterEach, expect, it, vi} from 'vitest';
 import {createSongId} from '@core/schema/common/ids';
 import {SONG_SCHEMA_VERSION} from '@core/schema/songs/song';
 import {
@@ -13,6 +13,7 @@ import {lyricsSlide} from '@fixtures/core/slides';
 afterEach(() => {
   closeSongDraft();
   closePrepEditor();
+  document.body.replaceChildren();
 });
 
 function openSong(): void {
@@ -62,4 +63,49 @@ it('leaves 준비 to the 예배 순서 and its items while a library song is ope
     '예배 순서',
     '세부정보',
   ]);
+});
+
+function libraryRows(): readonly [HTMLElement, HTMLElement] {
+  const frame = document.createElement('div');
+  frame.dataset['workspaceFrame'] = 'library';
+  const list = document.createElement('div');
+  list.setAttribute('role', 'listbox');
+  list.setAttribute('aria-label', '라이브러리 곡');
+  const rows = ['00000000-0000-4000-8000-000000000201', 'other'].map(value => {
+    const row = document.createElement('div');
+    row.setAttribute('role', 'option');
+    row.dataset['value'] = value;
+    row.tabIndex = -1;
+    row.scrollIntoView = vi.fn();
+    list.append(row);
+    return row;
+  });
+  frame.append(list);
+  document.body.append(frame);
+  const [open, other] = rows;
+  if (open === undefined || other === undefined) throw new Error('rows');
+  return [open, other];
+}
+
+it('leaves the focus on the row just clicked when the song before closes to open it', () => {
+  const [, clicked] = libraryRows();
+  act(openSong);
+  const view = renderHook(() =>
+    useLibraryPanels({prep: undefined, onProblem: undefined}),
+  );
+  clicked.focus();
+  act(closeSongDraft);
+  view.rerender();
+  expect(document.activeElement).toBe(clicked);
+});
+
+it('gives the focus back to the song row when closing the song took the focus away', () => {
+  const [open] = libraryRows();
+  act(openSong);
+  const view = renderHook(() =>
+    useLibraryPanels({prep: undefined, onProblem: undefined}),
+  );
+  act(closeSongDraft);
+  view.rerender();
+  expect(document.activeElement).toBe(open);
 });

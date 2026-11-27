@@ -130,8 +130,10 @@ function Library({
 }
 
 /**
- * Moves the focus back to the row an editor was opened from once it closes:
- * `openId` is what the editor has open, none once it closes.
+ * Moves the focus back to the row an editor was opened from once it closes,
+ * when the closing took the focus away with it: `openId` is what the editor
+ * has open, none once it closes. A focus that is still somewhere, such as the
+ * row just clicked to open another song (the one before closes first), stays.
  */
 function useReturnFocus(
   workspace: 'prep' | 'library',
@@ -145,7 +147,10 @@ function useReturnFocus(
     }
     const before = origin.current;
     origin.current = null;
-    if (before === null) return;
+    const active = document.activeElement;
+    if (before === null || (active !== null && active !== document.body)) {
+      return;
+    }
     const label = workspace === 'library' ? '라이브러리 곡' : '예배 순서';
     const list = document.querySelector<HTMLElement>(
       `[data-workspace-frame="${workspace}"] [role="listbox"][aria-label="${label}"]`,
