@@ -166,3 +166,31 @@ it('opens the message dialog with the picked template before saving', async () =
   fireEvent.click(screen.getByRole('button', {name: '적용'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
 });
+
+it('keeps 적용 off until every blank of the message has some text', async () => {
+  const f = mockMacroPanel();
+  f.documents.set(
+    'messages',
+    settingsDocument('messages', {
+      templates: [{id, name: '안내', icon: 'msg', text: '{이름} 차량 이동'}],
+    }),
+  );
+  const host = await mount();
+  act(() =>
+    host.model
+      .menuHandlers(firstMacro(host.model))
+      .chooseAction({kind: 'message', target: id}),
+  );
+  await screen.findByRole('dialog', {name: '동작 설정'});
+  const apply = await screen.findByRole('button', {name: '적용'});
+  const blank = await screen.findByRole('textbox', {name: '이름'});
+  expect(apply.getAttribute('aria-disabled')).toBe('true');
+  const user = userEvent.setup();
+  await user.type(blank, '   ');
+  expect(apply.getAttribute('aria-disabled')).toBe('true');
+  await user.clear(blank);
+  await user.type(blank, '12가3456');
+  await waitFor(() => expect(apply.getAttribute('aria-disabled')).toBeNull());
+  fireEvent.click(apply);
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+});
