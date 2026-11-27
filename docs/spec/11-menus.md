@@ -93,7 +93,10 @@ feature we lack), Moved, Removed.
   features disabled with "아직 없는 기능"; built-in objects retain commands
   disabled with a reason explaining why the object cannot change.
 - **Keyboard:** The Menu keyboard rules stay (arrows, Home, End, Enter, Space,
-  Esc, type-ahead, Menu key and Shift F10).
+  Esc, type-ahead, Menu key and Shift F10). A menu a key opens, and a searched
+  menu whose results change, points to its first row that can run, never to a
+  disabled row above it; arrows still reach a disabled row so its reason shows,
+  and it does not run. A menu the pointer opens points to nothing.
 - **Select lists:** The 34 Select dropdowns keep their options and take the same
   appearance. Five lists that have no name get one: MacroActionDialog 동작,
   대상, 무대 화면, 표시 시간; PropDialog 내용 and 이미지; 출처 위치; the two
