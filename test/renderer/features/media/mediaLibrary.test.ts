@@ -601,6 +601,38 @@ describe('media library for the media view', () => {
     ]);
   });
 
+  it('says why an undone media delete was refused and forgets the steps, so no later 실행 취소 or 다시 실행 acts on a wrong one', async () => {
+    const lists = mediaDocument([mediaItem(1), mediaItem(2)], 3);
+    const {library, edit, problems, pushDocument} = setup(mediaFixture(lists));
+    await vi.waitFor(() =>
+      expect(library.getSnapshot().document?.revision).toBe(3),
+    );
+    edit.mockResolvedValueOnce({
+      ok: true,
+      value: {id: mediaId(1), revision: 4},
+    });
+    expect(await library.deleteMedia(mediaId(1), 'Invented 1')).toBe(true);
+    pushDocument(mediaDocument([mediaItem(2)], 4));
+    edit.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'stale', message: 'newer list'},
+    });
+    await undoTimeline.replay('undo', () => undefined);
+    expect(edit.mock.lastCall?.[0]).toEqual({type: 'media.undoDelete'});
+    expect(
+      problems.mock.calls.map(([notice]) => [notice.title, notice.meta]),
+    ).toEqual([
+      [
+        '미디어 변경 실패',
+        ['다른 곳에서 먼저 변경되었습니다.', '다시 시도하십시오.'],
+      ],
+    ]);
+    const sent = edit.mock.calls.length;
+    await undoTimeline.replay('undo', () => undefined);
+    await undoTimeline.replay('redo', () => undefined);
+    expect(edit.mock.calls.length).toBe(sent);
+  });
+
   it('deletes every chosen media in order when they go at once, none dropped while the one before waits for main', async () => {
     const lists = mediaDocument([mediaItem(1), mediaItem(2), mediaItem(3)], 3);
     const {library, edit} = setup(mediaFixture(lists));
