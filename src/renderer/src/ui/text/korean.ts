@@ -26,6 +26,14 @@ export function objectParticle(word: string): '을' | '를' {
 }
 
 /**
+ * Returns the subject particle that follows `word` when it is read aloud:
+ * 이 after a final consonant (새 버전 0.233.1이), 가 otherwise (새 버전 0.233.2가).
+ */
+export function subjectParticle(word: string): '이' | '가' {
+  return endsInConsonant(word) ? '이' : '가';
+}
+
+/**
  * Returns the particle "and, with" that follows `word` when it is read aloud:
  * 과 after a final consonant (평상시 출력과), 와 otherwise (출력 켜기와).
  */

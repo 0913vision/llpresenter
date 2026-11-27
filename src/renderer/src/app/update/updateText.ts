@@ -1,4 +1,5 @@
 import type {UpdateAction, UpdateStatus} from '@core/schema/app/update';
+import {objectParticle, subjectParticle} from '@renderer/ui/text/korean';
 
 /** What the update dialog or notice says first for a status. */
 export function updateTitle(status: UpdateStatus): string {
@@ -10,17 +11,17 @@ export function updateTitle(status: UpdateStatus): string {
     case 'checking':
       return '업데이트 확인 중';
     case 'available':
-      return `새 버전 ${status.version}이 있습니다.`;
+      return `새 버전 ${status.version}${subjectParticle(status.version)} 있습니다.`;
     case 'downloading':
       return `업데이트 내려받는 중 ${status.percent}%`;
     case 'downloaded':
-      return `새 버전 ${status.version}을 설치하시겠습니까?`;
+      return `새 버전 ${status.version}${objectParticle(status.version)} 설치하시겠습니까?`;
     case 'installing':
       return '업데이트 설치 준비 중';
     case 'restarting':
       return '업데이트 후 다시 시작 중';
     case 'latest':
-      return `최신 버전 ${status.version}을 사용하고 있습니다.`;
+      return `최신 버전 ${status.version}${objectParticle(status.version)} 사용하고 있습니다.`;
     case 'error':
       return '업데이트 실패';
   }

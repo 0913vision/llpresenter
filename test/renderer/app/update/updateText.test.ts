@@ -1,5 +1,9 @@
 import {expect, it} from 'vitest';
-import {updateChoices, updateFacts} from '@renderer/app/update/updateText';
+import {
+  updateChoices,
+  updateFacts,
+  updateTitle,
+} from '@renderer/app/update/updateText';
 
 it('says the version, the step and the reason of a failed download', () => {
   expect(
@@ -23,4 +27,19 @@ it('warns that the screens go off only for an update to take while they are on',
     action: 'download',
     later: true,
   });
+});
+
+it('reads the version aloud for its particle, as 0.231.2를 and 0.233.1을', () => {
+  expect(updateTitle({kind: 'available', version: '0.231.2'})).toBe(
+    '새 버전 0.231.2가 있습니다.',
+  );
+  expect(updateTitle({kind: 'available', version: '0.233.1'})).toBe(
+    '새 버전 0.233.1이 있습니다.',
+  );
+  expect(updateTitle({kind: 'downloaded', version: '0.231.2'})).toBe(
+    '새 버전 0.231.2를 설치하시겠습니까?',
+  );
+  expect(updateTitle({kind: 'latest', version: '0.233.0'})).toBe(
+    '최신 버전 0.233.0을 사용하고 있습니다.',
+  );
 });
