@@ -6,7 +6,11 @@ import {
   type MenuItem,
 } from '@renderer/ui/menus/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
-import {showTool, type ShowTool} from '@renderer/features/tools/showTools';
+import {
+  SHOW_TOOLS,
+  showTool,
+  type ShowTool,
+} from '@renderer/features/tools/showTools';
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 import {openPalette, openTool, TOOL_COMMANDS} from './showToolCommands';
 
@@ -109,15 +113,8 @@ export function showViewMenuEntries(
   ];
 }
 
-/** The 진행 도구 tabs the 보기 menu opens, in ProPresenter's View order. */
-const VIEW_TOOLS: readonly ShowTool[] = [
-  'audio',
-  'stage',
-  'timer',
-  'message',
-  'prop',
-  'macro',
-];
+/** The 진행 도구 tabs the 보기 menu opens, in the order of the tabs. */
+const VIEW_TOOLS: readonly ShowTool[] = SHOW_TOOLS.map(tool => tool.value);
 
 function workspaceRow(
   row: {readonly id: Workspace; readonly label: string; readonly meta?: string},

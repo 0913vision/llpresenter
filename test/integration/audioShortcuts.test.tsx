@@ -14,16 +14,16 @@ afterEach(() => {
   cleanup();
   commandBindingStore.set({});
   useLive.setState({state: null});
-  useShowToolTab.setState({tool: 'stage'});
+  useShowToolTab.setState({tool: 'message'});
   delete window.llp;
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
-it('controls audio from the stage tab with default, removed and reassigned keys', async () => {
+it('controls audio from the 메시지 tab with default, removed and reassigned keys', async () => {
   mockPanelTabWidths(1000);
   commandBindingStore.set({});
-  useShowToolTab.setState({tool: 'stage'});
+  useShowToolTab.setState({tool: 'message'});
   const send = vi.fn();
   const stopMedia = vi.fn();
   const stopMissing = vi.fn();
@@ -60,7 +60,7 @@ it('controls audio from the stage tab with default, removed and reassigned keys'
     );
   });
   expect(
-    screen.getByRole('tab', {name: '무대'}).getAttribute('aria-selected'),
+    screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
   ).toBe('true');
   expect(screen.queryByRole('button', {name: '일시 정지'})).toBeNull();
   const altP = {code: 'KeyP', key: 'p', altKey: true};
@@ -103,5 +103,5 @@ it('controls audio from the stage tab with default, removed and reassigned keys'
   expect(send).toHaveBeenCalledExactlyOnceWith(
     expect.objectContaining({type: 'audio.toggle'}),
   );
-  expect(useShowToolTab.getState().tool).toBe('stage');
+  expect(useShowToolTab.getState().tool).toBe('message');
 });

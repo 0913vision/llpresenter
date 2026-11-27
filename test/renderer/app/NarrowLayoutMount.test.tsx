@@ -63,7 +63,7 @@ function sentTypes(
 
 beforeEach(() => {
   mockPanelTabWidths(180);
-  useShowToolTab.setState({tool: 'stage'});
+  useShowToolTab.setState({tool: 'message'});
   applyService(null);
   useLive.setState({state: emptyLiveState()});
 });

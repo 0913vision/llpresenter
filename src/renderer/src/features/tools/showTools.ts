@@ -3,10 +3,9 @@
  * scrolls as a whole; the others have a list in them that scrolls.
  */
 export const SHOW_TOOLS = [
-  {value: 'audio', label: '오디오', scrolls: false},
-  {value: 'stage', label: '무대', scrolls: true},
-  {value: 'timer', label: '타이머', scrolls: false},
   {value: 'message', label: '메시지', scrolls: true},
+  {value: 'timer', label: '타이머', scrolls: false},
+  {value: 'audio', label: '오디오', scrolls: false},
   {value: 'prop', label: '그래픽', scrolls: true},
   {value: 'macro', label: '매크로', scrolls: false},
 ] as const satisfies ReadonlyArray<{
@@ -20,9 +19,9 @@ export type ShowToolEntry = (typeof SHOW_TOOLS)[number];
 /** The value of one tab of the 진행 tools. */
 export type ShowTool = ShowToolEntry['value'];
 
-const STAGE_TOOL: ShowToolEntry & {value: 'stage'} = SHOW_TOOLS[1];
+const FIRST_TOOL: ShowToolEntry = SHOW_TOOLS[0];
 
-/** The tab with the value, or 무대 when there is none. */
+/** The tab with the value, or the first one, 메시지, when there is none. */
 export function showTool(value: string): ShowToolEntry {
-  return SHOW_TOOLS.find(tab => tab.value === value) ?? STAGE_TOOL;
+  return SHOW_TOOLS.find(tab => tab.value === value) ?? FIRST_TOOL;
 }

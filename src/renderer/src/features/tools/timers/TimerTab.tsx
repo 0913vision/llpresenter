@@ -14,6 +14,7 @@ import {useToolEditing} from '../useToolEditing';
 import {useUndoKeys} from '@renderer/platform/undo/useUndoKeys';
 import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
 import {WindowedTimers} from './WindowedTimers';
+import {StageTimer} from '../stage/StageControls';
 import styles from './TimerTab.module.css';
 
 function NewTimerDialog({
@@ -75,6 +76,7 @@ export function TimerTab({
           : undefined;
   return (
     <div className={styles.root} ref={root}>
+      <StageTimer onProblem={onProblem} />
       <PanelAction>
         <IconButton
           icon="plus"

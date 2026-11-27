@@ -110,6 +110,14 @@ describe('parseAppConfig', () => {
     },
   );
 
+  it('opens the first 진행 도구 tab for a remembered tab the app no longer has, as 무대, and keeps the rest of the file (USER Nov 27)', () => {
+    const config = expectSuccess(
+      parse({...fullConfig(), showToolTab: 'stage'}),
+    ).data;
+    expect(config.showToolTab).toBe('message');
+    expect(config.mediaPath).toBe(fullConfig().mediaPath);
+  });
+
   it('reads a file with every field', () => {
     expect(expectSuccess(parse(fullConfig())).data).toEqual(fullConfig());
   });

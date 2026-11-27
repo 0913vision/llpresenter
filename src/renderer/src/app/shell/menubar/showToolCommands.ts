@@ -6,7 +6,6 @@ import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 /** The command that opens each 진행 도구 tab, for its shortcut and its 보기 row. */
 export const TOOL_COMMANDS: Readonly<Record<ShowTool, string>> = {
   audio: 'tools.audio',
-  stage: 'tools.stage',
   timer: 'tools.timers',
   message: 'tools.messages',
   prop: 'tools.props',

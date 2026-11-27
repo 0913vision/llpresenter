@@ -23,6 +23,7 @@ import {ListRow} from '@renderer/ui/lists/ListRow';
 import {Properties, PropertyRow} from '@renderer/ui/panels/PropertyRow';
 import {TextField} from '@renderer/ui/fields/TextField';
 import type {Notice} from '@renderer/ui/popups/notices';
+import {StageMessageSection} from '../stage/StageControls';
 import styles from './MessageTab.module.css';
 import {MessageEditing} from './MessageEditing';
 import {ActiveMessages} from './ActiveMessages';
@@ -181,6 +182,7 @@ export function MessageTab({
     messages?.value.templates[0];
   return (
     <>
+      <StageMessageSection onProblem={onProblem} />
       <ActiveMessages />
       <MessageEditing
         document={messages}

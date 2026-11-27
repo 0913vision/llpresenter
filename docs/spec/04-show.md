@@ -514,11 +514,13 @@ behavior. Ctrl Z never undoes a clear.
 
 ## 진행 도구
 
-The tabs are 오디오 (Audio), 무대 (Stage), 타이머, 메시지, 그래픽, and 매크로,
-in that order. Fit complete tab labels to the actual panel width; keep the
-selected tab visible and put the remaining tabs in 더 보기 (B21). Per-screen
-output state belongs in the previews, whole-layer take-down in the 지우기 row,
-and per-item controls in the owning tool tab (October 31 B16).
+The tabs are 메시지, 타이머, 오디오 (Audio), 그래픽, and 매크로, in that order
+(user decision, November 27). There is no 무대 tab: its 타이머 row heads the
+타이머 tab and its stage message heads the 메시지 tab. A remembered tab the app
+no longer has opens 메시지. Fit complete tab labels to the actual panel width;
+keep the selected tab visible and put the remaining tabs in 더 보기 (B21).
+Per-screen output state belongs in the previews, whole-layer take-down in the
+지우기 row, and per-item controls in the owning tool tab (October 31 B16).
 
 A button that turns something on and off (재생 or 일시 정지, a 타이머's 시작 or
 일시 정지, a 그래픽 tile, and the 그래픽 and 타이머 items of 빠른 실행) asks
@@ -570,15 +572,17 @@ panel past the resizable border or disappears below that border.
 - Sound plays on the Windows default output device (proposal).
 - The audio clear (F5) stops playback (see 03).
 
-### 무대 (Stage)
+### 무대 화면 controls (in 타이머 and 메시지)
 
-- 타이머 row: the 타이머 to show in the 타이머 element of the 무대 화면's 테마
-  (the board shows "시계 11:24") (proposal). The choice belongs to the current
-  output: a 테마 change keeps it, it isn't saved, and deleting that 타이머
-  clears it (lead decision, October 26).
-- Stage message: a text field, a LIVE badge while the message is on, 지우기
-  (take down), and 보내기 (send). 보내기 or Enter sends the text to the 무대
-  화면 (Enter is a proposal). A new message replaces the previous one.
+- 타이머 row, at the top of the 타이머 tab under 무대 화면: the 타이머 to show
+  in the 타이머 element of the 무대 화면's 테마 (the board shows "시계 11:24")
+  (proposal). The choice belongs to the current output: a 테마 change keeps it,
+  it isn't saved, and deleting that 타이머 clears it (lead decision, October
+  26).
+- Stage message, at the top of the 메시지 tab under 무대 메시지: a text field, a
+  LIVE badge while the message is on, 지우기 (take down), and 보내기 (send).
+  보내기 or Enter sends the text to the 무대 화면 (Enter is a proposal). A new
+  message replaces the previous one.
 
 ### 타이머
 

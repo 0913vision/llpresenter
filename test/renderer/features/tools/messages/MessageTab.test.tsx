@@ -263,7 +263,11 @@ it('renders one field per exact blank, including names from the object prototype
   ]);
   render(<MessageTab />);
   await ready();
-  expect(screen.getAllByRole('textbox')).toHaveLength(3);
+  expect(
+    screen
+      .getAllByRole('textbox')
+      .filter(field => field.getAttribute('aria-label') !== '무대 메시지'),
+  ).toHaveLength(3);
   expect(
     within(screen.getByRole('option', {name: '차량 이동'})).getAllByText(
       'toString',
@@ -317,7 +321,12 @@ it('sends once per Enter press and does not send from a blank field', async () =
 it('reports failed settings reads, blocks output, and releases subscriptions', async () => {
   const fixture = messageFixture();
   const problem = vi.fn();
-  fixture.get.mockRejectedValueOnce(new Error('Invented read failure'));
+  const read = fixture.get.getMockImplementation();
+  fixture.get.mockImplementation(request =>
+    request.name === 'messages' || read === undefined
+      ? Promise.reject(new Error('Invented read failure'))
+      : read(request),
+  );
   const view = render(<MessageTab onProblem={problem} />);
   await waitFor(() => expect(problem).toHaveBeenCalledOnce());
   expect(fixture.log).toHaveBeenCalledOnce();

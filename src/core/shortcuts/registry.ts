@@ -170,7 +170,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['media.previousBackground', '이전 배경', '진행 도구', ['show'], []],
     ['tools.showing', '표시 중', '진행 도구', ['show'], []],
     ['tools.audio', '오디오', '진행 도구', ['show'], []],
-    ['tools.stage', '무대', '진행 도구', ['show'], ['alt KeyS']],
     ['tools.timers', '타이머', '진행 도구', ['show'], ['ctrl shift KeyC']],
     ['tools.messages', '메시지', '진행 도구', ['show'], ['ctrl KeyM']],
     ['tools.props', '그래픽', '진행 도구', ['show'], ['ctrl shift KeyP']],

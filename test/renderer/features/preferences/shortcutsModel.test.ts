@@ -100,7 +100,6 @@ describe('buildRows', () => {
     ['show.last', 'End'],
     ['output.audience', 'Ctrl 1'],
     ['output.stage', 'Ctrl 2'],
-    ['tools.stage', 'Alt S'],
     ['tools.timers', 'Ctrl Shift C'],
     ['tools.messages', 'Ctrl M'],
     ['tools.props', 'Ctrl Shift P'],

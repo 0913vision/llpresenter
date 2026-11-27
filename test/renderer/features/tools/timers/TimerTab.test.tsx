@@ -164,7 +164,8 @@ it('disables definition creation on a read-only document', async () => {
   if (!d) throw new Error('Missing fixture');
   f.documents.set('timers', {...d, access: 'readOnly'});
   render(<TimerTab />);
-  await waitFor(() => expect(f.count()).toBe(1));
+  // NOTE(0913vision): The list, the 무대 타이머 picker and its screens.
+  await waitFor(() => expect(f.count()).toBe(3));
   fireEvent.click(screen.getByRole('button', {name: '타이머 추가'}));
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(f.edit).not.toHaveBeenCalled();

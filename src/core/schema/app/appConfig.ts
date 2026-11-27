@@ -71,12 +71,11 @@ export const appLayoutSchema = jsonObject({
   wide: sizeClassLayout,
 });
 
-/** The tabs of the 진행 tools panel. */
+/** The tabs of the 진행 tools panel (USER Nov 27: no 무대 tab). */
 export const SHOW_TOOL_TABS = [
-  'audio',
-  'stage',
-  'timer',
   'message',
+  'timer',
+  'audio',
   'prop',
   'macro',
 ] as const;
@@ -93,7 +92,11 @@ export const rememberedViewEntries = {
   previewBigVisible: v.exactOptional(v.boolean()),
   macroView: v.exactOptional(v.picklist(MACRO_VIEWS)),
   macroCollection: v.exactOptional(macroCollectionIdSchema),
-  showToolTab: v.exactOptional(v.picklist(SHOW_TOOL_TABS)),
+  // NOTE(0913vision): A remembered tab the app no longer has, as 무대, opens
+  // the first tab instead of making the whole file fail its check.
+  showToolTab: v.exactOptional(
+    v.fallback(v.picklist(SHOW_TOOL_TABS), SHOW_TOOL_TABS[0]),
+  ),
   slideColumns: v.exactOptional(slideColumnsSchema),
   mediaStrip: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),

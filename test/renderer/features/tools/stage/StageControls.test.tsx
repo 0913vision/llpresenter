@@ -10,12 +10,30 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {useShowToolTab} from '@renderer/features/tools/showToolTab';
 import {LIVE_STATE_LIMITS} from '@core/schema/live/liveLimits';
-import {StageTab} from '@renderer/features/tools/stage/StageTab';
+import {
+  StageMessageSection,
+  StageTimer,
+} from '@renderer/features/tools/stage/StageControls';
+
+/** The 무대 controls, as the 타이머 and 메시지 tabs show them. */
+function StageTab({
+  onProblem,
+}: {
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+}) {
+  return (
+    <>
+      <StageTimer onProblem={onProblem} />
+      <StageMessageSection onProblem={onProblem} />
+    </>
+  );
+}
 import {
   stageFixture,
   TIMER_ID,
 } from '@fixtures/renderer/features/tools/stageTesting';
 import {fieldValue} from '@fixtures/renderer/ui/fieldValue';
+import type {Notice} from '@renderer/ui/popups/notices';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -68,7 +86,7 @@ describe('stage tool', () => {
     await screen.findByRole('button', {name: '무대 타이머'});
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '  마지막 후렴  '}});
-    fireEvent.click(screen.getByRole('button', {name: '보내기'}));
+    fireEvent.click(screen.getByRole('button', {name: '무대 메시지 보내기'}));
     fireEvent.keyDown(input, {key: 'Enter', code: 'Enter', isComposing: true});
     fireEvent.keyDown(input, {key: 'Process'});
     expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
@@ -123,7 +141,7 @@ describe('stage tool', () => {
       'x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1),
     ]) {
       fireEvent.change(input, {target: {value: text}});
-      const send = screen.getByRole('button', {name: '보내기'});
+      const send = screen.getByRole('button', {name: '무대 메시지 보내기'});
       expect(send.getAttribute('aria-disabled')).toBe('true');
       fireEvent.click(send);
       fireEvent.keyDown(input, {key: 'Enter', code: 'Enter'});
@@ -147,7 +165,7 @@ describe('stage tool', () => {
     act(() => fixture.live({stageMessage: '후렴 한 번 더'}));
     expect(screen.getByText('LIVE')).toBeTruthy();
     expect(fieldValue(input)).toBe('아직 준비 중');
-    fireEvent.click(screen.getByRole('button', {name: '지우기'}));
+    fireEvent.click(screen.getByRole('button', {name: '무대 메시지 지우기'}));
     expect(fixture.send).toHaveBeenLastCalledWith({
       type: 'stage.message.set',
       text: null,
@@ -156,7 +174,7 @@ describe('stage tool', () => {
     expect(screen.queryByText('LIVE')).toBeNull();
     expect(
       screen
-        .getByRole('button', {name: '지우기'})
+        .getByRole('button', {name: '무대 메시지 지우기'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
     expect(fieldValue(input)).toBe('아직 준비 중');
@@ -170,7 +188,7 @@ describe('stage tool', () => {
     const input = screen.getByRole('textbox', {name: '무대 메시지'});
     fireEvent.change(input, {target: {value: '마지막 후렴'}});
     fireEvent.keyDown(input, {key: 'Enter', code: 'Enter'});
-    fireEvent.click(screen.getByRole('button', {name: '보내기'}));
+    fireEvent.click(screen.getByRole('button', {name: '무대 메시지 보내기'}));
     expect(fixture.send).not.toHaveBeenCalled();
     expect(
       screen
@@ -188,7 +206,7 @@ describe('stage tool', () => {
     expect(fixture.log).toHaveBeenCalledOnce();
     expect(
       screen
-        .getByRole('button', {name: '보내기'})
+        .getByRole('button', {name: '무대 메시지 보내기'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
     view.unmount();

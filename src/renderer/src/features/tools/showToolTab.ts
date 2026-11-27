@@ -9,13 +9,13 @@ interface ShowToolTab {
 
 /** The chosen 진행 도구 tab, kept for the session across workspaces and size classes. */
 export const useShowToolTab = create<ShowToolTab>(set => ({
-  tool: 'stage',
+  tool: 'message',
   setTool: tool => {
     set({tool});
     window.llp?.ui.setRememberedView({showToolTab: tool});
   },
 }));
-/** Opens the tab the UI state saved, or 무대 when none was saved. */
+/** Opens the tab the UI state saved, or 메시지 when none was saved. */
 export function seedShowToolTab(state: UiState): void {
-  useShowToolTab.setState({tool: state.showToolTab ?? 'stage'});
+  useShowToolTab.setState({tool: state.showToolTab ?? 'message'});
 }

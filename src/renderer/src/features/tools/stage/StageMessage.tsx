@@ -32,6 +32,8 @@ export function StageMessage({
   const [text, setText] = useState('');
   const live = useLive(view => view.state?.stageMessage);
   const reason = messageReason(text, available);
+  // NOTE(0913vision): The 메시지 tab has its own 보내기 too; the buttons'
+  // names tell the two apart to a screen reader.
   const send = (value: string): void => {
     if (messageReason(value, available) === undefined) {
       sendLive({type: 'stage.message.set', text: value.trim()});
@@ -69,6 +71,7 @@ export function StageMessage({
           }}
         />
         <Button
+          aria-label="무대 메시지 지우기"
           disabled={!live}
           title={!live ? '표시 중인 무대 메시지가 없습니다.' : undefined}
           onClick={hideStageMessage}
@@ -76,6 +79,7 @@ export function StageMessage({
           지우기
         </Button>
         <Button
+          aria-label="무대 메시지 보내기"
           disabled={reason !== undefined}
           title={reason}
           onClick={() => send(text)}

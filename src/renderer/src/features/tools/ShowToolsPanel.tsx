@@ -9,7 +9,6 @@ import {
 import type {Notice} from '@renderer/ui/popups/notices';
 import {SHOW_TOOLS, showTool} from './showTools';
 import {AudioTab} from './audio/AudioTab';
-import {StageTab} from './stage/StageTab';
 import {MessageTab} from './messages/MessageTab';
 import {TimerTab} from './timers/TimerTab';
 import {PropTab} from './props/PropTab';
@@ -48,7 +47,6 @@ export function ShowToolsPanel({
         >
           <PanelActionScope place={actions}>
             {selected === 'audio' ? <AudioTab onProblem={onProblem} /> : null}
-            {selected === 'stage' ? <StageTab onProblem={onProblem} /> : null}
             {selected === 'timer' ? <TimerTab onProblem={onProblem} /> : null}
             {selected === 'message' ? (
               <MessageTab onProblem={onProblem} />

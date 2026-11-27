@@ -11,7 +11,7 @@ let fixture: ReturnType<typeof stageFixture>;
 let widths: ReturnType<typeof mockPanelTabWidths>;
 beforeEach(() => {
   widths = mockPanelTabWidths(300);
-  useShowToolTab.setState({tool: 'stage'});
+  useShowToolTab.setState({tool: 'message'});
   fixture = stageFixture([
     settingsDocument('props', {props: []}),
     settingsDocument('macros', {
@@ -39,13 +39,13 @@ function tabNames(): readonly string[] {
     .map(tab => tab.textContent);
 }
 function stageReady() {
-  return waitFor(() => expect(fixture.count()).toBe(2));
+  return waitFor(() => expect(fixture.count()).toBe(3));
 }
 
 it.each([
-  ['normal', ['오디오', '무대', '타이머', '메시지'], ['그래픽', '매크로']],
-  ['wide', ['오디오', '무대', '타이머', '메시지', '그래픽', '매크로'], []],
-  ['narrow', ['오디오', '무대'], ['타이머', '메시지', '그래픽', '매크로']],
+  ['normal', ['메시지', '타이머', '오디오', '그래픽', '매크로'], []],
+  ['wide', ['메시지', '타이머', '오디오', '그래픽', '매크로'], []],
+  ['narrow', ['메시지', '타이머'], ['오디오', '그래픽', '매크로']],
 ] as const)(
   'keeps every tool accessible in a %s window',
   async (sizeClass, visible, overflow) => {
@@ -90,8 +90,7 @@ it.each([
 it('opens macro controls and marks the latest live macro', async () => {
   render(<ShowToolsPanel sizeClass="normal" />);
   await stageReady();
-  await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
-  await userEvent.click(screen.getByRole('menuitemradio', {name: '매크로'}));
+  await userEvent.click(screen.getByRole('tab', {name: '매크로'}));
   const tile = await screen.findByRole('option', {name: 'Test macro'});
   fixture.live({lastMacroId: '00000000-0000-4000-8000-000000000001'});
   await waitFor(() => expect(tile.getAttribute('data-state')).toBe('last-run'));
@@ -102,16 +101,16 @@ it('switches compact tabs and overflow panels and releases subscriptions', async
   widths.resize(180);
   const {unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
-  screen.getByRole('tab', {name: '무대'}).focus();
+  screen.getByRole('tab', {name: '메시지'}).focus();
   await userEvent.keyboard('{ArrowRight}');
-  await waitFor(() => expect(fixture.count()).toBe(0));
-  expect(screen.getByRole('tabpanel', {name: '오디오'})).toBeDefined();
+  await waitFor(() => expect(fixture.count()).toBe(3));
+  expect(screen.getByRole('tabpanel', {name: '타이머'})).toBeDefined();
   for (const [name, count] of [
-    ['타이머', 1],
-    ['메시지', 2],
+    ['오디오', 0],
     ['그래픽', 2],
     ['매크로', 1],
-    ['오디오', 0],
+    ['메시지', 3],
+    ['타이머', 3],
   ] as const) {
     const tab = screen.queryByRole('tab', {name});
     if (tab) await userEvent.click(tab);
@@ -131,15 +130,15 @@ it('keeps the chosen working panel through size changes and remounting', async (
   const {rerender, unmount} = render(<ShowToolsPanel sizeClass="narrow" />);
   await stageReady();
   await userEvent.click(screen.getByRole('button', {name: '더 보기'}));
-  await userEvent.click(screen.getByRole('menuitemradio', {name: '메시지'}));
+  await userEvent.click(screen.getByRole('menuitemradio', {name: '그래픽'}));
   await waitFor(() => expect(fixture.count()).toBe(2));
   rerender(<ShowToolsPanel sizeClass="normal" />);
   expect(
-    screen.getByRole('tab', {name: '메시지'}).getAttribute('aria-selected'),
+    screen.getByRole('tab', {name: '그래픽'}).getAttribute('aria-selected'),
   ).toBe('true');
   unmount();
   expect(fixture.count()).toBe(0);
   render(<ShowToolsPanel sizeClass="wide" />);
   await waitFor(() => expect(fixture.count()).toBe(2));
-  expect(screen.getByRole('tabpanel', {name: '메시지'})).toBeDefined();
+  expect(screen.getByRole('tabpanel', {name: '그래픽'})).toBeDefined();
 });
