@@ -1,6 +1,5 @@
-import {CommandScope} from '@renderer/ui/keys/commandDispatcher';
 import type {SongId} from '@core/schema/common/ids';
-import {Suspense, useEffect, useState, type JSX, type ReactNode} from 'react';
+import {Suspense, useEffect, useState, type JSX} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
 import type {MediaApi} from '@renderer/features/media/mediaLibrary';
 import {
@@ -15,6 +14,7 @@ import {
   type PrepBinding,
 } from '../../workspaces/prepPanels';
 import {useUndoReveal} from './useUndoReveal';
+import {KeptFrame} from './KeptFrame';
 import type {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
 import {useScreensPanels} from '../../workspaces/screensPanels';
 import {ShowShortcuts, useShowPanels} from '../../workspaces/showPanels';
@@ -53,42 +53,6 @@ function useWorkspaceUndo(visible: WorkspaceId): void {
   useEffect(() => {
     undoTimeline.showTab(visible);
   }, [visible]);
-}
-
-/**
- * A workspace's frame that stays built while another workspace shows: hidden,
- * out of the focus order, and with its commands' keys off, so going back
- * shows it in the next frame instead of building it again. Every workspace
- * has one, built once: a switch never builds a view again nor shows another
- * one on the way (USER Nov 21, Nov 27).
- */
-function KeptFrame({
-  workspace,
-  visible,
-  children,
-}: {
-  readonly workspace: WorkspaceId;
-  readonly visible: boolean;
-  readonly children: ReactNode;
-}): JSX.Element {
-  // NOTE(0913vision): A hidden frame keeps the content it last showed, the
-  // same elements, so React leaves it alone on a switch and only the frame
-  // coming up is drawn again; what its parts follow on their own still
-  // reaches them.
-  const [kept, setKept] = useState(children);
-  if (visible && kept !== children) setKept(children);
-  return (
-    <div
-      className={classNames(styles.frameSlot, !visible && styles.hiddenFrame)}
-      data-workspace-frame={workspace}
-      inert={!visible}
-      aria-hidden={!visible}
-    >
-      <CommandScope value={visible ? 'visible' : 'hidden'}>
-        {visible ? children : kept}
-      </CommandScope>
-    </div>
-  );
 }
 
 /**

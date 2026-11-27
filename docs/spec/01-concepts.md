@@ -375,6 +375,10 @@ All four workspaces use the same three-column frame (left, center, right).
   item, 라이브러리's open song, 테마's theme. A change that rebuilds a view on a
   switch, or draws one view on the way to another, is refused; the workspace
   test checks that every view is the same element after each switch.
+- A view that shows again gives the focus back to where it was in it, as a
+  browser tab does, so the keys act there at once after a switch by the mouse
+  (the toolbar tabs leave the focus where it was). A focus in use elsewhere,
+  such as the search field, stays; in 진행 the live slides take it as before.
 - Switching workspaces never changes the output.
 - 진행 and 준비 must be told apart at a glance (user decision, October 31). The
   first trial is ours: 진행 uses one warm palette at the same lightness steps
