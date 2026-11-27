@@ -355,10 +355,10 @@ Source: `ShowH`, `Toolbar` README, `ToolbarButton` README, `Media`.
 
 Source: `StatusBar` README, `Notification` README, `Problems`, `ScreensNDI`.
 
-## The three workspaces
+## The four workspaces
 
-All three workspaces use the same three-column frame (left, center, right). The
-라이브러리 exists only in 준비.
+All four workspaces use the same three-column frame (left, center, right).
+라이브러리 lays out as 준비 does, with its own view.
 
 | Workspace | Left column           | Center column                  | Right column                                            | Details |
 | --------- | --------------------- | ------------------------------ | ------------------------------------------------------- | ------- |
@@ -366,13 +366,22 @@ All three workspaces use the same three-column frame (left, center, right). The
 | 준비      | 예배 순서, 라이브러리 | Song editor or 예배 순서 item. | Preview and 슬라이드 list, or preview and item settings | 05      |
 | 테마      | 테마 list, 요소       | 테마 canvas                    | 요소 and 화면 properties                                | 12      |
 
+- **Switching is only hiding and showing (hard user rule, November 21 and
+  November 27).** 진행, 준비, 라이브러리 and 테마 are each built once, at
+  launch, and stay built. A toolbar tab hides the view on screen and shows its
+  own in the same frame: no view is built again, nothing in a view is dropped
+  and made again (lists, tiles, previews, editors), and no other view shows on
+  the way. What a view has open stays open while another view shows: 준비's open
+  item, 라이브러리's open song, 테마's theme. A change that rebuilds a view on a
+  switch, or draws one view on the way to another, is refused; the workspace
+  test checks that every view is the same element after each switch.
 - Switching workspaces never changes the output.
 - 진행 and 준비 must be told apart at a glance (user decision, October 31). The
   first trial is ours: 진행 uses one warm palette at the same lightness steps
   with an amber accent, and 준비 keeps the default colors. The user judges it in
   a check build.
-- All three workspaces share the current service. The 예배 순서 panels in 진행
-  and 준비 show the same 예배 순서.
+- All workspaces share the current service. The 예배 순서 panels in 진행 and
+  준비 show the same 예배 순서.
 - F1 to F6 work in every workspace, even with a dialog open (10, focus
   precedence). Ctrl Z only undoes edits, and each toolbar tab has its own 실행
   취소 (user decision, November 25): a step runs back only in the tab where it
@@ -388,11 +397,12 @@ All three workspaces use the same three-column frame (left, center, right). The
   a song is open. Library songs are renamed, copied and deleted only here; in
   준비 the 곡 list adds songs to the 예배 순서 and those rows say "라이브러리
   탭에서만 바꿀 수 있습니다." Choosing 라이브러리 opens the song left open, else
-  the song edited last, else the first library song, else a new song. Choosing
-  준비 leaves the song as closing it does (asks about unsaved changes) and shows
-  the 예배 순서. The song editor has no back button; the tabs move between them.
-  A separate song window was turned down: it would block running slides during a
-  service.
+  the song edited last, else the first library song, else a new song. Another
+  tab only hides 라이브러리: the song stays open, with its unsaved changes,
+  until it is closed in 라이브러리 (Esc in the editor) or saved; 준비 keeps its
+  own 예배 순서 and open item meanwhile (user, November 27). The song editor has
+  no back button; the tabs move between them. A separate song window was turned
+  down: it would block running slides during a service.
 
 Source: `Main` decision "작업 공간 세 개", design system README (window sizes
 and layout), `ClearButton` README, `Dialog` README, product log (2026-10-24
