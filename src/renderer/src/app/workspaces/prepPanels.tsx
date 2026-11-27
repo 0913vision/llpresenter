@@ -15,12 +15,14 @@ import {
 } from '@renderer/features/songs/library/LibraryPanel';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
 import {
+  closeSongDraft,
   openSongDraft,
   requestLeaveSong,
   useSongDraft,
 } from '@renderer/features/songs/draft';
 import {
   closePrepEditor,
+  openInLibrary,
   openInPrep,
   type PrepTarget,
 } from '@renderer/session/prepTarget';
@@ -66,7 +68,7 @@ export function editItemInPrep(itemId: string, position?: number): void {
     openDeckAt(item.id, item.slides[position]?.id);
   }
   openItem(itemId);
-  requestLeaveSong(() => openInPrep({kind: 'item', itemId}));
+  openInPrep({kind: 'item', itemId});
 }
 
 function Library({
@@ -122,7 +124,7 @@ function Library({
               document.song.id,
               songSlidesOf(document.song)[position ?? 0]?.id,
             );
-            openInPrep({kind: 'song'});
+            openInLibrary();
           }}
         />
       }
@@ -130,39 +132,59 @@ function Library({
   );
 }
 
-/** Moves the focus back to the row that the editor was opened from. */
-function useReturnFocus(target: PrepTarget | null): void {
-  const songId = useSongDraft(view => view.draft?.song.id ?? null);
-  const origin = useRef<{
-    readonly id: string;
-    readonly library: boolean;
-  } | null>(null);
+/**
+ * Moves the focus back to the row an editor was opened from once it closes:
+ * `openId` is what the editor has open, none once it closes.
+ */
+function useReturnFocus(
+  workspace: 'prep' | 'library',
+  openId: string | null,
+): void {
+  const origin = useRef<string | null>(null);
   useLayoutEffect(() => {
-    if (target !== null) {
-      const id = target.kind === 'item' ? target.itemId : songId;
-      if (id !== null) origin.current = {id, library: target.kind === 'song'};
+    if (openId !== null) {
+      origin.current = openId;
       return;
     }
     const before = origin.current;
     origin.current = null;
     if (before === null) return;
-    const label = before.library ? '라이브러리 곡' : '예배 순서';
-    // NOTE(0913vision): The kept 진행 list is inert and hidden; focus goes to
-    // the one on screen.
-    const list = [
-      ...document.querySelectorAll<HTMLElement>(
-        `[data-workspace-layout="prep"] [role="listbox"][aria-label="${label}"]`,
-      ),
-    ].find(element => element.closest('[inert]') === null);
+    const label = workspace === 'library' ? '라이브러리 곡' : '예배 순서';
+    const list = document.querySelector<HTMLElement>(
+      `[data-workspace-frame="${workspace}"] [role="listbox"][aria-label="${label}"]`,
+    );
     const row =
-      list?.querySelector<HTMLElement>(`[data-value="${before.id}"]`) ??
+      list?.querySelector<HTMLElement>(`[data-value="${before}"]`) ??
       list?.querySelector<HTMLElement>('[aria-selected="true"]');
     row?.focus({preventScroll: true});
     row?.scrollIntoView({block: 'nearest'});
-  }, [target, songId]);
+  }, [workspace, openId]);
 }
 
-/** The panels of 준비: 라이브러리, the 예배 순서 table, and an editor. */
+/** What the panels of 준비 and 라이브러리 work with. */
+interface PanelsInput {
+  readonly prep: PrepBinding | undefined;
+  readonly sizeClass: SizeClass;
+  readonly onProblem: ((notice: Notice) => void) | undefined;
+  readonly onOpenPrep: ((itemId: string) => void) | undefined;
+  readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
+}
+
+/** The library songs at the left of 준비 and of 라이브러리. */
+function libraryParts(
+  prep: PrepBinding,
+  navigating: boolean,
+  report: (notice: Notice) => void,
+): PanelParts {
+  return {
+    embedded: <Library prep={prep} navigating={navigating} report={report} />,
+  };
+}
+
+/**
+ * The panels of 준비: 예배 요소 and the library songs, the 예배 순서 table, and
+ * an item's editor once one is open.
+ */
 export function usePrepPanels({
   prep,
   target,
@@ -171,34 +193,24 @@ export function usePrepPanels({
   onProblem,
   onOpenPrep,
   onShowInLibrary,
-}: {
-  readonly prep: PrepBinding | undefined;
-  /** What is edited; none shows the table. */
+}: PanelsInput & {
+  /** The item being edited; none shows the table. */
   readonly target: PrepTarget | null;
   readonly selectedItem?: string | null | undefined;
-  readonly sizeClass: SizeClass;
-  readonly onProblem: ((notice: Notice) => void) | undefined;
-  readonly onOpenPrep: ((itemId: string) => void) | undefined;
-  readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): WorkspacePanels {
   const report = onProblem ?? logPanelProblem;
   const requestedItem = useShow(view => view.openItemId);
   const selectedItem =
     retainedItem === undefined ? requestedItem : retainedItem;
-  const back = (): void => requestLeaveSong(closePrepEditor);
-  const ui = prep?.api.ui;
   const item = useItemEditor({
-    itemId: target?.kind === 'item' ? target.itemId : null,
+    itemId: target?.itemId ?? null,
     report,
-    onBack: back,
-    ui,
+    onBack: closePrepEditor,
+    ui: prep?.api.ui,
   });
-  const song = useSongEditor({report, onBack: back, ui});
-  const editor = target === null ? null : target.kind === 'item' ? item : song;
-  const shownSearch = useShownSearch(
-    target?.kind === 'song' ? 'library' : 'prep',
-  );
-  useReturnFocus(editor === null ? null : target);
+  const shownSearch = useShownSearch('prep');
+  const editing = item !== null && target !== null;
+  useReturnFocus('prep', editing ? target.itemId : null);
   const selectedSong = useShow(view =>
     isLibrarySource(view, selectedItem) ? view.librarySong.songId : null,
   );
@@ -209,12 +221,7 @@ export function usePrepPanels({
       : parsed.ok
         ? {kind: 'item', itemId: parsed.value}
         : null;
-  const editing = editor !== null && target !== null;
-  // NOTE(0913vision): The 라이브러리 tab keeps its columns while no song is
-  // open, as after the open song is deleted: its 실행 취소 brings the song back
-  // open, and the 예배 순서 of 준비 never shows under the tab.
-  const libraryTab = target?.kind === 'song';
-  const columns = libraryTab ? SONG_COLUMNS : !editing ? COLUMNS : ITEM_COLUMNS;
+  const columns = editing ? ITEM_COLUMNS : COLUMNS;
   const partsOf = (title: string): PanelParts => {
     if (prep === undefined) return {};
     // NOTE(0913vision): A toolbar search's results take the center column
@@ -228,7 +235,7 @@ export function usePrepPanels({
       case SERVICE_ORDER:
         return serviceOrderParts({
           workspace: 'prep',
-          navigator: editor !== null,
+          navigator: editing,
           onProblem,
           onOpenPrep,
           onNavigate: id => editItemInPrep(id),
@@ -238,15 +245,11 @@ export function usePrepPanels({
           table: true,
         });
       case '라이브러리':
-        return {
-          embedded: (
-            <Library prep={prep} navigating={libraryTab} report={report} />
-          ),
-        };
+        return libraryParts(prep, false, report);
       case '편집':
-        return {embedded: editor?.editor};
+        return {embedded: item?.editor};
       case '슬라이드 속성':
-        return {embedded: editor?.inspector};
+        return {embedded: item?.inspector};
       case '세부정보':
         return {
           embedded: (
@@ -265,9 +268,53 @@ export function usePrepPanels({
     }
   };
   return {
-    shownItem: editing && target.kind === 'item' ? target.itemId : selectedItem,
+    shownItem: editing ? target.itemId : selectedItem,
     editing,
     columns,
+    partsOf,
+  };
+}
+
+/**
+ * The panels of 라이브러리: the library songs, the open song's editor and its
+ * slide properties. The columns stay while no song is open, as after the open
+ * song is deleted, so its 실행 취소 brings it back open.
+ */
+export function useLibraryPanels({
+  prep,
+  onProblem,
+}: Pick<PanelsInput, 'prep' | 'onProblem'>): WorkspacePanels {
+  const report = onProblem ?? logPanelProblem;
+  const song = useSongEditor({
+    report,
+    onBack: () => requestLeaveSong(closeSongDraft),
+    ui: prep?.api.ui,
+  });
+  const songId = useSongDraft(view => view.draft?.song.id ?? null);
+  useReturnFocus('library', songId);
+  const shownSearch = useShownSearch('library');
+  const partsOf = (title: string): PanelParts => {
+    if (prep === undefined) return {};
+    if (shownSearch !== null && title === SONG_COLUMNS[1][0]) {
+      return {
+        embedded: <SearchResultsPanel shown={shownSearch} onProblem={report} />,
+      };
+    }
+    switch (title) {
+      case '라이브러리':
+        return libraryParts(prep, true, report);
+      case '편집':
+        return {embedded: song?.editor};
+      case '슬라이드 속성':
+        return {embedded: song?.inspector};
+      default:
+        return {};
+    }
+  };
+  return {
+    shownItem: undefined,
+    editing: song !== null,
+    columns: SONG_COLUMNS,
     partsOf,
   };
 }

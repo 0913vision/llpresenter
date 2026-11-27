@@ -2,14 +2,12 @@ import {act, renderHook} from '@testing-library/react';
 import {afterEach, expect, it} from 'vitest';
 import {createSongId} from '@core/schema/common/ids';
 import {SONG_SCHEMA_VERSION} from '@core/schema/songs/song';
-import {usePrepPanels} from '@renderer/app/workspaces/prepPanels';
-import {workspaceTabOf} from '@renderer/app/useWorkspaceTabs';
-import {closeSongDraft, openSongDraft} from '@renderer/features/songs/draft';
 import {
-  closePrepEditor,
-  openInPrep,
-  usePrepTarget,
-} from '@renderer/session/prepTarget';
+  useLibraryPanels,
+  usePrepPanels,
+} from '@renderer/app/workspaces/prepPanels';
+import {closeSongDraft, openSongDraft} from '@renderer/features/songs/draft';
+import {closePrepEditor} from '@renderer/session/prepTarget';
 import {lyricsSlide} from '@fixtures/core/slides';
 
 afterEach(() => {
@@ -29,34 +27,18 @@ function openSong(): void {
     revision: 1,
     access: 'editable',
   });
-  openInPrep({kind: 'song'});
-}
-
-/** The 준비 panels for what the prep target says now. */
-function panels() {
-  return renderHook(() =>
-    usePrepPanels({
-      prep: undefined,
-      target: usePrepTarget(view => view.target),
-      sizeClass: 'wide',
-      onProblem: undefined,
-      onOpenPrep: undefined,
-      onShowInLibrary: undefined,
-    }),
-  );
 }
 
 it('keeps the 라이브러리 columns with an empty editor when the open song is deleted, never the 예배 순서, so 실행 취소 can bring it back', () => {
   act(openSong);
-  const view = panels();
+  const view = renderHook(() =>
+    useLibraryPanels({prep: undefined, onProblem: undefined}),
+  );
+  expect(view.result.current.editing).toBe(true);
   // NOTE(0913vision): A song deleted while it is open closes its draft alone,
   // as here.
   act(closeSongDraft);
   view.rerender();
-  expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
-  expect(
-    workspaceTabOf('prep', usePrepTarget.getState().target?.kind === 'song'),
-  ).toBe('library');
   expect(view.result.current.columns.flat()).toEqual([
     '라이브러리',
     '편집',
@@ -65,10 +47,22 @@ it('keeps the 라이브러리 columns with an empty editor when the open song is
   expect(view.result.current.editing).toBe(false);
 });
 
-it('keeps 라이브러리 while its song is open', () => {
+it('leaves 준비 to the 예배 순서 and its items while a library song is open in 라이브러리 (USER Nov 27)', () => {
   act(openSong);
-  const view = panels();
-  view.rerender();
-  expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
-  expect(view.result.current.editing).toBe(true);
+  const view = renderHook(() =>
+    usePrepPanels({
+      prep: undefined,
+      target: null,
+      sizeClass: 'wide',
+      onProblem: undefined,
+      onOpenPrep: undefined,
+      onShowInLibrary: undefined,
+    }),
+  );
+  expect(view.result.current.columns.flat()).toEqual([
+    '라이브러리',
+    '예배 순서',
+    '세부정보',
+  ]);
+  expect(view.result.current.editing).toBe(false);
 });

@@ -10,7 +10,7 @@ import {
 } from '@core/schema/app/preferences';
 import {type Notice, warningNotice} from '@renderer/ui/popups/notices';
 import {useLabels} from '@renderer/features/labels/labels';
-import {openInPrep} from '@renderer/session/prepTarget';
+import {openInLibrary} from '@renderer/session/prepTarget';
 import {openImportedSong, requestLeaveSong, useSongDraft} from '../draft';
 import {usePreferenceEdits} from '../../preferences/usePreferenceEdits';
 import {TextImportDialog} from './TextImportDialog';
@@ -54,7 +54,7 @@ export function TextImportFlow({
   const edit = (draft: TextImportDraft): void =>
     requestLeaveSong(() => {
       openImportedSong(draft);
-      openInPrep({kind: 'song'});
+      openInLibrary();
       onDone();
     });
   const preferences = usePreferenceEdits(onProblem);

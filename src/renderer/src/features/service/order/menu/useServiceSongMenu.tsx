@@ -13,7 +13,7 @@ import {
 } from '@renderer/platform/documents/themes';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useShow} from '@renderer/session/show/showStore';
-import {openInPrep} from '@renderer/session/prepTarget';
+import {openInLibrary} from '@renderer/session/prepTarget';
 import {
   openSongDraftWithItem,
   requestLeaveSong,
@@ -90,7 +90,7 @@ async function openItemInSongEditor(
     // and never to the 예배 순서 the menu was opened on (church, Nov 25).
     const first = useSongDraft.getState().draft?.song.slides[0];
     openDeckAt(latest.document.song.id, first?.id);
-    openInPrep({kind: 'song'});
+    openInLibrary();
     requestAnimationFrame(() => requestAnimationFrame(focusSlides));
   });
 }

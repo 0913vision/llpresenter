@@ -115,6 +115,59 @@ describe('Workspace theme loading', () => {
   });
 });
 
+describe('Workspace switches', () => {
+  it('builds 진행, 준비, 라이브러리 and 테마 once and only hides and shows them on a switch, never another one on the way (USER Nov 21, Nov 27)', () => {
+    vi.spyOn(screensPanels, 'useScreensPanels').mockImplementation(() => ({
+      ready: true,
+      columns: [['테마']],
+      partsOf: () => ({}),
+    }));
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace id="show" sizeClass="normal" store={store} />,
+    );
+    const frames = (): Readonly<Record<string, Element>> =>
+      Object.fromEntries(
+        [...view.container.querySelectorAll('[data-workspace-frame]')].map(
+          frame => [frame.getAttribute('data-workspace-frame') ?? '', frame],
+        ),
+      );
+    const built = frames();
+    const contents = Object.fromEntries(
+      Object.entries(built).map(([id, frame]) => [id, frame.firstElementChild]),
+    );
+    expect(Object.keys(built).sort()).toEqual([
+      'library',
+      'prep',
+      'screens',
+      'show',
+    ]);
+    for (const id of [
+      'library',
+      'screens',
+      'prep',
+      'library',
+      'show',
+      'screens',
+      'show',
+    ] as const) {
+      view.rerender(<Workspace id={id} sizeClass="normal" store={store} />);
+      const now = frames();
+      for (const [frameId, frame] of Object.entries(built)) {
+        expect(now[frameId], frameId).toBe(frame);
+        expect(now[frameId]?.firstElementChild, frameId).toBe(
+          contents[frameId],
+        );
+      }
+      expect(
+        Object.entries(now)
+          .filter(([, frame]) => frame.getAttribute('aria-hidden') !== 'true')
+          .map(([frameId]) => frameId),
+      ).toEqual([id]);
+    }
+  });
+});
+
 describe('Workspace column gaps', () => {
   it('resizes the left column by dragging its gap and captures the pointer', () => {
     const {container} = render(

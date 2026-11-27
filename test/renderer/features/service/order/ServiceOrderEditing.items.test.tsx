@@ -124,7 +124,7 @@ describe('service panel editing', () => {
       expect(useSongDraft.getState().draft?.song.slides).toEqual([verse]),
     );
     expect(useSongDraft.getState().draft?.document?.song.id).toBe(songId);
-    expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
+    expect(usePrepTarget.getState().requested).toBe('library');
     expect(api.content.edit).not.toHaveBeenCalled();
     act(() => {
       replaySong('undo');

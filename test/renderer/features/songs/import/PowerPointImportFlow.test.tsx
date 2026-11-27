@@ -189,7 +189,7 @@ it('opens the song in the editor at once, without a dialog', async () => {
   await opened();
   expect(onDone).toHaveBeenCalledOnce();
   expect(screen.queryByRole('dialog')).toBeNull();
-  expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
+  expect(usePrepTarget.getState().requested).toBe('library');
   expect(draft().title).toBe('새 노래');
   expect(draft().slides.map(slide => [slide.theme, slide.texts])).toEqual([
     [BUILT_IN_THEME_IDS.songTitle, {제목: '새 노래'}],

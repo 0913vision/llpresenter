@@ -154,7 +154,7 @@ function ControlApp({
     mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
   };
   const textImport = session.api?.textImport;
-  const prepActions = usePrepActions(session);
+  const prepActions = usePrepActions(session, shownWorkspace);
   const tabs = useWorkspaceTabs({
     workspace: shownWorkspace,
     switchTo: onWorkspace,

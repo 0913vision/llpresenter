@@ -1,27 +1,25 @@
-import {useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/saving/themeLeaveGuard';
-import {requestLeaveSong} from '@renderer/features/songs/draft';
-import {closePrepEditor, usePrepTarget} from '@renderer/session/prepTarget';
+import {usePrepTarget} from '@renderer/session/prepTarget';
 import {WorkspaceSelections} from '@renderer/session/show/workspaceSelections';
 import type {Workspace as WorkspaceId} from '@renderer/platform/WorkspaceNavigation';
 import {useShow} from '@renderer/session/show/showStore';
 
 /**
- * Which workspace the window shows, and the switch between them. A switch
- * first leaves what may not be left silently: a song edited in 준비, a theme
- * changed in 화면. The new workspace draws a moment later than it is asked
- * for, so the click answers at once. A request to open something in 준비
- * moves there.
+ * Which workspace the window shows, and the switch between them. Every
+ * workspace stays built, so a switch only hides one and shows another, in the
+ * same frame (USER Nov 21, Nov 27): a song open in 라이브러리 stays open, as an
+ * item open in 준비 does. Only a theme changed in 테마 is asked about first. A
+ * request to open something in 준비 or 라이브러리 moves there.
  */
 export function useWorkspaceSwitch() {
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const requestedItem = useShow(view => view.openItemId);
   const prepTarget = usePrepTarget(view => view.target);
-  const requestedFrame = useMemo(
+  const shownFrame = useMemo(
     () => ({workspace, item: requestedItem, prep: prepTarget}),
     [workspace, requestedItem, prepTarget],
   );
-  const shownFrame = useDeferredValue(requestedFrame);
   const [savedPrepItem, setSavedPrepItem] = useState<string | null>(null);
   const [workspaceSelections] = useState(() => new WorkspaceSelections());
   const [themeLeave] = useState(() => new ThemeLeaveGuard());
@@ -34,24 +32,18 @@ export function useWorkspaceSwitch() {
       workspaceSelections.activate(next);
       setWorkspace(next);
     };
-    const leavingSong =
-      workspace === 'prep' && next !== 'prep' && prepTarget?.kind === 'song';
-    if (leavingSong) {
-      requestLeaveSong(() => {
-        closePrepEditor();
-        go();
-      });
-    } else if (workspace === 'screens' && next !== 'screens') {
+    if (workspace === 'screens' && next !== 'screens') {
       themeLeave.leave(go);
     } else go();
   };
 
   const prepRequest = usePrepTarget(view => view.request);
+  const requested = usePrepTarget(view => view.requested);
   const answered = useRef(prepRequest);
   useEffect(() => {
     if (answered.current === prepRequest) return;
     answered.current = prepRequest;
-    if (workspace !== 'prep') switchTo('prep');
+    if (workspace !== requested) switchTo(requested);
   });
 
   return {

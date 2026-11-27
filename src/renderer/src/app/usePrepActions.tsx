@@ -11,7 +11,8 @@ import {
   useSongDraft,
 } from '@renderer/features/songs/draft';
 import {openDeckAt} from '@renderer/features/slides/deckSelection';
-import {openInPrep, usePrepTarget} from '@renderer/session/prepTarget';
+import {openInLibrary} from '@renderer/session/prepTarget';
+import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 import {isLibrarySource} from '@renderer/session/show/showLibrary';
 import {warningNotice} from '@renderer/ui/popups/notices';
 import type {ControlSession} from './controlSession';
@@ -40,13 +41,19 @@ export interface PrepActions {
   readonly surface: JSX.Element | null;
 }
 
-/** Opens songs and items in 준비, keeping an unsaved song until it is decided. */
-export function usePrepActions(session: ControlSession): PrepActions {
+/**
+ * Opens library songs in 라이브러리 and items in 준비, keeping an unsaved song
+ * until it is decided. `workspace` is the one the window shows.
+ */
+export function usePrepActions(
+  session: ControlSession,
+  workspace: Workspace,
+): PrepActions {
   const {api, report} = session;
   const [source, setSource] = useState<ImportSource | null>(null);
   const done = useCallback(() => setSource(null), []);
   const draft = useSongDraft(view => view.draft);
-  const songOpen = usePrepTarget(view => view.target?.kind === 'song');
+  const songOpen = workspace === 'library';
   const failed = (songId: SongId, cause: unknown): void => {
     logFailure(api, `Could not open song ${songId} in 준비`, cause);
     report(warningNotice('prep:song-open', SONG_OPEN_FAILED));
@@ -64,7 +71,7 @@ export function usePrepActions(session: ControlSession): PrepActions {
             document.song.id,
             songSlidesOf(document.song)[position]?.id,
           );
-          openInPrep({kind: 'song'});
+          openInLibrary();
         },
         (cause: unknown) => failed(songId, cause),
       );
@@ -72,7 +79,7 @@ export function usePrepActions(session: ControlSession): PrepActions {
   const newSong = (): void =>
     requestLeaveSong(() => {
       openNewSong();
-      openInPrep({kind: 'song'});
+      openInLibrary();
     });
   const onOpenPrep = (itemId: string, position?: number): void => {
     const view = useShow.getState();

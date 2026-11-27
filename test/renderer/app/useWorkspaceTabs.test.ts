@@ -3,17 +3,13 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {createSongId} from '@core/schema/common/ids';
 import type {LibrarySong} from '@core/schema/services/contentDocuments';
 import {SONG_SCHEMA_VERSION} from '@core/schema/songs/song';
-import {useWorkspaceTabs, workspaceTabOf} from '@renderer/app/useWorkspaceTabs';
+import {useWorkspaceTabs} from '@renderer/app/useWorkspaceTabs';
 import {
   closeSongDraft,
   openSongDraft,
   useSongDraft,
 } from '@renderer/features/songs/draft';
-import {
-  closePrepEditor,
-  openInPrep,
-  usePrepTarget,
-} from '@renderer/session/prepTarget';
+import {closePrepEditor} from '@renderer/session/prepTarget';
 import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 import {lyricsSlide} from '@fixtures/core/slides';
 
@@ -46,18 +42,9 @@ afterEach(() => {
   useSongDraft.setState({library: []});
 });
 
-describe('workspaceTabOf', () => {
-  it('shows 준비 with a song open as 라이브러리, and the other workspaces as they are', () => {
-    expect(workspaceTabOf('prep', true)).toBe('library');
-    expect(workspaceTabOf('prep', false)).toBe('prep');
-    expect(workspaceTabOf('show', true)).toBe('show');
-    expect(workspaceTabOf('screens', false)).toBe('screens');
-  });
-});
-
 describe('the 라이브러리 tab', () => {
   it('opens the song left open, else the first library song, else a new song', () => {
-    const {hook, openSong, newSong} = setup('show');
+    const {hook, openSong, newSong, switchTo} = setup('show');
     act(() => hook.result.current.onTab('library'));
     expect(newSong).toHaveBeenCalledOnce();
 
@@ -79,7 +66,7 @@ describe('the 라이브러리 tab', () => {
       }),
     );
     act(() => hook.result.current.onTab('library'));
-    expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
+    expect(switchTo).toHaveBeenCalledWith('library');
     expect(openSong).toHaveBeenCalledOnce();
   });
 
@@ -108,23 +95,33 @@ describe('the 라이브러리 tab', () => {
     expect(openSong).toHaveBeenCalledWith(second.id);
   });
 
-  it('is the tab while 준비 edits a song, and 준비 then leaves the song for the 예배 순서', () => {
-    const {hook, switchTo} = setup('prep');
-    act(() => openInPrep({kind: 'song'}));
+  it('is the workspace on screen, and every other tab goes to the workspace switch without closing the open song', () => {
+    const {hook, switchTo} = setup('library');
     expect(hook.result.current.tab).toBe('library');
-
+    act(() => hook.result.current.onTab('show'));
+    expect(switchTo).toHaveBeenCalledWith('show');
     act(() => hook.result.current.onTab('prep'));
-
-    expect(usePrepTarget.getState().target).toBeNull();
-    expect(switchTo).not.toHaveBeenCalled();
+    expect(switchTo).toHaveBeenLastCalledWith('prep');
   });
 
-  it('leaves the other tabs to the workspace switch', () => {
-    const {hook, switchTo} = setup('prep');
-    act(() => openInPrep({kind: 'song'}));
-
-    act(() => hook.result.current.onTab('show'));
-
-    expect(switchTo).toHaveBeenCalledWith('show');
+  it('shows the song left open when 라이브러리 is pressed again, without reading it again', () => {
+    useSongDraft.setState({library: [first, second]});
+    const {hook, switchTo, openSong} = setup('show');
+    act(() =>
+      openSongDraft({
+        song: {
+          format: 'llsong',
+          schemaVersion: SONG_SCHEMA_VERSION,
+          id: second.id,
+          title: second.title,
+          slides: [lyricsSlide(1, '가사')],
+        },
+        revision: 1,
+        access: 'editable',
+      }),
+    );
+    act(() => hook.result.current.onTab('library'));
+    expect(switchTo).toHaveBeenCalledWith('library');
+    expect(openSong).not.toHaveBeenCalled();
   });
 });

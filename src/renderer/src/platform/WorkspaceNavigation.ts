@@ -1,7 +1,11 @@
 import {createContext} from 'react';
 
-/** The three workspaces of the control window. */
-export type Workspace = 'show' | 'prep' | 'screens';
+/**
+ * The four workspaces of the control window, one per toolbar tab. Each is
+ * built once and kept: a switch only hides one and shows another (USER Nov 21,
+ * Nov 27).
+ */
+export type Workspace = 'show' | 'prep' | 'library' | 'screens';
 
 /** Lets nested tool menus open the workspace that owns an editor. */
 export const WorkspaceNavigation = createContext<

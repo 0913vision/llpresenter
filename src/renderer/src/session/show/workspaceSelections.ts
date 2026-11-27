@@ -16,8 +16,10 @@ export class WorkspaceSelections {
   private active: 'show' | 'prep' = 'show';
   private readonly saved: Partial<Record<'show' | 'prep', Selection>> = {};
 
-  activate(next: 'show' | 'prep' | 'screens'): void {
-    if (next === 'screens' || next === this.active) return;
+  activate(next: 'show' | 'prep' | 'library' | 'screens'): void {
+    if (next === 'screens' || next === 'library' || next === this.active) {
+      return;
+    }
     const view = useShow.getState();
     this.saved[this.active] = {
       serviceId: view.serviceId,

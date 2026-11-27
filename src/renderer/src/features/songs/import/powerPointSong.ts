@@ -5,7 +5,7 @@ import type {TextImportDraft} from '@core/schema/songs/textImport';
 import {importedSongTitle} from '@core/slides';
 import {powerpointBrightBackgrounds, powerpointSlides} from '@core/songs';
 import {lendPreviewImage} from '@renderer/rendering/media/previewMedia';
-import {openInPrep} from '@renderer/session/prepTarget';
+import {openInLibrary} from '@renderer/session/prepTarget';
 import {noticeTime, type Notice} from '@renderer/ui/popups/notices';
 import {
   finishImportedPictures,
@@ -178,7 +178,7 @@ class SongBackgrounds implements ImportPictures {
 function open(api: LlpApi, source: PowerPointSource, reports: Reports): void {
   const backgrounds = new SongBackgrounds(api, source, reports);
   openImportedSong(backgrounds.draft, backgrounds);
-  openInPrep({kind: 'song'});
+  openInLibrary();
   backgrounds
     .fill()
     .catch((error: unknown) =>
