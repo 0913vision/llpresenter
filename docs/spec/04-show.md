@@ -927,11 +927,16 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   valid 장, 시작절, and 끝절. 장 ranges from 1 to the book's chapter count,
   시작절 from 1 to the chapter's last verse, and 끝절 from 시작절 to the last
   verse. An empty 끝절 means one verse. Changing 시작절 clears 끝절. Invalid
-  values block Tab and mark the affected fields with the error ring and a short
-  Korean tooltip reason, with no adjacent sentence. Lookup clamps an oversized
-  끝절 to the chapter's last verse; Enter also normalizes the displayed end. A
-  reversed end blocks lookup. Shift Tab keeps backward navigation and IME
-  composition keeps its keys.
+  values block Tab and Enter and mark the field with the error ring, which stays
+  while the field has focus. A 장 or 절 out of its range shows, at once and for
+  as long as the field has focus, a red bubble under the field with the range to
+  type: "1~50 중에서 입력하십시오." for 창세기's 장, "1~36 중에서 입력하십시오."
+  for a 시작절, "16~36 중에서 입력하십시오." for a 끝절 after 16 (user decision,
+  November 27). The verse fields keep their names (시작절, 끝절), not 불러오는
+  중, after a 장 the book has not. Lookup clamps an oversized 끝절 to the
+  chapter's last verse; Enter also normalizes the displayed end. A reversed end
+  blocks lookup. Shift Tab keeps backward navigation and IME composition keeps
+  its keys.
 - Suggestions open below 책 and list matching books without the former
   eight-book cap. Recent passages appear in the passage dialog. Selecting one
   outputs its original stored range, including whole chapters and cross-chapter

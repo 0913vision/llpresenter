@@ -160,32 +160,39 @@ describe('four-field Bible reference validation', () => {
   it('tells an invalid value apart from bounds that are still loading', () => {
     expect(
       referenceFieldsState({...fields, chapter: '22'}, bounds).errors.chapter,
-    ).toBe('요한복음은 21장까지 있습니다.');
+    ).toBe('1~21 중에서 입력하십시오.');
     expect(referenceFieldsState(fields, undefined).errors.chapter).toBe(
       '장 정보 불러오는 중',
     );
   });
 
-  it('names how far the book and the chapter go (USER Nov 27)', () => {
+  it('says the range to type for the 장 and the 절 (USER Nov 27)', () => {
     expect(
       referenceFieldsState(
         {book: '창세기', chapter: '51', start: '', end: ''},
         undefined,
       ).errors.chapter,
-    ).toBe('창세기는 50장까지 있습니다.');
-    expect(
-      referenceFieldsState({...fields, start: '37'}, bounds).errors.start,
-    ).toBe('3장은 36절까지 있습니다.');
+    ).toBe('1~50 중에서 입력하십시오.');
     expect(
       referenceFieldsState({...fields, chapter: '0'}, bounds).errors.chapter,
-    ).toBe('장을 확인하십시오.');
+    ).toBe('1~21 중에서 입력하십시오.');
+    expect(
+      referenceFieldsState({...fields, start: '37'}, bounds).errors.start,
+    ).toBe('1~36 중에서 입력하십시오.');
+    expect(
+      referenceFieldsState({...fields, end: '15'}, bounds).errors.end,
+    ).toBe('16~36 중에서 입력하십시오.');
+    expect(
+      referenceFieldsState({book: '', chapter: '3', start: '', end: ''}, bounds)
+        .errors.chapter,
+    ).toBe('장 정보 불러오는 중');
   });
 
   it('blocks Tab past the last verse but clamps the lookup endpoint', () => {
     expect(referenceFieldsState({...fields, end: '99'}, bounds)).toMatchObject({
       input: '요한복음 3:16-36',
       clampedEnd: 36,
-      errors: {end: '끝절을 확인하십시오.'},
+      errors: {end: '16~36 중에서 입력하십시오.'},
     });
   });
 

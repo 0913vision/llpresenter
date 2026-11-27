@@ -1,0 +1,6 @@
+/* NOTE(0913vision): A refused value's bubble is red, as the field's ring, so
+   it reads as a problem and not as help (USER Nov 27). */
+.bubble[data-field-bubble] {
+  background: var(--live);
+  color: var(--text-on-fill);
+}

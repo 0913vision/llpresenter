@@ -4,6 +4,7 @@ import {placeFloating} from './floating';
 import {layerContainer} from './layers';
 import {modalStack} from './modalStack';
 import {placeTooltip, viewportSize} from './placement';
+import bubbleStyles from './FieldBubble.module.css';
 import styles from './Tooltip.module.css';
 
 /**
@@ -46,7 +47,7 @@ function BubbleSurface({
     <div
       ref={place}
       aria-hidden
-      className={styles.tooltip}
+      className={`${styles.tooltip} ${bubbleStyles.bubble}`}
       data-field-bubble=""
       data-over-modal={overModal ? '' : undefined}
     >

@@ -1,4 +1,3 @@
-import {topicParticle} from '@core/common/korean';
 import {exactBibleBook, findBibleBooks} from './bibleMatching';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 
@@ -33,9 +32,12 @@ export function selectedBook(input: string) {
 /** What the 장, 시작절 and 끝절 boxes say until the verse counts arrive. */
 export const LOADING_CHAPTER = '장 정보 불러오는 중';
 
-/** How far a book or a chapter goes, as "창세기는 50장까지 있습니다.". */
-function lastOf(name: string, last: number, unit: '장' | '절'): string {
-  return `${name}${topicParticle(name)} ${last}${unit}까지 있습니다.`;
+/**
+ * What a number out of its range says, as "1~50 중에서 입력하십시오." (USER
+ * Nov 27: the range to type, for the 장 and the 절 alike).
+ */
+function rangeReason(first: number, last: number): string {
+  return `${first}~${last} 중에서 입력하십시오.`;
 }
 
 function positiveNumber(input: string): number | undefined {
@@ -51,22 +53,21 @@ function chapterError(
   chapter: number | undefined,
   counts: readonly number[] | undefined,
 ): string | undefined {
-  if (book && chapter && chapter > book.chapters) {
-    return lastOf(book.korean, book.chapters, '장');
+  if (book && (!chapter || chapter > book.chapters)) {
+    return rangeReason(1, book.chapters);
   }
   if (!chapter) return '장을 확인하십시오.';
   if (!counts) return LOADING_CHAPTER;
   return counts[chapter - 1] ? undefined : '역본에 없는 장';
 }
 
-/** What is wrong with the 시작절: none, or past the chapter's last verse. */
+/** What is wrong with the 시작절: none, or out of the chapter's verses. */
 function startError(
   start: number | undefined,
-  chapter: number | undefined,
   verseCount: number | undefined,
 ): string | undefined {
-  if (chapter && start && verseCount !== undefined && start > verseCount) {
-    return lastOf(`${chapter}장`, verseCount, '절');
+  if (verseCount !== undefined && (!start || start > verseCount)) {
+    return rangeReason(1, verseCount);
   }
   if (!start) return '시작절을 확인하십시오.';
   return verseCount === undefined ? LOADING_CHAPTER : undefined;
@@ -78,11 +79,18 @@ function endError(
   end: number | undefined,
   verseCount: number | undefined,
 ): string | undefined {
+  if (
+    verseCount !== undefined &&
+    (end === undefined ||
+      (start !== undefined && end < start) ||
+      end > verseCount)
+  ) {
+    return rangeReason(Math.min(start ?? 1, verseCount), verseCount);
+  }
   if (end === undefined || (start !== undefined && end < start)) {
     return '끝절을 확인하십시오.';
   }
-  if (verseCount === undefined) return LOADING_CHAPTER;
-  return end > verseCount ? '끝절을 확인하십시오.' : undefined;
+  return verseCount === undefined ? LOADING_CHAPTER : undefined;
 }
 
 /** Tab validates the literal endpoint; lookup can clamp only its upper bound. */
@@ -100,7 +108,7 @@ export function referenceFieldsState(
   const errors: Record<ReferencePart, string | undefined> = {
     book: book ? undefined : '성경 책을 골라야 합니다.',
     chapter: chapterError(book, chapter, counts),
-    start: startError(start, chapter, verseCount),
+    start: startError(start, verseCount),
     end: endError(start, end, verseCount),
   };
   const clampedEnd =

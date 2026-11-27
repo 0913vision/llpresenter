@@ -672,10 +672,10 @@ describe('shared Bible reference form', () => {
   });
 
   it.each([
-    ['chapter', '22', '요한복음은 21장까지 있습니다.'],
-    ['chapter', '0', '장을 확인하십시오.'],
-    ['start', '37', '3장은 36절까지 있습니다.'],
-    ['end', '15', '끝절을 확인하십시오.'],
+    ['chapter', '22', '1~21 중에서 입력하십시오.'],
+    ['chapter', '0', '1~21 중에서 입력하십시오.'],
+    ['start', '37', '1~36 중에서 입력하십시오.'],
+    ['end', '15', '16~36 중에서 입력하십시오.'],
   ] as const)(
     'blocks invalid %s %s and says why under it while it has focus',
     async (part, value, why) => {
@@ -704,11 +704,11 @@ describe('shared Bible reference form', () => {
     await view.user.keyboard('2');
     expect(bubble()).toBeUndefined();
     await view.user.keyboard('2');
-    expect(bubble()).toBe('요한복음은 21장까지 있습니다.');
+    expect(bubble()).toBe('1~21 중에서 입력하십시오.');
     await view.user.keyboard('{Backspace}');
     expect(bubble()).toBeUndefined();
     await view.user.keyboard('2');
-    expect(bubble()).toBe('요한복음은 21장까지 있습니다.');
+    expect(bubble()).toBe('1~21 중에서 입력하십시오.');
     act(() => view.chapter.blur());
     expect(bubble()).toBeUndefined();
   });
