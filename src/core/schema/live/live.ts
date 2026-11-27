@@ -8,12 +8,7 @@ import type {TimerRuns} from '../tools/timerState';
 import type {AudioPlayback} from '../media/audioState';
 import type {ClearEffect} from './clearFade';
 import type {OutputMediaProperties} from '../media/outputMedia';
-import type {
-  LiveItem,
-  LiveItemKind,
-  LiveThemeMode,
-  LiveThemeOutput,
-} from './liveTheme';
+import type {LiveItem, LiveItemKind, LiveThemeOutput} from './liveTheme';
 
 /** Layer kinds from bottom to top. */
 export const layerKinds = [
@@ -128,7 +123,6 @@ export interface LiveState {
   readonly item?: LiveItem | null;
   /** Whether the item button can restore its session-only stopped item. */
   readonly canRestoreItem?: boolean;
-  readonly themeMode?: LiveThemeMode;
   readonly themeOutput?: LiveThemeOutput;
   /** The most recently run macro in this session, if one has run. */
   readonly lastMacroId?: MacroId;

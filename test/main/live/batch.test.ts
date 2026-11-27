@@ -14,14 +14,14 @@ import {outputsSlice} from '@main/live/slices/outputs';
 import {MissingLiveTargetError} from '@main/live/commandErrors';
 import {MAIN_SCREEN, STAGE_SCREEN} from '@fixtures/core/screenIds';
 
-const missingTheme = parseLiveCommand({
-  type: 'theme.set',
-  themeId: '00000000-0000-4000-8000-000000000010',
+const missingMacro = parseLiveCommand({
+  type: 'macro.run',
+  macroId: '00000000-0000-4000-8000-000000000010',
 });
-if (!missingTheme.ok || missingTheme.value.type !== 'theme.set') {
-  throw new Error('Invalid theme fixture id');
+if (!missingMacro.ok || missingMacro.value.type !== 'macro.run') {
+  throw new Error('Invalid macro fixture id');
 }
-const MISSING_THEME_ID = missingTheme.value.themeId;
+const MISSING_MACRO_ID = missingMacro.value.macroId;
 
 const THREE_CLEARS: LiveCommand = {
   type: 'live.batch',
@@ -55,11 +55,11 @@ function populatedStore() {
 describe('live batches', () => {
   it('skips a missing target, logs it once, and keeps applying and notifying after errors', () => {
     const missing = new MissingLiveTargetError({
-      kind: 'theme',
-      id: MISSING_THEME_ID,
+      kind: 'macro',
+      id: MISSING_MACRO_ID,
     });
     const missingTarget = defineSlice({
-      commands: ['theme.set'],
+      commands: ['macro.run'],
       initial: {},
       reduce: () => {
         throw missing;
@@ -83,7 +83,7 @@ describe('live batches', () => {
         type: 'live.batch',
         commands: [
           {type: 'output.set', screenId: MAIN_SCREEN, on: true},
-          {type: 'theme.set', themeId: MISSING_THEME_ID},
+          {type: 'macro.run', macroId: MISSING_MACRO_ID},
           {type: 'output.set', screenId: STAGE_SCREEN, on: true},
         ],
       },
@@ -96,7 +96,7 @@ describe('live batches', () => {
     expect(store.state.version).toBe(1);
     expect(log.messages('warn')).toEqual(['skipped live command']);
     expect(log.entries[0]?.detail).toEqual({
-      type: 'theme.set',
+      type: 'macro.run',
       reason: 'missing-target',
       target: missing.target,
     });
@@ -107,7 +107,7 @@ describe('live batches', () => {
   it('logs an unexpected reducer exception as an error and still applies the other children', () => {
     const failure = new Error('Unexpected reducer failure');
     const broken = defineSlice({
-      commands: ['theme.set'],
+      commands: ['macro.run'],
       initial: {},
       reduce: () => {
         throw failure;
@@ -124,7 +124,7 @@ describe('live batches', () => {
         type: 'live.batch',
         commands: [
           {type: 'output.set', screenId: MAIN_SCREEN, on: true},
-          {type: 'theme.set', themeId: MISSING_THEME_ID},
+          {type: 'macro.run', macroId: MISSING_MACRO_ID},
           {type: 'output.set', screenId: STAGE_SCREEN, on: true},
         ],
       },
@@ -132,7 +132,7 @@ describe('live batches', () => {
     );
     expect(log.messages('warn')).toEqual([]);
     expect(log.messages('error')).toEqual(['live command failed']);
-    expect(log.entries[0]?.detail).toEqual({type: 'theme.set', error: failure});
+    expect(log.entries[0]?.detail).toEqual({type: 'macro.run', error: failure});
     expect(store.state.outputs).toEqual({
       [MAIN_SCREEN]: true,
       [STAGE_SCREEN]: true,
@@ -232,7 +232,7 @@ describe('live batches', () => {
         type: 'live.batch',
         commands: [
           {type: 'output.set', screenId: MAIN_SCREEN, on: true},
-          {type: 'theme.set', themeId: MISSING_THEME_ID},
+          {type: 'macro.run', macroId: MISSING_MACRO_ID},
           {type: 'output.set', screenId: STAGE_SCREEN, on: true},
         ],
       },
@@ -243,6 +243,6 @@ describe('live batches', () => {
       [STAGE_SCREEN]: true,
     });
     expect(log.messages('warn')).toEqual(['unhandled live command']);
-    expect(log.entries[0]?.detail).toEqual({type: 'theme.set'});
+    expect(log.entries[0]?.detail).toEqual({type: 'macro.run'});
   });
 });

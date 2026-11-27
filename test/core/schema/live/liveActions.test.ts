@@ -6,7 +6,6 @@ const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 const OTHER_ID = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
 const validActions = [
   {type: 'message.expire', messageId: ID, expiresAt: 1_700_000_000_000},
-  {type: 'theme.set', themeId: ID},
   {type: 'stage.message.set', text: 'Start again'},
   {type: 'stage.message.set', text: null},
   {type: 'stage.timer.set', timerId: ID},
@@ -46,7 +45,7 @@ describe('live action commands', () => {
   });
 
   it.each([
-    {type: 'theme.set', themeId: 'deleted'},
+    {type: 'theme.set', themeId: ID},
     {type: 'stage.message.set', text: '  '},
     {type: 'stage.message.set'},
     {type: 'stage.timer.set', timerId: 'timer'},

@@ -1,6 +1,5 @@
 import type {MediaChoice, SlideLayer} from '@core/schema/live/live';
 import {mediaLoops} from '@core/media';
-import type {ThemeId} from '@core/schema/common/ids';
 import type {SlideBackground} from '@core/schema/screens/theme';
 import {setLayer, type LiveHistory} from '../history';
 import type {SliceContext} from '../slice';
@@ -34,14 +33,6 @@ export function showMedia(
   return setLayer(history, 'media', {...playback, ...choice});
 }
 
-/** The theme the operator chose for the slides of the live item. */
-function chosenTheme(
-  {state}: LiveHistory,
-  slide: SlideLayer,
-): ThemeId | undefined {
-  return state.item?.id === slide.itemId ? state.themeMode?.id : undefined;
-}
-
 /**
  * The slide as it goes out: one whose own background file is missing shows
  * the background of its theme instead (USER Nov 26, spec 08 "Missing media
@@ -66,17 +57,12 @@ export function withShownBackground(
 export function showBackground(
   history: LiveHistory,
   slide: SlideLayer,
-  {
-    context,
-    theme = chosenTheme(history, slide) ?? slide.theme,
-  }: {
-    readonly context: SliceContext;
-    /** The theme the operator chooses now. */
-    readonly theme?: ThemeId;
-  },
+  {context}: {readonly context: SliceContext},
 ): LiveHistory {
   const background: SlideBackground = slide.background ??
-    context.themes?.background({theme, texts: slide.texts}) ?? {kind: 'none'};
+    context.themes?.background({theme: slide.theme, texts: slide.texts}) ?? {
+      kind: 'none',
+    };
   const library = context.audioMedia?.();
   if (
     background.kind === 'media' &&

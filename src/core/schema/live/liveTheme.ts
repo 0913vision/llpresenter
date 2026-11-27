@@ -1,5 +1,4 @@
 import * as v from 'valibot';
-import {themeIdSchema} from '../common/ids';
 import {
   liveNonBlankTextSchema,
   liveTextSchema,
@@ -45,12 +44,6 @@ export const liveItemSchema = payloadObject({
   overlayStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
 });
 
-/** How the theme on output was chosen: by hand, with the theme's id. */
-export const liveThemeModeSchema = v.object({
-  kind: v.literal('manual'),
-  id: themeIdSchema,
-});
-
 /** The theme on output, and the color of each screen that shows nothing. */
 export const liveThemeOutputSchema = payloadObject({
   theme: themeFileSchema,
@@ -69,10 +62,6 @@ export const liveThemeOutputSchema = payloadObject({
  * outside it, its title and overlays, its slide position, and when it started.
  */
 export type LiveItem = ReadonlyKnown<v.InferOutput<typeof liveItemSchema>>;
-/** How the theme on output was chosen. */
-export type LiveThemeMode = ReadonlyKnown<
-  v.InferOutput<typeof liveThemeModeSchema>
->;
 /**
  * The theme on output with its background and revision, the id of the theme it
  * could not find, and the empty color of each screen.

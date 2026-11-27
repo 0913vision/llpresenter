@@ -44,7 +44,6 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'audio.volume.set':
     case 'macro.run':
     case 'item.start':
-    case 'theme.set':
     case 'themes.refresh':
     case 'monitors.identify':
     case 'screen.settings.apply':

@@ -33,9 +33,6 @@ describe('macro compiler', () => {
       state: emptyLiveState(),
       supports: () => true,
     });
-    expect(plan.commands.some(command => command.type === 'theme.set')).toBe(
-      false,
-    );
     expect(plan.problems).toEqual([
       expect.objectContaining({
         action: 1,

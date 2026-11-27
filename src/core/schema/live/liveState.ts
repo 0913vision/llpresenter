@@ -30,7 +30,6 @@ import {outputMediaPropertiesSchema} from '../media/outputMedia';
 import {
   liveItemKinds,
   liveItemSchema,
-  liveThemeModeSchema,
   liveThemeOutputSchema,
 } from './liveTheme';
 import {
@@ -134,7 +133,6 @@ export const layerSchemas = {
 export const liveStateSchema = payloadObject({
   waitingForControl: v.exactOptional(v.literal(true)),
   item: v.exactOptional(v.nullable(liveItemSchema)),
-  themeMode: v.exactOptional(liveThemeModeSchema),
   themeOutput: v.exactOptional(liveThemeOutputSchema),
   lastMacroId: v.exactOptional(macroIdSchema),
   audioTrackVersion: v.exactOptional(

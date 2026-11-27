@@ -1,11 +1,7 @@
 import type {SettingsReader} from '@core/schema/app/settingsReader';
 import type {LiveCommand} from '@core/schema/live/liveCommand';
 import type {LiveState, MediaChoice, SlideLayer} from '@core/schema/live/live';
-import type {
-  LiveItem,
-  LiveThemeMode,
-  LiveThemeOutput,
-} from '@core/schema/live/liveTheme';
+import type {LiveItem, LiveThemeOutput} from '@core/schema/live/liveTheme';
 import type {Screen} from '@core/schema/screens/screens';
 import type {SlideBackground} from '@core/schema/screens/theme';
 import type {Themes} from '@core/schema/screens/themes';
@@ -19,7 +15,6 @@ const THEME_COMMANDS = [
   'slide.show',
   'slide.update',
   'media.show',
-  'theme.set',
   'themes.refresh',
   'layer.clear',
   'layer.clear.toggle',
@@ -110,11 +105,8 @@ export class ThemeRuntime {
       after,
       now: context.now,
       item: after.state.item ?? null,
-      mode: after.state.themeMode,
     });
-    return step === null
-      ? after
-      : this.publish(step.after, step.item, step.mode);
+    return step === null ? after : this.publish(step.after, step.item);
   }
 
   /** What a theme command makes of the live item; null leaves it all as is. */
@@ -128,8 +120,6 @@ export class ThemeRuntime {
         return updateSlide(command.slide, current);
       case 'media.show':
         return showMedia(command.media, current);
-      case 'theme.set':
-        return {...current, mode: {kind: 'manual', id: command.themeId}};
       case 'themes.refresh':
         this.refresh();
         return this.refreshItem(current);
@@ -154,7 +144,6 @@ export class ThemeRuntime {
       ...current,
       after: resetClearToggles(current.after),
       item: item === null ? null : {...item, startedAt: current.now},
-      mode: undefined,
     };
   }
 
@@ -165,7 +154,7 @@ export class ThemeRuntime {
    */
   private showSlide(slide: SlideLayer, current: ItemStep): ItemStep {
     const {before, now} = current;
-    let {item, mode} = current;
+    let {item} = current;
     if (item?.id !== slide.itemId || item.source === 'external') {
       item = this.options.item(slide.itemId) ?? {
         id: slide.itemId,
@@ -173,7 +162,6 @@ export class ThemeRuntime {
         source: 'external',
         ...(slide.title === undefined ? {} : {title: slide.title}),
       };
-      mode = undefined;
     } else {
       item = withPlayback(this.options.item(item.id) ?? item, item);
     }
@@ -190,7 +178,7 @@ export class ThemeRuntime {
     ) {
       item = {...item, overlayStartedAt: now};
     }
-    return {...current, item, mode};
+    return {...current, item};
   }
 
   /** The themes changed: the item takes its saved edits and keeps a clear. */
@@ -207,12 +195,8 @@ export class ThemeRuntime {
   }
 
   /** The theme of the live slide, or 대기 화면 when nothing is on. */
-  private resolve(
-    {layers}: LiveState,
-    item: LiveItem | null,
-    mode: LiveThemeMode | undefined,
-  ): LiveThemeOutput {
-    const wanted = mode?.id ?? layers.slide?.theme;
+  private resolve({layers}: LiveState, item: LiveItem | null): LiveThemeOutput {
+    const wanted = layers.slide?.theme;
     const own = wanted === undefined ? undefined : themeOf(this.themes, wanted);
     const theme =
       own ??
@@ -233,11 +217,7 @@ export class ThemeRuntime {
     };
   }
 
-  private publish(
-    history: LiveHistory,
-    item: LiveItem | null,
-    mode: LiveThemeMode | undefined,
-  ): LiveHistory {
+  private publish(history: LiveHistory, item: LiveItem | null): LiveHistory {
     const {state} = history;
     const cleared =
       item?.contentCleared === true || state.layers.slide === null;
@@ -247,7 +227,6 @@ export class ThemeRuntime {
       slide?.background,
       item === null,
       isOwnMedia(state.layers, item),
-      mode,
     ]);
     // NOTE(0913vision): A clear keeps the theme it cleared, so what is left of
     // the slide stays where it is.
@@ -255,14 +234,9 @@ export class ThemeRuntime {
       this.output === undefined ||
       this.key === null ||
       (this.key !== key &&
-        !(
-          cleared &&
-          item !== null &&
-          mode === undefined &&
-          !isOwnMedia(state.layers, item)
-        ))
+        !(cleared && item !== null && !isOwnMedia(state.layers, item)))
     ) {
-      this.output = this.resolve(state, item, mode);
+      this.output = this.resolve(state, item);
       this.key = key;
       for (const id of this.output.missing) {
         if (this.reportedMissingThemes.has(id)) continue;
@@ -270,20 +244,14 @@ export class ThemeRuntime {
         this.options.onMissingTheme?.(id);
       }
     }
-    if (
-      state.item === item &&
-      state.themeMode === mode &&
-      state.themeOutput === this.output
-    ) {
+    if (state.item === item && state.themeOutput === this.output) {
       return history;
     }
-    const {themeMode: _mode, themeOutput: _output, ...rest} = state;
     return {
       ...history,
       state: {
-        ...rest,
+        ...state,
         item,
-        ...(mode === undefined ? {} : {themeMode: mode}),
         themeOutput: this.output,
         version: state.version + 1,
       },
@@ -305,13 +273,12 @@ function isOwnMedia(
 }
 
 /** The item with the time it was cleared for taken out of its overlay's. */
-/** What a theme command works on and makes: the history, the item, the mode. */
+/** What a theme command works on and makes: the history and the item. */
 interface ItemStep {
   readonly before: LiveHistory;
   readonly after: LiveHistory;
   readonly now: number;
   readonly item: LiveItem | null;
-  readonly mode: LiveThemeMode | undefined;
 }
 
 /** The live slide changed in place: its position, and its title when outside. */
@@ -346,7 +313,6 @@ function showMedia(media: MediaChoice, current: ItemStep): ItemStep {
         startedAt: now,
         ...(media.title === undefined ? {} : {title: media.title}),
       },
-      mode: undefined,
     };
   }
   return item?.contentCleared
@@ -359,14 +325,13 @@ function showMedia(media: MediaChoice, current: ItemStep): ItemStep {
  * press brings back what the first cleared.
  */
 function clearAll(toggle: boolean, current: ItemStep): ItemStep {
-  const {before, item, mode, now} = current;
+  const {before, item, now} = current;
   if (item === null) return current;
   const restored = toggle ? before.clearSnapshots?.all : undefined;
   if (restored?.item != null && item.contentCleared) {
     return {
       ...current,
       item: resumed(restored.item, now - restored.clearedAt),
-      mode: restored.themeMode,
     };
   }
   if (restored !== undefined || item.contentCleared) return current;
@@ -376,7 +341,6 @@ function clearAll(toggle: boolean, current: ItemStep): ItemStep {
       ? {layers: before.state.layers, clearedAt: now}
       : after.undo),
     item,
-    ...(mode === undefined ? {} : {themeMode: mode}),
   };
   after = {...after, undo, state: {...after.state, canUndo: true}};
   if (toggle) {
@@ -385,14 +349,13 @@ function clearAll(toggle: boolean, current: ItemStep): ItemStep {
   return {...current, after, item: {...item, contentCleared: true}};
 }
 
-/** Brings back the item and theme mode that the last clear took away. */
+/** Brings back the item that the last clear took away. */
 function undoClear(current: ItemStep): ItemStep {
   const {undo} = current.before;
   if (undo?.item === undefined) return current;
   return {
     ...current,
     item: resumed(undo.item, current.now - undo.clearedAt),
-    mode: undo.themeMode,
   };
 }
 
@@ -403,7 +366,6 @@ function restoreItem(current: ItemStep): ItemStep | null {
   return {
     ...current,
     item: resumed(saved.item ?? null, current.now - saved.clearedAt),
-    mode: saved.themeMode,
   };
 }
 
@@ -412,14 +374,13 @@ function restoreItem(current: ItemStep): ItemStep | null {
  * to restore; null when no item is live.
  */
 function stopItem(current: ItemStep): ItemStep | null {
-  const {after, item, mode, now} = current;
+  const {after, item, now} = current;
   if (item === null) return null;
   const undo: UndoEntry = {
     layers: after.state.layers,
     clearedAt: now,
     item,
     itemOnly: true,
-    ...(mode === undefined ? {} : {themeMode: mode}),
   };
   return {
     ...current,
@@ -435,7 +396,6 @@ function stopItem(current: ItemStep): ItemStep | null {
       },
     },
     item: null,
-    mode: undefined,
   };
 }
 

@@ -249,7 +249,6 @@ export class SliceRegistry {
           'media.show',
           'item.start',
           'item.stop',
-          'theme.set',
           'message.show',
           'message.send',
           'prop.set',

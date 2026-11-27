@@ -116,7 +116,6 @@ describe('interruptsSongOutput for overlay, stage, audio, and 매크로 actions'
   const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
   it.each([
     {type: 'message.expire', messageId: ID, expiresAt: 1_700_000_000_000},
-    {type: 'theme.set', themeId: ID},
     {type: 'stage.message.set', text: 'Start again'},
     {type: 'stage.timer.set', timerId: ID},
     {type: 'prop.set', propId: ID, on: true},

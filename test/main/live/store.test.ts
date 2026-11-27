@@ -296,7 +296,6 @@ describe('connected ports', () => {
 describe('unhandled commands', () => {
   const ID = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
   const unhandled = [
-    {type: 'theme.set', themeId: ID},
     {type: 'prop.set', propId: ID, on: true},
     {type: 'audio.play'},
     {type: 'macro.run', macroId: ID},

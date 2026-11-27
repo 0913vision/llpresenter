@@ -145,17 +145,6 @@ it('draws a slide whose theme is gone with one that has its boxes, and says so o
   expect(onMissingTheme).toHaveBeenCalledExactlyOnceWith(GONE);
 });
 
-it('holds a picked theme until another item starts', () => {
-  const {dispatch, slide, theme} = setup();
-  slide();
-  dispatch({type: 'theme.set', themeId: BUILT_IN_THEME_IDS.blank});
-  slide(1);
-  expect(theme()).toBe(BUILT_IN_THEME_IDS.blank);
-  dispatch({type: 'item.start', itemId: ITEM});
-  slide(0);
-  expect(theme()).toBe(BUILT_IN_THEME_IDS.lyrics);
-});
-
 it('follows an edit of the live theme and the colors of the screens', () => {
   const {store, slide, edit} = setup();
   slide();
@@ -194,8 +183,7 @@ it.each(['item.restore', 'clear.undo'] as const)(
       media: {mediaId: 'background', loop: true, startedAt: 500},
       prop: {propId: 'prop'},
     });
-    slide();
-    dispatch({type: 'theme.set', themeId: BUILT_IN_THEME_IDS.blank});
+    slide(0, {theme: BUILT_IN_THEME_IDS.title});
     const {layers} = store.state;
     dispatch({type: 'item.stop'});
     expect(store.state.canRestoreItem).toBe(true);
@@ -206,7 +194,7 @@ it.each(['item.restore', 'clear.undo'] as const)(
     expect(store.state.canRestoreItem).toBe(false);
     expect(store.state.item?.id).toBe(ITEM);
     expect(store.state.layers.slide).toBe(layers.slide);
-    expect(theme()).toBe(BUILT_IN_THEME_IDS.blank);
+    expect(theme()).toBe(BUILT_IN_THEME_IDS.title);
     expect(store.state.item?.overlayStartedAt).toBe(2000);
   },
 );
