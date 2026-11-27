@@ -9,6 +9,15 @@
   -webkit-app-region: drag;
 }
 
+/* NOTE(0913vision): A window that is not the active one shows a lighter bar
+   with dimmer words and buttons, as Windows and VS Code do (USER Nov 27). */
+.bar[data-window-active='false'] {
+  --text: var(--text-3);
+  --text-2: var(--text-3);
+
+  background: var(--bg-panel);
+}
+
 .wordmark {
   margin-right: var(--space-14);
   font: var(--type-band);

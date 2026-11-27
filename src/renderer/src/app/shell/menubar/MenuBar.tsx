@@ -27,6 +27,7 @@ import {useOutsideFocus} from './outsideFocus';
 import {windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
+import {useWindowActive} from './useWindowActive';
 import {WindowControls} from './WindowControls';
 import {useClipboardAvailability} from './useClipboardAvailability';
 import {
@@ -452,8 +453,13 @@ export function MenuBar({
   const {status: clipboard, check: checkClipboard} =
     useClipboardAvailability(clipboardAvailable);
   const controlFor = useOpenMenu(outsideFocus, checkClipboard);
+  const active = useWindowActive();
   return (
-    <div className={styles.bar} data-window-menu-bar>
+    <div
+      className={styles.bar}
+      data-window-menu-bar
+      data-window-active={active ? 'true' : 'false'}
+    >
       <span className={styles.wordmark}>LoveLight</span>
       <div role="menubar" aria-label="메뉴" className={styles.menus}>
         <FileMenu
