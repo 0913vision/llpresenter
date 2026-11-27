@@ -259,10 +259,11 @@ describe('PreferencesView', () => {
     await waitFor(() => expect(onReady).toHaveBeenCalledWith(next));
     expect(screen.getByRole('heading', {name: '성경'})).toBeTruthy();
   });
+  // NOTE(0913vision): The 단축키 page reads no 테마: no shortcut changes the
+  // live theme (USER Nov 27).
   it.each([
     'bible',
     'shortcuts',
-    'themes',
     'props',
     'macros',
     'timers',

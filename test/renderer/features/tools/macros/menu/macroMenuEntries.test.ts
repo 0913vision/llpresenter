@@ -17,7 +17,7 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
         name: '매크로',
         color: 'teal',
         icon: 'macro',
-        actions: [{kind: 'theme', theme: id}],
+        actions: [{kind: 'macro', macro: id}],
       },
     ],
     collections: [{id, name: '모음', macroIds: [id]}],
@@ -63,12 +63,12 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
   const kinds = menuItems(
     rows().find(row => row.id === 'add-action')?.submenu ?? [],
   );
-  expect(kinds.find(row => row.id === 'theme')?.title).toBe('대상 불러오는 중');
+  expect(kinds.find(row => row.id === 'prop')?.title).toBe('대상 불러오는 중');
   const empty = menuItems(
-    rows({targets: {theme: []}}).find(row => row.id === 'add-action')
-      ?.submenu ?? [],
+    rows({targets: {prop: []}}).find(row => row.id === 'add-action')?.submenu ??
+      [],
   );
-  expect(empty.find(row => row.id === 'theme')?.title).toBe('대상 없음');
+  expect(empty.find(row => row.id === 'prop')?.title).toBe('대상 없음');
   const full = menuItems(
     rows({
       item: {
@@ -79,7 +79,7 @@ it('explains macro locks, collection membership, caps, and unavailable action ch
       },
     }).find(row => row.id === 'add-action')?.submenu ?? [],
   );
-  for (const id of ['clear', 'theme']) {
+  for (const id of ['clear', 'prop']) {
     expect(full.find(row => row.id === id)?.title).toBe(
       '동작은 256개까지 추가할 수 있습니다.',
     );

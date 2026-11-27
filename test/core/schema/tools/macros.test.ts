@@ -15,11 +15,17 @@ import {
 
 const codec = {parse: parseMacros, serialize: serializeMacros};
 
-it('requires a valid theme ID in a theme macro action', () => {
-  expect(parseKnownMacroAction({kind: 'theme', theme: 'missing'}).ok).toBe(
-    false,
+it('knows no 테마 바꾸기 action any more, and reads a file that still has one (USER Nov 27)', () => {
+  expect(
+    parseKnownMacroAction({
+      kind: 'theme',
+      theme: '44444444-4444-4444-8444-444444444444',
+    }).ok,
+  ).toBe(false);
+  const file = expectSuccess(
+    parseMacros(JSON.stringify(macrosFile()), 'macros.json'),
   );
-  expect(parseKnownMacroAction({kind: 'theme'}).ok).toBe(false);
+  expect(file.data.macros[0]?.actions[0]?.kind).toBe('theme');
 });
 const SERVICE_START = 'd1d2d3d4-1111-4222-8333-444455556666';
 const PRAISE = 'd1d2d3d4-2222-4222-8333-444455556666';
@@ -49,7 +55,6 @@ function everyAction() {
     {kind: 'audioPlaylist', playlist: PRE_SERVICE_MUSIC},
     {kind: 'timer', timer: ELAPSED_TIMER, operation: 'start'},
     {kind: 'macro', macro: PRAISE},
-    {kind: 'theme', theme: PRAISE_THEME},
   ];
 }
 
@@ -164,11 +169,6 @@ describe('parseMacros', () => {
       'an unknown timer operation',
       {kind: 'timer', timer: ELAPSED_TIMER, operation: 'stop'},
       'macros.0.actions.0.operation',
-    ],
-    [
-      'a theme name instead of an id',
-      {kind: 'theme', theme: '찬양'},
-      'macros.0.actions.0.theme',
     ],
     [
       'an action without a kind',

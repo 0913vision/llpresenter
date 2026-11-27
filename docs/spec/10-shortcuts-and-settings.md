@@ -669,9 +669,8 @@ decision; no equivalent generic ProPresenter panel command is claimed.
 
 #### 테마
 
-| Command                   | ID                 | Default | ProPresenter              | Basis and reason                                                                                   | Works in | Ver. |
-| ------------------------- | ------------------ | ------- | ------------------------- | -------------------------------------------------------------------------------------------------- | -------- | ---- |
-| (테마 name), one per 테마 | `theme.<theme ID>` | None    | None documented for Looks | Decided, no ProPresenter source found (Kept, 06). Switches to that 테마 for the item that is live. | All      | 1    |
+No command changes the live 테마: 준비 sets each item's 테마 (user decision,
+November 27).
 
 #### 진행 도구 and live content
 

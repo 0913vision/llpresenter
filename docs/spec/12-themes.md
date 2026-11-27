@@ -149,10 +149,9 @@ The user's needs (October 30 and November 22):
 - A 슬라이드 is drawn with the 테마 it names.
 - When that 테마 is gone, the first built-in 테마 that has a box for each text
   of the 슬라이드 draws it; a 슬라이드 without texts is drawn as a 빈 슬라이드.
-- **테마 바꾸기.** The toolbar button shows the live 테마's name under its icon.
-  Its menu lists the 테마 of the live purpose as radio rows, a separator, and
-  테마 편집. A 테마 picked there or by a 매크로 (07) draws the 슬라이드 of the
-  live item until another item starts.
+- **No live 테마 choice.** 준비 sets each item's 테마; there is no toolbar 테마
+  button, no 출력 > 테마 menu, no 매크로 action and no shortcut that changes the
+  live 테마 (user decision, November 27).
 - Edits to the live 테마 reach the output when the editor saves them.
 
 ## Drawing a screen
@@ -384,5 +383,4 @@ existing elements still show the correct picture name.
 
 - 02: the 슬라이드 of songs and services.
 - 05: the editor of an item.
-- 07: the 매크로 action 테마 바꾸기.
-- 11: the toolbar 테마 button and the 출력 menu.
+- 11: the 출력 menu.

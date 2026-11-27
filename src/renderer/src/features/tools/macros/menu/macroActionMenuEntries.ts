@@ -61,8 +61,6 @@ const LATER_KINDS = {
 function targetId(action: MacroAction): string | undefined {
   if (!isKnownMacroAction(action)) return undefined;
   switch (action.kind) {
-    case 'theme':
-      return action.theme;
     case 'clearAll':
       return undefined;
     case 'clearLayer':
@@ -185,7 +183,6 @@ function addActionEntries(
             }),
           ],
         },
-        row('theme'),
         laterRow('slide-destination', slideDestination.label, {
           icon: slideDestination.icon,
           submenu: true,
@@ -266,10 +263,7 @@ function editEntries(
                     kind: 'item' as const,
                     id: 'open',
                     contextGroup: 'default' as const,
-                    label:
-                      action.kind === 'theme'
-                        ? '테마 편집'
-                        : `${MACRO_ACTIONS[action.kind].label} 열기`,
+                    label: `${MACRO_ACTIONS[action.kind].label} 열기`,
                     onSelect: () => handlers.openAction(action),
                   },
                 ]),

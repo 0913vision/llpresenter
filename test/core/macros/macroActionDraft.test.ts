@@ -27,7 +27,6 @@ const drafts: readonly MacroActionDraft[] = [
   {kind: 'audioPlaylist', target: id},
   {kind: 'timer', target: id, operation: 'pause'},
   {kind: 'macro', target: id},
-  {kind: 'theme', target: id},
 ];
 
 it('prepares all supported action kinds through the shared schema', () => {
@@ -53,8 +52,11 @@ it('prepares all supported action kinds through the shared schema', () => {
 it('rejects unsupported actions, bad IDs, operations and message settings', () => {
   expect(parseKnownMacroAction({kind: 'future'}).ok).toBe(false);
   expect(
-    prepareMacroAction({kind: 'theme', target: 'missing'}),
+    prepareMacroAction({kind: 'macro', target: 'missing'}),
   ).toBeUndefined();
+  // NOTE(0913vision): 테마 바꾸기 is gone (USER Nov 27); a saved one is kept
+  // as an action this version doesn't run.
+  expect(parseKnownMacroAction({kind: 'theme', theme: id}).ok).toBe(false);
   expect(
     prepareMacroAction({kind: 'timer', target: id, operation: 'invalid'}),
   ).toBeUndefined();

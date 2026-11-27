@@ -20,7 +20,6 @@ import {
   messageTemplateIdSchema,
   propIdSchema,
   timerIdSchema,
-  themeIdSchema,
 } from '../common/ids';
 import {isKnownKind, kindsWithUnknown} from '../common/kinds';
 import {messageDurationSchema, messageTargetsSchema} from './messages';
@@ -58,7 +57,6 @@ export const macroActionKinds = [
   'audioPlaylist',
   'timer',
   'macro',
-  'theme',
 ] as const;
 
 /** One of the action kinds in `macroActionKinds`. */
@@ -81,7 +79,6 @@ const clearBothSchema = v.never(
 );
 
 const actionSchemas = {
-  theme: jsonObject({kind: v.literal('theme'), theme: themeIdSchema}),
   clearAll: jsonObject({
     kind: v.literal('clearAll'),
     transition: v.exactOptional(clearFadeSchema),
@@ -137,7 +134,6 @@ const actionSchemas = {
 };
 
 const knownActionSchema = v.union([
-  actionSchemas.theme,
   actionSchemas.clearAll,
   actionSchemas.clearLayer,
   actionSchemas.media,

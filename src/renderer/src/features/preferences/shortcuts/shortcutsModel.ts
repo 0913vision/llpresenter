@@ -34,7 +34,6 @@ export interface ShortcutGroup {
 
 /** The names of the objects that have their own commands. */
 export interface ObjectNames {
-  readonly themes: ReadonlyArray<{readonly id: string; readonly name: string}>;
   readonly props: ReadonlyArray<{readonly id: string; readonly name: string}>;
   readonly macros: ReadonlyArray<{readonly id: string; readonly name: string}>;
   readonly timers: ReadonlyArray<{readonly id: string; readonly name: string}>;
@@ -82,7 +81,11 @@ const COMMANDS_WITHOUT_HANDLER: ReadonlySet<string> = new Set([
   'tools.showing',
 ]);
 
-/** The registry commands with a handler, then one command for each theme, 그래픽, 매크로, 타이머, and 화면. */
+/**
+ * The registry commands with a handler, then one command for each 그래픽,
+ * 매크로, 타이머, and 화면. No theme has one: 준비 sets each item's theme (USER
+ * Nov 27).
+ */
 export function allCommands(names: ObjectNames): readonly ShortcutCommand[] {
   const registry = shortcutCommands.filter(
     command => !COMMANDS_WITHOUT_HANDLER.has(command.id),
@@ -93,9 +96,6 @@ export function allCommands(names: ObjectNames): readonly ShortcutCommand[] {
   const taken = new Set(registry.map(command => command.name));
   return [
     ...registry,
-    ...names.themes.flatMap(item =>
-      objectCommand(`theme.${item.id}`, item.name),
-    ),
     ...names.props.flatMap(item => objectCommand(`prop.${item.id}`, item.name)),
     ...names.macros.flatMap(item =>
       objectCommand(`macro.${item.id}`, item.name),

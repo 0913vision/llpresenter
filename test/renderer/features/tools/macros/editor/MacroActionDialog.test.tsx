@@ -19,7 +19,6 @@ const id = '00000000-0000-4000-8000-000000000001';
 const target = {id, name: '대상 가'};
 const screens = [{id, name: '청중 화면'}];
 const kinds: readonly MacroActionKind[] = [
-  'theme',
   'media',
   'prop',
   'audio',

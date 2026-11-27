@@ -269,13 +269,11 @@ function OutputMenu({
   warnings,
   onShowWarning,
   control,
-  onProblem,
   onWorkspace,
 }: {
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (screenId: string) => void;
   readonly control: MenuControl;
-  readonly onProblem: (notice: Notice) => void;
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
 }): JSX.Element {
   return (
@@ -287,7 +285,6 @@ function OutputMenu({
         onClose={control.close}
         warnings={warnings}
         onShowWarning={onShowWarning}
-        onProblem={onProblem}
         onWorkspace={onWorkspace}
       />
     </>
@@ -494,7 +491,6 @@ export function MenuBar({
           warnings={warnings}
           onShowWarning={onShowWarning}
           control={controlFor(OUTPUT_MENU)}
-          onProblem={onProblem}
           onWorkspace={onWorkspace}
         />
         <EntryMenu

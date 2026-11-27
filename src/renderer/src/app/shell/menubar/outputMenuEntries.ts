@@ -1,36 +1,25 @@
 import {createScreenId} from '@core/schema/common/ids';
 import {showTestPattern} from '@renderer/features/screens/preview/showTestPattern';
-import type {ThemeFile} from '@core/schema/screens/theme';
 import {screenOutputSections} from '@renderer/features/screens/outputMenu/screenOutputSections';
 import type {MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
-import type {Notice} from '@renderer/ui/popups/notices';
 import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
 import type {WarningScreen} from './MenuBar';
-import type {Workspace} from '@renderer/platform/WorkspaceNavigation';
 
 interface OutputMenuInput {
   readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
-  readonly themes: readonly ThemeFile[];
-  readonly theme: ThemeFile | undefined;
   readonly hasItem: boolean;
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (id: string) => void;
-  readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
-  readonly onProblem: (notice: Notice) => void;
 }
 
-/** Spec 11's grouped output commands, theme choices, and warnings. */
+/** Spec 11's grouped output commands and warnings. */
 export function outputMenuEntries(
   input: OutputMenuInput,
 ): readonly MenuEntry[] {
-  const {screens, onWorkspace} = input;
-  const sections = screenOutputSections({
-    ...input,
-    onEditScreens:
-      onWorkspace === undefined ? undefined : () => onWorkspace('screens'),
-  });
+  const {screens} = input;
+  const sections = screenOutputSections(input);
   const warningRows = input.warnings.map(
     ({screenId, screenName}): MenuEntry => {
       return {

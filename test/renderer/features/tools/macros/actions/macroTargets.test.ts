@@ -5,7 +5,6 @@ import {
 } from '@renderer/features/tools/macros/actions/macroTargets';
 
 const source: MacroTargetSources = {
-  themes: {themes: [{id: 'theme', name: 'Theme'}]},
   props: {props: [{id: 'prop-id', name: 'Prop'}]},
   messages: {
     templates: [
@@ -31,7 +30,6 @@ const source: MacroTargetSources = {
 describe('buildMacroTargets', () => {
   it('maps each action to its current targets, separating audio and visual media', () => {
     const {choices} = buildMacroTargets(source);
-    expect(choices.theme).toEqual([{id: 'theme', name: 'Theme'}]);
     expect(choices.media?.map(item => item.id)).toEqual(['image', 'video']);
     expect(choices.audio?.map(item => item.id)).toEqual(['audio']);
     expect(choices.audioPlaylist?.map(item => item.id)).toEqual(['playlist']);

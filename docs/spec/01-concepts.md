@@ -315,7 +315,7 @@ READMEs, `Prefs`.
   | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
   | 편집 (Edit)   | Undo, redo, cut, copy, paste, delete                                                                                        |
   | 보기 (View)   | 진행, 준비, 테마, 미디어 (Media), 화면 확대, 화면 축소, 화면 확대 기본값; 화면 배치 기본값 with confirmation (proposal; 10) |
-  | 출력 (Output) | 청중 화면, 무대 화면, 방송 화면 output on or off (with check marks), separator, 테마 바꾸기 (see 11)                        |
+  | 출력 (Output) | 청중 화면, 무대 화면, 방송 화면 output on or off (with check marks) (see 11)                                                |
   | 창 (Window)   | Minimize, maximize, 환경설정                                                                                                |
   | 도움말 (Help) | Version information, open the log folder                                                                                    |
 

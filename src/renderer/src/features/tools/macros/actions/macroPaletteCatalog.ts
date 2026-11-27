@@ -19,14 +19,11 @@ export interface PaletteGroup {
   readonly actions: readonly PaletteAction[];
 }
 
-// NOTE(0913vision): 테마 leads the palette; the other kinds keep the order of
-// the schema, so a new kind shows without another list to update.
-const PALETTE_ORDER: readonly MacroActionKind[] = [
-  'theme',
-  ...macroActionKinds.filter(kind => kind !== 'theme'),
-];
+// NOTE(0913vision): The kinds keep the order of the schema, so a new kind
+// shows without another list to update.
+const PALETTE_ORDER: readonly MacroActionKind[] = macroActionKinds;
 
-/** Every 동작 kind in its group, 테마 first. */
+/** Every 동작 kind in its group. */
 export const MACRO_PALETTE: readonly PaletteGroup[] = MACRO_PALETTE_GROUPS.map(
   label => ({
     label,

@@ -14,7 +14,7 @@ function actionFrom(draft: MacroActionDraft | undefined) {
   return prepareMacroAction(draft);
 }
 
-it.each<MacroActionKind>(['theme', 'media', 'audioPlaylist', 'macro'])(
+it.each<MacroActionKind>(['media', 'audioPlaylist', 'macro'])(
   'builds a validated %s action from its target',
   kind => {
     const choose = vi.fn((draft: MacroActionDraft) =>

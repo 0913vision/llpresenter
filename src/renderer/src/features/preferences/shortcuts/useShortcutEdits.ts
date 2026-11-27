@@ -17,7 +17,7 @@ import {
 
 const TITLE = '단축키';
 const NO_OVERRIDES: Overrides = {};
-const NO_NAMES: ObjectNames['themes'] = [];
+const NO_NAMES: ObjectNames['props'] = [];
 const SAVE_FAILURE: Notice = {
   key: 'preferences:shortcuts-save',
   kind: 'warning',
@@ -49,7 +49,6 @@ export function useShortcutEdits(
   onProblem: (notice: Notice) => void,
 ): ShortcutEdits {
   const document = useSettingsDocument('shortcuts', TITLE, onProblem);
-  const themes = useSettingsDocument('themes', '테마', onProblem);
   const props = useSettingsDocument('props', '그래픽', onProblem);
   const macros = useSettingsDocument('macros', '매크로', onProblem);
   const timers = useSettingsDocument('timers', '타이머', onProblem);
@@ -57,13 +56,12 @@ export function useShortcutEdits(
   const commands = useMemo(
     () =>
       allCommands({
-        themes: themes?.value.themes ?? NO_NAMES,
         props: props?.value.props ?? NO_NAMES,
         macros: macros?.value.macros ?? NO_NAMES,
         timers: timers?.value.timers ?? NO_NAMES,
         screens: screens ?? NO_NAMES,
       }),
-    [themes, props, macros, timers, screens],
+    [props, macros, timers, screens],
   );
   const change = useQueuedWrites({
     document,

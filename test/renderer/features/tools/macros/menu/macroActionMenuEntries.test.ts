@@ -9,7 +9,7 @@ import {MACRO_ACTIONS} from '@renderer/features/tools/macros/actions/macroAction
 import type {MacroMenuHandlers} from '@renderer/features/tools/macros/menu/macroMenuEntries';
 import {mockHandlers} from '@fixtures/renderer/features/tools/macroMenuTesting';
 
-it('offers theme targets and marks an action of an unknown kind as unsupported', () => {
+it('offers 매크로 targets, no 테마 바꾸기, and marks an action of an unknown kind as unsupported', () => {
   const id = '00000000-0000-4000-8000-000000000001';
   const doc = settingsDocument('macros', {
     macros: [
@@ -35,7 +35,7 @@ it('offers theme targets and marks an action of an unknown kind as unsupported',
       {
         item,
         locked: false,
-        targets: {theme: [{id, name: 'Theme'}]},
+        targets: {macro: [{id, name: 'Macro'}]},
       },
       handlers,
     ),
@@ -64,11 +64,12 @@ it('offers theme targets and marks an action of an unknown kind as unsupported',
     rows.find(row => row.id === 'add-action')?.submenu ?? [],
   );
   menuItems(
-    add.find(row => row.id === 'theme')?.loadSubmenu?.() ?? [],
+    add.find(row => row.id === 'macro')?.loadSubmenu?.() ?? [],
   )[0]?.onSelect?.();
   expect(handlers.chooseAction).toHaveBeenCalledWith(
-    expect.objectContaining({kind: 'theme', target: id}),
+    expect.objectContaining({kind: 'macro', target: id}),
   );
+  expect(add.find(row => row.id === 'theme')).toBeUndefined();
 });
 
 it('defers large target lists until the chosen action or kind opens', () => {
@@ -143,7 +144,7 @@ it('defers large target lists until the chosen action or kind opens', () => {
 });
 
 it('names an action by its target, its audio operation, or its kind', () => {
-  const theme = '00000000-0000-4000-8000-000000000001';
+  const prop = '00000000-0000-4000-8000-000000000001';
   const doc = settingsDocument('macros', {
     macros: [
       {
@@ -152,7 +153,7 @@ it('names an action by its target, its audio operation, or its kind', () => {
         color: 'teal',
         icon: 'macro',
         actions: [
-          {kind: 'theme', theme},
+          {kind: 'prop', prop},
           {kind: 'clearLayer', layer: 'slide'},
           {kind: 'audio', operation: 'stop'},
           {kind: 'audio', operation: 'fadeOut'},
@@ -165,7 +166,7 @@ it('names an action by its target, its audio operation, or its kind', () => {
   if (doc.name !== 'macros') throw new Error('Invalid fixture');
   const actions = doc.value.macros[0]?.actions ?? [];
   const targets = {
-    theme: [{id: theme, name: '찬양'}],
+    prop: [{id: prop, name: '찬양'}],
     clearLayer: [{id: 'slide', name: '슬라이드'}],
   };
 
@@ -178,5 +179,5 @@ it('names an action by its target, its audio operation, or its kind', () => {
   ]);
   const [first] = actions;
   if (first === undefined) throw new Error('Missing action');
-  expect(macroActionName(first, undefined)).toBe(MACRO_ACTIONS.theme.label);
+  expect(macroActionName(first, undefined)).toBe(MACRO_ACTIONS.prop.label);
 });

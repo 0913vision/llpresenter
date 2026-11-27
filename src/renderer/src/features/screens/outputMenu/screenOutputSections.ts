@@ -1,28 +1,19 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/keys/commandBindings';
-import type {ThemeFile} from '@core/schema/screens/theme';
 import {
   outputGroup,
   itemStopEntry,
 } from '@renderer/features/screens/outputMenu/outputControlEntries';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menus/menuModel';
 import {menuSeparator} from '@renderer/ui/menus/menuRows';
-import type {Notice} from '@renderer/ui/popups/notices';
 import type {ScreenSummary} from '@renderer/platform/screens/screenSummary';
-import {sendThemeChange} from './themeActions';
-import {liveThemeName, themeMenuEntries} from './themeMenuEntries';
 
-/** Screen/live/settings snapshots and an app-owned editor navigation callback. */
+/** Screen and live snapshots. */
 export interface ScreenOutputInput {
   readonly screens: readonly ScreenSummary[];
   readonly outputs: Readonly<Record<string, boolean>>;
-  /** The themes a slide like the live one can be drawn with. */
-  readonly themes: readonly ThemeFile[];
-  readonly theme: ThemeFile | undefined;
   readonly hasItem: boolean;
-  readonly onEditScreens: (() => void) | undefined;
-  readonly onProblem: (notice: Notice) => void;
 }
 
 /** Ordered feature contributions; app warnings precede the settings section. */
@@ -33,11 +24,14 @@ export interface ScreenOutputSections {
   readonly settings: readonly MenuEntry[];
 }
 
-/** Builds existing screen and theme choices without app navigation types. */
+/**
+ * Builds the screen choices. There is no live theme choice: 준비 sets each
+ * item's theme (USER Nov 27).
+ */
 export function screenOutputSections(
   input: ScreenOutputInput,
 ): ScreenOutputSections {
-  const {screens, outputs, onEditScreens} = input;
+  const {screens, outputs} = input;
   const audience = screens.filter(
     screen => screen.kind !== 'stage' && screen.kind !== 'broadcast',
   );
@@ -50,18 +44,6 @@ export function screenOutputSections(
         ...outputGroup(audience, outputs),
         id: 'audience-output',
         command: 'output.audience',
-      },
-      {
-        kind: 'item',
-        id: 'theme',
-        label: `테마: ${liveThemeName(input.theme)}`,
-        loadSubmenu: () =>
-          themeMenuEntries({
-            themes: input.themes,
-            current: input.theme?.id,
-            choose: themeId => sendThemeChange(themeId, input.onProblem),
-            edit: onEditScreens,
-          }),
       },
       itemStopEntry(input.hasItem),
     ],

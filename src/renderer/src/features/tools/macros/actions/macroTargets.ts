@@ -4,7 +4,7 @@ import type {MacroActionKind} from '@core/schema/tools/macros';
 import {clearName} from '@core/live';
 
 /**
- * One thing a 동작 can point at, such as a theme or a timer, with what the dialog
+ * One thing a 동작 can point at, such as a 그래픽 or a timer, with what the dialog
  * needs to show it.
  */
 export interface MacroTargetChoice {
@@ -22,7 +22,6 @@ interface Named {
 
 /** The settings documents that the targets of the 동작 are read from. */
 export interface MacroTargetSources {
-  readonly themes: {readonly themes: readonly Named[]};
   readonly props: {readonly props: readonly Named[]};
   readonly messages: {
     readonly templates: ReadonlyArray<Named & {readonly text: string}>;
@@ -76,7 +75,6 @@ export function buildMacroTargets(source: MacroTargetSources): {
 } {
   return {
     choices: {
-      theme: choices(source.themes.themes),
       clearLayer: [
         ...layers,
         ...source.props.props.map(({id, name}) => ({

@@ -18,14 +18,12 @@ import {
 } from '@fixtures/main/macros/testing';
 
 describe('macro compiler', () => {
-  it('compiles a theme action and skips a deleted theme and an action of an unknown kind', () => {
-    const initial = environment();
-    const theme = initial.catalog.themes.themes[0];
-    if (!theme) throw new Error('Missing theme fixture');
+  it('compiles a 그래픽 action, skips a deleted one, and runs no 테마 바꾸기 kept from before (USER Nov 27)', () => {
     const {catalog} = environment([
       macro(IDS.macro, [
-        {kind: 'theme', theme: theme.id},
-        {kind: 'theme', theme: uuid(999)},
+        {kind: 'prop', prop: IDS.prop},
+        {kind: 'prop', prop: uuid(999)},
+        {kind: 'theme', theme: uuid(998)},
         {kind: 'camera', input: 2},
       ]),
     ]);
@@ -35,14 +33,17 @@ describe('macro compiler', () => {
       state: emptyLiveState(),
       supports: () => true,
     });
-    expect(plan.commands).toEqual([{type: 'theme.set', themeId: theme.id}]);
+    expect(plan.commands.some(command => command.type === 'theme.set')).toBe(
+      false,
+    );
     expect(plan.problems).toEqual([
       expect.objectContaining({
         action: 1,
         reason: 'missing-target',
-        target: {kind: 'theme', id: uuid(999)},
+        target: {kind: 'prop', id: uuid(999)},
       }),
       expect.objectContaining({action: 2, reason: 'unknown-action'}),
+      expect.objectContaining({action: 3, reason: 'unknown-action'}),
     ]);
   });
   it('stops expansion once the command budget is reached and reports it once', () => {
@@ -175,7 +176,6 @@ describe('macro compiler', () => {
   });
 
   it.each([
-    {kind: 'theme', theme: uuid(99)},
     {kind: 'media', media: uuid(99)},
     {kind: 'prop', prop: uuid(99)},
     {kind: 'clearLayer', prop: uuid(99)},

@@ -8,8 +8,7 @@ import {
 } from '@renderer/features/screens/outputMenu/screenOutputSections';
 
 function fixture() {
-  const {input, send, onWorkspace} = outputMenuFixture();
-  return {input: {...input, onEditScreens: onWorkspace}, send, onWorkspace};
+  return outputMenuFixture();
 }
 
 function screenEntries(input: ScreenOutputInput) {
@@ -91,22 +90,19 @@ it('leaves 방송 화면 off when 청중 화면 turns on, and the reverse', () =
   expect(label('broadcast-output', {[audience.id]: true})).toBe('출력 켜기');
 });
 
-it('opens the theme editor and the screen settings window', () => {
-  const {input, send, onWorkspace} = fixture();
+it('opens the screen settings window, and offers no live theme choice (USER Nov 27)', () => {
+  const {input, send} = fixture();
   const rows = menuItems(screenEntries(input));
-  menuItems(rows.find(row => row.id === 'theme')?.loadSubmenu?.() ?? [])
-    .find(row => row.id === 'edit')
-    ?.onSelect?.();
+  expect(rows.find(row => row.id === 'theme')).toBeUndefined();
   const openScreens = vi.fn();
   window.llp = mockLlpApi({window: {openScreens}, live: {send}});
   rows.find(row => row.id === 'screens')?.onSelect?.();
   expect(openScreens).toHaveBeenCalledOnce();
-  expect(onWorkspace.mock.calls).toEqual([[]]);
 });
 
-it('opens screen settings without a workspace callback and explains a missing window bridge', () => {
+it('opens screen settings and explains a missing window bridge', () => {
   const {input} = fixture();
-  const rows = menuItems(screenEntries({...input, onEditScreens: undefined}));
+  const rows = menuItems(screenEntries(input));
   expect(rows.find(row => row.id === 'screens')?.disabled).toBe(false);
   delete window.llp;
   const unavailable = menuItems(screenEntries(input));
@@ -127,19 +123,4 @@ it('keeps the saved broadcast output available when its destination is a window'
       row => row.id === 'broadcast-output',
     )?.disabled,
   ).toBe(false);
-});
-
-it('draws the live item with the chosen theme', () => {
-  const {input, send} = fixture();
-  const [theme, other] = input.themes;
-  if (theme === undefined || other === undefined) {
-    throw new Error('Missing fixture theme');
-  }
-  const rows = menuItems(screenEntries({...input, theme, hasItem: true}));
-  const row = rows.find(entry => entry.id === 'theme');
-  expect(row?.label).toBe(`테마: ${theme.name}`);
-  const choices = menuItems(row?.loadSubmenu?.() ?? []);
-  expect(choices.find(choice => choice.id === theme.id)?.checked).toBe(true);
-  choices.find(choice => choice.id === other.id)?.onSelect?.();
-  expect(send.mock.calls).toEqual([[{type: 'theme.set', themeId: other.id}]]);
 });

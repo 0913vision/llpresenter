@@ -36,8 +36,6 @@ export function macroActionPlace(
   action: KnownMacroAction,
 ): MacroActionPlace | null {
   switch (action.kind) {
-    case 'theme':
-      return {kind: 'screens'};
     case 'timer':
     case 'prop':
     case 'message':
