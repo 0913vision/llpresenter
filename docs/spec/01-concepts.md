@@ -399,10 +399,11 @@ All four workspaces use the same three-column frame (left, center, right).
   탭에서만 바꿀 수 있습니다." Choosing 라이브러리 opens the song left open, else
   the song edited last, else the first library song, else a new song. Another
   tab only hides 라이브러리: the song stays open, with its unsaved changes,
-  until it is closed in 라이브러리 (Esc in the editor) or saved; 준비 keeps its
-  own 예배 순서 and open item meanwhile (user, November 27). The song editor has
-  no back button; the tabs move between them. A separate song window was turned
-  down: it would block running slides during a service.
+  until it is closed in 라이브러리 (Esc in the editor, which keeps 라이브러리 on
+  screen with an empty editor) or saved; 준비 keeps its own 예배 순서 and open
+  item meanwhile (user, November 27). The song editor has no back button; the
+  tabs move between them. A separate song window was turned down: it would block
+  running slides during a service.
 
 Source: `Main` decision "작업 공간 세 개", design system README (window sizes
 and layout), `ClearButton` README, `Dialog` README, product log (2026-10-24
