@@ -59,6 +59,9 @@ export function useSongKeys({
     },
     {
       id: 'edit.delete',
+      // NOTE(0913vision): 삭제 is offered in lists by their context, as the
+      // media and 매크로 lists give it.
+      context: 'service',
       when: event => target(event) !== undefined,
       unavailable: () => {
         const song = target();

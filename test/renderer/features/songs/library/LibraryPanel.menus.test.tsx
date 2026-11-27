@@ -1,6 +1,6 @@
 import {windowCommandLabels} from '@renderer/ui/keys/windowCommandLabels';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
-import {describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import type {Notice} from '@renderer/ui/popups/notices';
 import {
@@ -111,7 +111,11 @@ describe('library panel', () => {
     ).toBeTruthy();
   });
 
-  it('deletes the focused song with Delete, as the row menu does', async () => {
+  it('deletes the focused song with Delete in 준비 and 라이브러리, as the row menu does', async () => {
+    document.body.dataset['workspaceLayout'] = 'prep';
+    onTestFinished(() => {
+      delete document.body.dataset['workspaceLayout'];
+    });
     await setup();
     const song = screen.getByRole('option', {name: '찬송 10'});
     act(() => song.focus());
