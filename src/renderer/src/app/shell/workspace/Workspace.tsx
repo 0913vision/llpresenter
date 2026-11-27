@@ -79,6 +79,12 @@ function KeptFrame({
   >;
   readonly children: ReactNode;
 }): JSX.Element {
+  // NOTE(0913vision): A hidden frame keeps the content it last showed, the
+  // same elements, so React leaves it alone on a switch and only the frame
+  // coming up is drawn again; what its parts follow on their own still
+  // reaches them.
+  const [kept, setKept] = useState(children);
+  if (visible && kept !== children) setKept(children);
   return (
     <div
       className={classNames(styles.frameSlot, !visible && styles.hiddenFrame)}
@@ -88,7 +94,7 @@ function KeptFrame({
       aria-hidden={!visible}
     >
       <CommandScope value={visible ? 'visible' : 'hidden'}>
-        {children}
+        {visible ? children : kept}
       </CommandScope>
     </div>
   );
