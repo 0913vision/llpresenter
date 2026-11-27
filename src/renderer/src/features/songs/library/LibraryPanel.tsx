@@ -16,6 +16,7 @@ import {
   PanelTabs,
   PanelTools,
 } from '@renderer/ui/panels/Panel';
+import {PanelAction} from '@renderer/ui/panels/PanelActionSlot';
 import {TextField} from '@renderer/ui/fields/TextField';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {RenameDialog} from '@renderer/ui/popups/RenameDialog';
@@ -43,6 +44,11 @@ export interface LibraryPanelProps {
   readonly api: LibraryApi;
   readonly navigating?: boolean | undefined;
   /**
+   * Inside 준비's palette, whose own title row is the 라이브러리 tab: no title
+   * row of its own, and 새 곡 goes to the palette's row (USER Nov 27).
+   */
+  readonly embedded?: boolean | undefined;
+  /**
    * Why the songs can't be renamed, copied or deleted here: the library is
    * changed only in the 라이브러리 tab (USER Nov 25).
    */
@@ -63,6 +69,7 @@ export interface LibraryPanelProps {
 export function LibraryPanel({
   api,
   navigating = false,
+  embedded = false,
   editReason,
   onOpenSong,
   onSelectSong,
@@ -129,24 +136,29 @@ export function LibraryPanel({
     editReason,
   });
   const menuSong = library.songs.find(song => song.id === menu?.id);
+  const newSongButton = (
+    <IconButton
+      icon="plus"
+      label="새 곡"
+      disabled={library.busy || library.loading}
+      onClick={createSong}
+    />
+  );
   return (
     <>
       <Panel label="라이브러리" className={styles.panel}>
-        <PanelHeader>
-          <PanelTabs
-            tabs={[{value: 'library', label: '라이브러리'}]}
-            value="library"
-            onChange={() => undefined}
-          />
-          <PanelActions>
-            <IconButton
-              icon="plus"
-              label="새 곡"
-              disabled={library.busy || library.loading}
-              onClick={createSong}
+        {embedded ? (
+          <PanelAction>{newSongButton}</PanelAction>
+        ) : (
+          <PanelHeader>
+            <PanelTabs
+              tabs={[{value: 'library', label: '라이브러리'}]}
+              value="library"
+              onChange={() => undefined}
             />
-          </PanelActions>
-        </PanelHeader>
+            <PanelActions>{newSongButton}</PanelActions>
+          </PanelHeader>
+        )}
         <PanelTools>
           <TextField
             icon="search"

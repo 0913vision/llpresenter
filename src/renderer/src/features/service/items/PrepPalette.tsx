@@ -20,6 +20,10 @@ import {
   titleKey,
 } from './newItems';
 import {usePaletteInsert} from './usePaletteInsert';
+import {
+  PanelActionScope,
+  PanelActionTarget,
+} from '@renderer/ui/panels/PanelActionSlot';
 import {OwnTitles} from './OwnTitles';
 import {classNames} from '@renderer/ui/classNames';
 import {ROW_POINTER_CLASS} from '@renderer/ui/lists/rowPointer';
@@ -47,6 +51,7 @@ export function PrepPalette({
     null,
   );
   const palette = usePaletteInsert(report);
+  const [actions, setActions] = useState<HTMLElement | null>(null);
   const button = (id: string, label: string, icon?: string) => (
     <button
       type="button"
@@ -93,11 +98,12 @@ export function PrepPalette({
           <PanelTabs
             tabs={[
               {value: 'elements', label: '예배 요소'},
-              {value: 'songs', label: '곡'},
+              {value: 'songs', label: '라이브러리'},
             ]}
             value={tab}
             onChange={onTabChange}
           />
+          {tab === 'songs' ? <PanelActionTarget onPlace={setActions} /> : null}
         </PanelHeader>
       ) : null}
       {!navigating && tab === 'elements' ? (
@@ -120,7 +126,7 @@ export function PrepPalette({
           variant="flush"
           className={styles.library}
         >
-          {library}
+          <PanelActionScope place={actions}>{library}</PanelActionScope>
         </PanelBody>
       </div>
       {menu ? (
