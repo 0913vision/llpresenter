@@ -9,19 +9,22 @@ import {songChangeReason} from './libraryMenuEntries';
 import type {Library} from './useLibrary';
 
 /**
- * 복제 (Ctrl D) in the library copies the song under the focus; asked from
- * the menu bar, with no key, it copies the selected song.
+ * 복제 (Ctrl D) and 삭제 (Delete) in the library act on the song under the
+ * focus; asked from the menu bar, with no key, on the selected song. 삭제 goes
+ * as the row menu's does: at once, and 실행 취소 brings the song back.
  */
-export function useSongDuplicateKey({
+export function useSongKeys({
   list,
   library,
   serviceBusy,
+  remove,
 }: {
   readonly list: RefObject<HTMLDivElement | null>;
   readonly library: Library;
   /** Whether a song is being added to the 예배 순서. */
   readonly serviceBusy: boolean;
-  /** Why the library can't be changed here, such as in 준비. */
+  /** Deletes a song as the row menu's 삭제 does. */
+  readonly remove: (song: LibrarySong) => void;
 }): void {
   const target = (event?: KeyboardEvent): LibrarySong | undefined => {
     const place =
@@ -54,12 +57,25 @@ export function useSongDuplicateKey({
         }
       },
     },
+    {
+      id: 'edit.delete',
+      when: event => target(event) !== undefined,
+      unavailable: () => {
+        const song = target();
+        return song === undefined ? undefined : reason(song);
+      },
+      run: event => {
+        const song = target(event);
+        if (song !== undefined && reason(song) === undefined) remove(song);
+      },
+    },
   ]);
 }
 
 /**
- * 삭제 of the song menu, once the menu has closed: the song goes, can come
- * back with 실행 취소, and the list keeps the keyboard.
+ * 삭제 of a library song: it goes at once, can come back with 실행 취소, and
+ * the list keeps the keyboard. `remove` deletes now (the Delete key);
+ * `afterMenu` deletes once the row menu has closed.
  */
 export function useSongDelete({
   list,
@@ -71,8 +87,11 @@ export function useSongDelete({
   readonly library: Library;
   readonly history: ReturnType<typeof contentDeleteHistory>;
   readonly menuOpen: boolean;
-}): (song: LibrarySong) => void {
-  return useMenuHandoff<LibrarySong>(menuOpen, song => {
+}): {
+  readonly remove: (song: LibrarySong) => void;
+  readonly afterMenu: (song: LibrarySong | null) => void;
+} {
+  const remove = (song: LibrarySong): void => {
     const stillThere = (): boolean =>
       !library.busy &&
       song.access === 'editable' &&
@@ -88,5 +107,6 @@ export function useSongDelete({
         })
         .catch(() => library.report('delete'));
     });
-  });
+  };
+  return {remove, afterMenu: useMenuHandoff<LibrarySong>(menuOpen, remove)};
 }

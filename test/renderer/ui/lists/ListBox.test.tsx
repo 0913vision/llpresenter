@@ -97,6 +97,39 @@ describe('ListBox', () => {
     expect(selectedTitle()).toBe('hymn3');
   });
 
+  it('moves the focus to a row the app chooses, away from the row that had it', () => {
+    const rows = (selected: string): JSX.Element => (
+      <ListBox label="곡" selected={selected} onSelect={vi.fn()}>
+        <ListRow value="first" title="첫째" />
+        <ListRow value="copy" title="첫째 복사본" />
+      </ListBox>
+    );
+    const view = render(rows('first'));
+    const first = screen.getByRole('option', {name: '첫째'});
+    first.focus();
+    view.rerender(rows('copy'));
+    expect(document.activeElement).toBe(
+      screen.getByRole('option', {name: '첫째 복사본'}),
+    );
+  });
+
+  it('leaves a focus outside the list where it is when the selection changes', () => {
+    const rows = (selected: string): JSX.Element => (
+      <>
+        <input aria-label="검색" />
+        <ListBox label="곡" selected={selected} onSelect={vi.fn()}>
+          <ListRow value="first" title="첫째" />
+          <ListRow value="copy" title="첫째 복사본" />
+        </ListBox>
+      </>
+    );
+    const view = render(rows('first'));
+    const search = screen.getByRole('textbox', {name: '검색'});
+    search.focus();
+    view.rerender(rows('copy'));
+    expect(document.activeElement).toBe(search);
+  });
+
   it('lets Shift Tab leave the list before anything is selected', async () => {
     render(
       <>

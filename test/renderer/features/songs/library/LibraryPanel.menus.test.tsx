@@ -111,6 +111,16 @@ describe('library panel', () => {
     ).toBeTruthy();
   });
 
+  it('deletes the focused song with Delete, as the row menu does', async () => {
+    await setup();
+    const song = screen.getByRole('option', {name: '찬송 10'});
+    act(() => song.focus());
+    fireEvent.keyDown(song, {key: 'Delete', code: 'Delete'});
+    await waitFor(() =>
+      expect(screen.queryByRole('option', {name: '찬송 10'})).toBeNull(),
+    );
+  });
+
   it('hands deletion failures to the host without a reload action', async () => {
     const {fixture, user, onProblem} = await setup();
     vi.spyOn(fixture.api.content, 'edit').mockRejectedValue(

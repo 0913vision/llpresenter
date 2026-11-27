@@ -160,6 +160,40 @@ function useOneTabStop(
   }, [list, selection]);
 }
 
+/**
+ * In a list that selects one row, the keyboard focus goes with the selection:
+ * a row chosen by the app (a copy made with Ctrl D, a row the app moves to)
+ * takes the focus from the row that had it, so the keys act on the row that
+ * shows as chosen. A focus on a control inside a row stays.
+ */
+function useFocusFollowsSelection(
+  list: RefObject<HTMLDivElement | null>,
+  selection: SelectionStore,
+  enabled: boolean,
+): void {
+  useLayoutEffect(() => {
+    const element = list.current;
+    if (element === null || !enabled) return undefined;
+    return selection.subscribe(() => {
+      const value = selection.get();
+      const active = document.activeElement;
+      if (
+        value === undefined ||
+        !(active instanceof HTMLElement) ||
+        !active.matches(ANY_OPTION) ||
+        !element.contains(active) ||
+        active.dataset['value'] === value
+      ) {
+        return;
+      }
+      const chosen = [
+        ...element.querySelectorAll<HTMLElement>(ANY_OPTION),
+      ].find(option => option.dataset['value'] === value);
+      chosen?.focus({preventScroll: true});
+    });
+  }, [list, selection, enabled]);
+}
+
 /** Controlled selection and contents of a single-cursor list box. */
 export interface ListBoxProps {
   readonly id?: string | undefined;
@@ -200,6 +234,7 @@ export function ListBox({
   const state = useListBoxState(selected, onSelect, workspace);
   const listRef = useRef<HTMLDivElement>(null);
   useOneTabStop(listRef, state.selection);
+  useFocusFollowsSelection(listRef, state.selection, !multiple);
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const target = listKeyTargets[event.key];
     if (target === undefined || hasModifier(event)) return;

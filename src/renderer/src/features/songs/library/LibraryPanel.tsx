@@ -27,7 +27,7 @@ import {useLibrary, type LibraryApi, type LibrarySelection} from './useLibrary';
 import styles from './LibraryPanel.module.css';
 import {libraryMenuEntries} from './libraryMenuEntries';
 import {useLibraryServices} from './useLibraryServices';
-import {useSongDelete, useSongDuplicateKey} from './useSongCommands';
+import {useSongDelete, useSongKeys} from './useSongCommands';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
@@ -117,16 +117,18 @@ export function LibraryPanel({
     attribute: 'data-value',
     scope: 'library',
   });
-  const deleteAfterMenu = useSongDelete({
+  const songDelete = useSongDelete({
     list: listArea,
     library,
     history,
     menuOpen: menu !== null,
   });
-  useSongDuplicateKey({
+  const deleteAfterMenu = songDelete.afterMenu;
+  useSongKeys({
     list: listArea,
     library,
     serviceBusy: serviceMenu.busy,
+    remove: songDelete.remove,
   });
   const menuSong = library.songs.find(song => song.id === menu?.id);
   const newSongButton = (
