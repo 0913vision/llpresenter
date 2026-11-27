@@ -49,6 +49,13 @@ function request(input = '요 3:16-18') {
   return parsed.value;
 }
 
+/** Writes files that are there but are no Bible, which every load skips. */
+async function broken(folder: string, ...files: readonly string[]) {
+  await Promise.all(
+    files.map(file => writeFile(join(folder, file), 'not a Bible')),
+  );
+}
+
 async function setup() {
   const folder = await makeTempDir();
   await writeFile(
@@ -226,9 +233,10 @@ describe('Bible lookup session', () => {
   });
 
   it('reloads changed or failed files and reports each skipped file once', async () => {
-    const {session, get} = await setup();
+    const {session, get, folder} = await setup();
     await session.lookup(request());
     const warnings = vi.mocked(log.warn).mock.calls.length;
+    await broken(folder, 'missing.llbible', 'other-missing.llbible');
     get.mockImplementation(() => document('missing.llbible'));
     expect((await session.lookup(request())).result).toMatchObject({
       ok: false,
@@ -244,10 +252,41 @@ describe('Bible lookup session', () => {
     expect(log.warn).toHaveBeenCalledTimes(warnings + 2);
   });
 
-  it('bounds remembered bad files while suppressing recent duplicate warnings', async () => {
-    const {session, get} = await setup();
+  it('notes a translation whose file is not in the Bible folder without a warning, and reads it once it is put there', async () => {
+    const {session, get, folder} = await setup();
     await session.lookup(request());
     const warnings = vi.mocked(log.warn).mock.calls.length;
+    vi.mocked(log.info).mockClear();
+    get.mockImplementation(() => document('krv.llbible'));
+    expect((await session.lookup(request())).result).toMatchObject({
+      ok: false,
+      error: {code: 'translation'},
+    });
+    await session.lookup(request());
+    expect(log.warn).toHaveBeenCalledTimes(warnings);
+    expect(
+      vi
+        .mocked(log.info)
+        .mock.calls.filter(
+          ([message]) =>
+            message === 'a Bible translation file is not in the Bible folder',
+        ),
+    ).toHaveLength(1);
+    await writeFile(
+      join(folder, 'krv.llbible'),
+      chunkedTranslationFile().bytes,
+    );
+    expect((await session.lookup(request())).result).toMatchObject({ok: true});
+  });
+
+  it('bounds remembered bad files while suppressing recent duplicate warnings', async () => {
+    const {session, get, folder} = await setup();
+    await session.lookup(request());
+    const warnings = vi.mocked(log.warn).mock.calls.length;
+    await broken(
+      folder,
+      ...Array.from({length: 129}, (_, index) => `missing-${index}.llbible`),
+    );
     for (let index = 0; index < 129; index++) {
       get.mockImplementation(() => document(`missing-${index}.llbible`));
       await session.lookup(request());

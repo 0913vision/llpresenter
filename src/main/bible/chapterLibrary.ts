@@ -10,6 +10,7 @@ import {
   type BibleChapterFile,
 } from './chapterFile';
 import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
+import {isMissingFile} from '../base/files/fsErrors';
 
 /**
  * What the chapter library reads: the Bible folder, the installed translations,
@@ -20,6 +21,12 @@ export interface BibleChapterLibraryOptions {
   readonly cache?: BibleChapterCache;
   readonly translations: readonly Translation[];
   readonly onProblem: (problem: FileError) => void;
+  /**
+   * A translation of the settings whose file is not in the Bible folder, as
+   * the ones the settings start with until they are put there; a broken file
+   * goes to `onProblem`. Without it, a missing file goes to `onProblem` too.
+   */
+  readonly onMissing?: ((file: string) => void) | undefined;
   /** A chapter of the web Bible that could not be had, and why. */
   readonly onFetchProblem?: ((problem: LiveFetchProblem) => void) | undefined;
 }
@@ -180,6 +187,7 @@ export async function loadBibleChapterLibrary({
   cache,
   translations,
   onProblem,
+  onMissing,
   onFetchProblem,
 }: BibleChapterLibraryOptions): Promise<BibleChapterLibrary> {
   const files: BibleChapterFile[] = [];
@@ -206,7 +214,8 @@ export async function loadBibleChapterLibrary({
       }
       files.push(await readBibleChapterFile(file, installed.id));
     } catch (error: unknown) {
-      report(fileProblem(file, error));
+      if (onMissing !== undefined && isMissingFile(error)) onMissing(file);
+      else report(fileProblem(file, error));
     }
   }
   return new BibleChapterLibrary(files, report, {

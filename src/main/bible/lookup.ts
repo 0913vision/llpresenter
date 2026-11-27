@@ -112,6 +112,21 @@ export class BibleLookupSession {
     if (this.disposed) throw new Error('Bible lookup was closed');
   }
 
+  /**
+   * Notes a translation file the last load skipped, so the next lookup reads
+   * it again; true the first time it is skipped, when it is written down.
+   */
+  private skippedFirst(file: string): boolean {
+    this.needsRefresh = true;
+    if (this.disposed || this.warnedFiles.has(file)) return false;
+    if (this.warnedFiles.size >= WARNED_FILE_LIMIT) {
+      const oldest = this.warnedFiles.values().next().value;
+      if (oldest !== undefined) this.warnedFiles.delete(oldest);
+    }
+    this.warnedFiles.add(file);
+    return true;
+  }
+
   private async refresh(): Promise<BibleLibrary | null> {
     this.ensureOpen();
     const settings = await this.options.settings;
@@ -133,14 +148,20 @@ export class BibleLookupSession {
         cache: this.cache,
         translations: document.value.translations,
         onProblem: problem => {
-          this.needsRefresh = true;
-          if (this.disposed || this.warnedFiles.has(problem.file)) return;
-          if (this.warnedFiles.size >= WARNED_FILE_LIMIT) {
-            const oldest = this.warnedFiles.values().next().value;
-            if (oldest !== undefined) this.warnedFiles.delete(oldest);
+          if (this.skippedFirst(problem.file)) {
+            this.options.log.warn('skipped a Bible translation', problem);
           }
-          this.warnedFiles.add(problem.file);
-          this.options.log.warn('skipped a Bible translation', problem);
+        },
+        // NOTE(0913vision): The settings start with translations whose files
+        // are put in the Bible folder later, so a missing file is the usual
+        // state, not a problem; only a broken file warns.
+        onMissing: file => {
+          if (this.skippedFirst(file)) {
+            this.options.log.info(
+              'a Bible translation file is not in the Bible folder',
+              {file},
+            );
+          }
         },
         onFetchProblem: problem =>
           this.options.log.warn(
