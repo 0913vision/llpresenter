@@ -82,7 +82,12 @@ it(
     });
     let page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
-    await page.getByRole('tab', {name: '곡', exact: true}).click();
+    // NOTE(0913vision): 준비's own 라이브러리 tab, not the toolbar's (USER Nov
+    // 28).
+    await page
+      .locator('[data-workspace-frame="prep"]')
+      .getByRole('tab', {name: '라이브러리', exact: true})
+      .click();
     const library = page.getByRole('listbox', {name: '라이브러리 곡'});
     await expect
       .poll(() => library.getByRole('option').count(), {timeout: WAIT})
@@ -123,7 +128,12 @@ it(
 
     page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
-    await page.getByRole('tab', {name: '곡', exact: true}).click();
+    // NOTE(0913vision): 준비's own 라이브러리 tab, not the toolbar's (USER Nov
+    // 28).
+    await page
+      .locator('[data-workspace-frame="prep"]')
+      .getByRole('tab', {name: '라이브러리', exact: true})
+      .click();
     const reopened = page
       .getByRole('listbox', {name: '라이브러리 곡'})
       .getByRole('option');
