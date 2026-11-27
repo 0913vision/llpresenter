@@ -7,7 +7,7 @@ const songThemes = [
   ...Object.values(SONG_THEME_IDS.light),
 ];
 
-it('puts the lyrics of every built-in song theme on a 70 percent black band on 방송 (user, Nov 16)', () => {
+it('puts the lyrics of every built-in song theme on a 90 percent black band on 방송 (user, Nov 27)', () => {
   for (const id of songThemes) {
     const theme = BUILT_IN_THEMES.find(found => found.id === id);
     const broadcast = theme?.screens.broadcast;
@@ -16,7 +16,7 @@ it('puts the lyrics of every built-in song theme on a 70 percent black band on �
         ? broadcast.elements.find(element => element.kind === 'shape')
         : undefined;
     expect(band?.kind === 'shape' ? band.fill : null, `${theme?.name}`).toEqual(
-      {color: '#000000', opacity: 70},
+      {color: '#000000', opacity: 90},
     );
   }
 });
