@@ -46,18 +46,23 @@ function panels() {
   );
 }
 
-it('leaves 라이브러리 for 준비 when the open song is deleted, instead of showing the 예배 순서 under it', () => {
+it('keeps the 라이브러리 columns with an empty editor when the open song is deleted, never the 예배 순서, so 실행 취소 can bring it back', () => {
   act(openSong);
   const view = panels();
-  expect(
-    workspaceTabOf('prep', usePrepTarget.getState().target?.kind === 'song'),
-  ).toBe('library');
   // NOTE(0913vision): A song deleted while it is open closes its draft alone,
   // as here.
   act(closeSongDraft);
   view.rerender();
-  expect(usePrepTarget.getState().target).toBeNull();
-  expect(workspaceTabOf('prep', false)).toBe('prep');
+  expect(usePrepTarget.getState().target).toEqual({kind: 'song'});
+  expect(
+    workspaceTabOf('prep', usePrepTarget.getState().target?.kind === 'song'),
+  ).toBe('library');
+  expect(view.result.current.columns.flat()).toEqual([
+    '라이브러리',
+    '편집',
+    '슬라이드 속성',
+  ]);
+  expect(view.result.current.editing).toBe(false);
 });
 
 it('keeps 라이브러리 while its song is open', () => {

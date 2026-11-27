@@ -1,11 +1,5 @@
 import {songSlidesOf} from '@core/schema/songs/song';
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {parseServiceItemId, type SongId} from '@core/schema/common/ids';
 import {
@@ -188,14 +182,6 @@ export function usePrepPanels({
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): WorkspacePanels {
   const report = onProblem ?? logPanelProblem;
-  const songShown = useSongDraft(view => view.draft !== null);
-  const songTarget = target?.kind === 'song';
-  // NOTE(0913vision): 라이브러리 is 준비 with a song open. A song that closes
-  // without the editor, as one deleted while it is open, leaves 라이브러리 as
-  // closing it does; else the tab stays on and shows the 예배 순서.
-  useEffect(() => {
-    if (songTarget && !songShown) closePrepEditor();
-  }, [songTarget, songShown]);
   const requestedItem = useShow(view => view.openItemId);
   const selectedItem =
     retainedItem === undefined ? requestedItem : retainedItem;
@@ -224,11 +210,11 @@ export function usePrepPanels({
         ? {kind: 'item', itemId: parsed.value}
         : null;
   const editing = editor !== null && target !== null;
-  const columns = !editing
-    ? COLUMNS
-    : target.kind === 'item'
-      ? ITEM_COLUMNS
-      : SONG_COLUMNS;
+  // NOTE(0913vision): The 라이브러리 tab keeps its columns while no song is
+  // open, as after the open song is deleted: its 실행 취소 brings the song back
+  // open, and the 예배 순서 of 준비 never shows under the tab.
+  const libraryTab = target?.kind === 'song';
+  const columns = libraryTab ? SONG_COLUMNS : !editing ? COLUMNS : ITEM_COLUMNS;
   const partsOf = (title: string): PanelParts => {
     if (prep === undefined) return {};
     // NOTE(0913vision): A toolbar search's results take the center column
@@ -254,7 +240,7 @@ export function usePrepPanels({
       case '라이브러리':
         return {
           embedded: (
-            <Library prep={prep} navigating={editor !== null} report={report} />
+            <Library prep={prep} navigating={libraryTab} report={report} />
           ),
         };
       case '편집':
