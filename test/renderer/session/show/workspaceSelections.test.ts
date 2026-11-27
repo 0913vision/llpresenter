@@ -85,7 +85,7 @@ describe('workspace selections', () => {
     });
   });
 
-  it('moves 진행 to the live item on every live change, and keeps it for 진행 while 준비 shows (USER Nov 28)', () => {
+  it('moves 진행 to the live item on every live change, and keeps it for 진행 while 준비 shows', () => {
     const selections = new WorkspaceSelections();
     selections.followLive('second');
     expect(useShow.getState()).toMatchObject({

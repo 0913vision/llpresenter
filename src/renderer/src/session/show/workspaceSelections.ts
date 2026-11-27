@@ -65,7 +65,7 @@ export class WorkspaceSelections {
   /**
    * The live item changed: 진행's selection moves to it, on screen at once or
    * kept for when 진행 shows again; an item the operator clicked to look
-   * ahead stays chosen only until the next change (USER Nov 28: "live에 후하게").
+   * ahead stays chosen only until the next change.
    */
   followLive(itemId: string): void {
     const view = useShow.getState();
