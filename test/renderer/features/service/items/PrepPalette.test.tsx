@@ -35,7 +35,9 @@ describe('preparation palette', () => {
     expect(screen.getAllByRole('button', {name: '사도신경'})).toHaveLength(1);
     expect(screen.getAllByRole('button', {name: '광고'})).toHaveLength(1);
     expect(screen.queryByRole('tab', {name: '미디어'})).not.toBeTruthy();
-    fireEvent.click(screen.getByRole('tab', {name: '곡'}));
+    // NOTE(0913vision): The songs tab is 라이브러리, as the toolbar tab of the
+    // same songs (USER Nov 27).
+    fireEvent.click(screen.getByRole('tab', {name: '라이브러리'}));
     expect(screen.getByText('song library content')).toBeTruthy();
   });
   it('offers new and old translations and adds with Enter or double click', () => {

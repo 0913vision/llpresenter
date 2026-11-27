@@ -18,7 +18,7 @@ in place; returning does not animate the list or change output.
 
 | Column | Panels                                                              | Source                  |
 | ------ | ------------------------------------------------------------------- | ----------------------- |
-| Left   | 예배 요소 / 곡                                                      | `Reflow`, `PrepService` |
+| Left   | 예배 요소 / 라이브러리                                              | `Reflow`, `PrepService` |
 | Center | The 예배 순서 table ("The 예배 순서 table and inline song editing") | `Reflow`, `PrepService` |
 | Right  | The selected source's 세부정보                                      | `Reflow`, `PrepService` |
 
@@ -184,8 +184,11 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 ## 준비 element palette
 
-- In the list view, the left panel starts with 예배 요소 and 곡 tabs. 곡 keeps
-  the library; the foldable media bin remains available in the list and editor.
+- In the list view, the left panel starts with 예배 요소 and 라이브러리 tabs,
+  the second named as the toolbar tab of the same songs (user decision, November
+  27). 라이브러리 keeps the library list without a second "라이브러리" title
+  row; its 새 곡 sits at the right end of the tab row. The foldable media bin
+  remains available in the list and editor.
 - 순서 offers 예배 준비, 사도신경, 주기도문, 설교, 성경 구절, 광고, 빈 슬라이드,
   구역, and 대기 화면. Creeds and prayers use the new translation by default;
   their context menu also offers the old one. 사도신경 and 광고 start with their
