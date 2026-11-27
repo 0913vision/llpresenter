@@ -1,3 +1,4 @@
+import {topicParticle} from '@core/common/korean';
 import {exactBibleBook, findBibleBooks} from './bibleMatching';
 import type {BibleLookupReply} from '@core/schema/bible/bibleLookup';
 
@@ -30,7 +31,12 @@ export function selectedBook(input: string) {
 }
 
 /** What the 장, 시작절 and 끝절 boxes say until the verse counts arrive. */
-const LOADING_CHAPTER = '장 정보 불러오는 중';
+export const LOADING_CHAPTER = '장 정보 불러오는 중';
+
+/** How far a book or a chapter goes, as "창세기는 50장까지 있습니다.". */
+function lastOf(name: string, last: number, unit: '장' | '절'): string {
+  return `${name}${topicParticle(name)} ${last}${unit}까지 있습니다.`;
+}
 
 function positiveNumber(input: string): number | undefined {
   const value = /^\d+$/u.test(input) ? Number(input) : NaN;
@@ -45,9 +51,10 @@ function chapterError(
   chapter: number | undefined,
   counts: readonly number[] | undefined,
 ): string | undefined {
-  if (!chapter || (book && chapter > book.chapters)) {
-    return '장을 확인하십시오.';
+  if (book && chapter && chapter > book.chapters) {
+    return lastOf(book.korean, book.chapters, '장');
   }
+  if (!chapter) return '장을 확인하십시오.';
   if (!counts) return LOADING_CHAPTER;
   return counts[chapter - 1] ? undefined : '역본에 없는 장';
 }
@@ -55,11 +62,13 @@ function chapterError(
 /** What is wrong with the 시작절: none, or past the chapter's last verse. */
 function startError(
   start: number | undefined,
+  chapter: number | undefined,
   verseCount: number | undefined,
 ): string | undefined {
-  if (!start || (verseCount !== undefined && start > verseCount)) {
-    return '시작절을 확인하십시오.';
+  if (chapter && start && verseCount !== undefined && start > verseCount) {
+    return lastOf(`${chapter}장`, verseCount, '절');
   }
+  if (!start) return '시작절을 확인하십시오.';
   return verseCount === undefined ? LOADING_CHAPTER : undefined;
 }
 
@@ -91,7 +100,7 @@ export function referenceFieldsState(
   const errors: Record<ReferencePart, string | undefined> = {
     book: book ? undefined : '성경 책을 골라야 합니다.',
     chapter: chapterError(book, chapter, counts),
-    start: startError(start, verseCount),
+    start: startError(start, chapter, verseCount),
     end: endError(start, end, verseCount),
   };
   const clampedEnd =

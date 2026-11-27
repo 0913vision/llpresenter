@@ -48,6 +48,11 @@ export interface TextFieldProps extends Omit<
   readonly invalid?: boolean | undefined;
   /** Why the value can't be saved; shown as the tooltip while invalid. */
   readonly invalidReason?: string | undefined;
+  /**
+   * Shows the reason in a bubble under the field at once while it has focus,
+   * not only in the tooltip, for fields whose typing is checked as it goes.
+   */
+  readonly reasonBubble?: boolean | undefined;
   /** Tooltip text, such as the reason the field is disabled. */
   readonly title?: string | undefined;
   readonly className?: string | undefined;
@@ -105,6 +110,7 @@ export function TextField({
   block = false,
   invalid = false,
   invalidReason,
+  reasonBubble = false,
   title,
   className,
   disabled = false,
@@ -170,6 +176,7 @@ export function TextField({
       })}
       title={reason.tooltip}
       inputRef={inputRef}
+      bubble={reasonBubble && invalid ? invalidReason : undefined}
     >
       {icon === undefined ? null : <Icon name={icon} size={iconSize[size]} />}
       {affix === undefined ? null : (
