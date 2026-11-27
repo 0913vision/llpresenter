@@ -48,11 +48,6 @@ export interface LibraryPanelProps {
    * row of its own, and 새 곡 goes to the palette's row (USER Nov 27).
    */
   readonly embedded?: boolean | undefined;
-  /**
-   * Why the songs can't be renamed, copied or deleted here: the library is
-   * changed only in the 라이브러리 tab (USER Nov 25).
-   */
-  readonly editReason?: string | undefined;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
   readonly onSelectSong?: ((songId: SongId) => void) | undefined;
@@ -70,7 +65,6 @@ export function LibraryPanel({
   api,
   navigating = false,
   embedded = false,
-  editReason,
   onOpenSong,
   onSelectSong,
   onNewSong,
@@ -133,7 +127,6 @@ export function LibraryPanel({
     list: listArea,
     library,
     serviceBusy: serviceMenu.busy,
-    editReason,
   });
   const menuSong = library.songs.find(song => song.id === menu?.id);
   const newSongButton = (
@@ -235,7 +228,6 @@ export function LibraryPanel({
             remove: () => deleteAfterMenu(menuSong),
             rename: () => renameAfterMenu(menuSong.id),
             reveal: () => api.library.revealSong(menuSong.id),
-            editReason,
           })}
         />
       ) : null}

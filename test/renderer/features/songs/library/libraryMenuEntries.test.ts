@@ -128,35 +128,7 @@ it('runs 이름 바꾸기 and 탐색기에서 보기 as commands, and protects a
   });
 });
 
-it('keeps 복제, 이름 바꾸기 and 삭제 off where the library is not changed, and still adds and opens', () => {
-  const song = libraryFixture().list()[0];
-  if (!song) throw new Error('Missing fixture');
-  const rows = menuItems(
-    libraryMenuEntries({
-      song,
-      appendDisabledReason: undefined,
-      busy: false,
-      append: vi.fn(),
-      open: vi.fn(),
-      duplicate: vi.fn(),
-      remove: vi.fn(),
-      rename: vi.fn(),
-      reveal: vi.fn(),
-      editReason: '라이브러리 탭에서만 바꿀 수 있습니다.',
-    }),
-  );
-  for (const id of ['duplicate', 'rename', 'delete']) {
-    expect(rows.find(row => row.id === id)).toMatchObject({
-      disabled: true,
-      title: '라이브러리 탭에서만 바꿀 수 있습니다.',
-    });
-  }
-  for (const id of ['add-to', 'lyrics', 'reveal']) {
-    expect(rows.find(row => row.id === id)?.disabled).toBeFalsy();
-  }
-});
-
-it('names a newer file before the tab, as it can be changed in no tab', () => {
+it('names a newer file, which can be changed in no tab', () => {
   const song = libraryFixture().list()[0];
   if (!song) throw new Error('Missing fixture');
   const rows = menuItems(
@@ -170,7 +142,6 @@ it('names a newer file before the tab, as it can be changed in no tab', () => {
       remove: vi.fn(),
       rename: vi.fn(),
       reveal: vi.fn(),
-      editReason: '라이브러리 탭에서만 바꿀 수 있습니다.',
     }),
   );
   expect(rows.find(row => row.id === 'delete')?.title).toBe(

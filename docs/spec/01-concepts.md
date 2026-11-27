@@ -393,17 +393,18 @@ All four workspaces use the same three-column frame (left, center, right).
 - The app always opens in the 진행 workspace (proposal).
 - 라이브러리 (user decision, November 25): the third toolbar tab, between 준비
   and 테마 (user, November 25), is where library songs are edited, in 준비's
-  song layout (라이브러리 list, song editor, 슬라이드 속성). The tab is on while
-  a song is open. Library songs are renamed, copied and deleted only here; in
-  준비 the 라이브러리 list adds songs to the 예배 순서 and those rows say
-  "라이브러리 탭에서만 바꿀 수 있습니다." Choosing 라이브러리 opens the song
-  left open, else the song edited last, else the first library song, else a new
-  song. Another tab only hides 라이브러리: the song stays open, with its unsaved
-  changes, until it is closed in 라이브러리 (Esc in the editor, which keeps
-  라이브러리 on screen with an empty editor) or saved; 준비 keeps its own 예배
-  순서 and open item meanwhile (user, November 27). The song editor has no back
-  button; the tabs move between them. A separate song window was turned down: it
-  would block running slides during a service.
+  song layout (라이브러리 list, song editor, 슬라이드 속성). Library songs are
+  renamed, copied and deleted here and in 준비's 라이브러리 list alike, where
+  the list also adds songs to the 예배 순서 (user decision, November 28:
+  "라이브러리를 사용하는 거니까"); 실행 취소 runs a change back in the tab where
+  it was made. Choosing 라이브러리 opens the song left open, else the song
+  edited last, else the first library song, else a new song. Another tab only
+  hides 라이브러리: the song stays open, with its unsaved changes, until it is
+  closed in 라이브러리 (Esc in the editor, which keeps 라이브러리 on screen with
+  an empty editor) or saved; 준비 keeps its own 예배 순서 and open item
+  meanwhile (user, November 27). The song editor has no back button; the tabs
+  move between them. A separate song window was turned down: it would block
+  running slides during a service.
 
 Source: `Main` decision "작업 공간 세 개", design system README (window sizes
 and layout), `ClearButton` README, `Dialog` README, product log (2026-10-24

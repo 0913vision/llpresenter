@@ -12,10 +12,8 @@ import {laterRow, menuSeparator} from '@renderer/ui/menus/menuRows';
 export function songChangeReason(
   song: Pick<LibrarySong, 'access'>,
   busy: boolean,
-  editReason: string | undefined,
 ): string | undefined {
   if (song.access === 'readOnly') return NEWER_FILE_REASON;
-  if (editReason !== undefined) return editReason;
   return busy ? '작업 중' : undefined;
 }
 
@@ -33,11 +31,8 @@ export function libraryMenuEntries({
   remove,
   rename,
   reveal,
-  editReason,
 }: {
   readonly song: LibrarySong;
-  /** Why the library can't be changed here, such as in 준비. */
-  readonly editReason?: string | undefined;
   readonly appendDisabledReason: string | undefined;
   readonly busy: boolean;
   readonly open: () => void;
@@ -77,14 +72,14 @@ export function libraryMenuEntries({
       contextGroup: 'clipboard',
       label: '복제',
       icon: 'duplicate',
-      ...menuAvailability(songChangeReason(song, busy, editReason)),
+      ...menuAvailability(songChangeReason(song, busy)),
       onSelect: duplicate,
     },
     {
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      ...menuAvailability(songChangeReason(song, busy, editReason)),
+      ...menuAvailability(songChangeReason(song, busy)),
       onSelect: rename,
     },
     {
@@ -93,7 +88,7 @@ export function libraryMenuEntries({
       contextGroup: 'delete',
       label: '삭제',
       danger: true,
-      ...menuAvailability(songChangeReason(song, busy, editReason)),
+      ...menuAvailability(songChangeReason(song, busy)),
       onSelect: remove,
     },
     menuSeparator('export-separator'),
