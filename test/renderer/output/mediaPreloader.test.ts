@@ -39,7 +39,13 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
-async function setup(decks: Readonly<Record<string, readonly Slide[]>>) {
+/** Hands a new media list to the preloader of the last setup. */
+let changeMedia: (document: MediaDocument) => void = () => undefined;
+
+async function setup(
+  decks: Readonly<Record<string, readonly Slide[]>>,
+  videos: readonly MediaId[] = [],
+) {
   const service: ShowService = {
     id: 'service',
     revision: 1,
@@ -58,7 +64,13 @@ async function setup(decks: Readonly<Record<string, readonly Slide[]>>) {
     value: {
       format: 'llmedia',
       schemaVersion: 1,
-      items: [],
+      items: videos.map(id => ({
+        id,
+        kind: 'video',
+        name: id,
+        file: `${id}.mp4`,
+        size: 0,
+      })),
       playlists: [],
       audioPlaylists: [],
     },
@@ -72,7 +84,10 @@ async function setup(decks: Readonly<Record<string, readonly Slide[]>>) {
     },
     media: {
       get: () => Promise.resolve(document),
-      subscribe: () => () => undefined,
+      subscribe: listener => {
+        changeMedia = listener;
+        return () => undefined;
+      },
     },
     settings: {
       get: () => Promise.resolve(themesDocument()),
@@ -81,7 +96,7 @@ async function setup(decks: Readonly<Record<string, readonly Slide[]>>) {
   });
   const preloader = new MediaPreloader(api);
   await vi.waitFor(() => expect(loads.length).toBeGreaterThan(0));
-  return preloader;
+  return {preloader, document};
 }
 
 async function finishAll(): Promise<void> {
@@ -96,7 +111,7 @@ function own() {
 }
 
 it('loads the pictures of the service one after another, the next ones first', async () => {
-  const preloader = await setup({
+  const {preloader} = await setup({
     one: [slide(1, media(1)), slide(2, media(2))],
     two: [slide(3, media(3))],
   });
@@ -107,7 +122,7 @@ it('loads the pictures of the service one after another, the next ones first', a
 });
 
 it('goes on from the slide that is live', async () => {
-  const preloader = await setup({
+  const {preloader} = await setup({
     one: [slide(1, media(1))],
     two: [slide(2, media(2)), slide(3, media(3))],
   });
@@ -118,7 +133,7 @@ it('goes on from the slide that is live', async () => {
 });
 
 it('does not load a picture twice, and not one that failed again', async () => {
-  const preloader = await setup({
+  const {preloader} = await setup({
     one: [slide(1, media(1)), slide(2, media(1)), slide(3, media(2))],
   });
   failures[0]?.(new Error('Invented failure'));
@@ -131,10 +146,70 @@ it('does not load a picture twice, and not one that failed again', async () => {
 });
 
 it('loads nothing more once it is disposed', async () => {
-  const preloader = await setup({
+  const {preloader} = await setup({
     one: [slide(1, media(1)), slide(2, media(2))],
   });
   preloader.dispose();
   await finishAll();
   expect(own()).toEqual(['1']);
+});
+
+it('tries a picture that failed again once the media list changes, as when its file is put back', async () => {
+  const {preloader, document} = await setup({
+    one: [slide(1, media(1)), slide(2, media(2))],
+  });
+  failures[0]?.(new Error('Invented failure'));
+  await vi.waitFor(() => expect(own()).toEqual(['1', '2']));
+  await finishAll();
+  changeMedia({...document, revision: 2});
+  await vi.waitFor(() => expect(own()).toEqual(['1', '2', '1']));
+  await finishAll();
+  preloader.dispose();
+});
+
+/** Videos that load at once, naming each one a player started on. */
+function playableVideos(): string[] {
+  const played: string[] = [];
+  vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(function (
+    this: HTMLMediaElement,
+  ) {
+    const source = this.getAttribute('src');
+    if (source === null) return;
+    played.push(source.slice(-12).replace(/^0+/u, ''));
+    queueMicrotask(() => {
+      this.onloadeddata?.call(this, new Event('loadeddata'));
+    });
+  });
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(
+    () => undefined,
+  );
+  return played;
+}
+
+it('keeps only the next four videos loaded, since players are scarce', async () => {
+  const played = playableVideos();
+  const clips = [1, 2, 3, 4, 5, 6].map(media);
+  const {preloader} = await setup(
+    {
+      one: clips.map((id, index) => slide(index + 1, id)),
+      two: [slide(7, media(7))],
+    },
+    clips,
+  );
+  await finishAll();
+  expect(played).toEqual(['1', '2', '3', '4']);
+  expect(own()).toEqual(['7']);
+  preloader.dispose();
+});
+
+it('waits for the media list before it loads, so a video is never taken for a picture', async () => {
+  const played = playableVideos();
+  const clip = media(1);
+  const {preloader} = await setup({one: [slide(1, clip), slide(2, media(2))]}, [
+    clip,
+  ]);
+  await finishAll();
+  expect(played).toEqual(['1']);
+  expect(own()).toEqual(['2']);
+  preloader.dispose();
 });

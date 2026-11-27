@@ -107,10 +107,13 @@ export class MediaPreloader {
     ];
   }
 
-  /** The media that come next, the soonest first. */
+  /**
+   * The media that come next, the soonest first; none before the media list is
+   * read, since only the list tells a video from a picture.
+   */
   private wanted(): readonly string[] {
     const {service, live} = this;
-    if (service === null) return [];
+    if (service === null || this.media === null) return [];
     const at = Math.max(
       0,
       service.rows.findIndex(row => row.id === live?.itemId),
