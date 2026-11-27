@@ -28,6 +28,12 @@ describe('the hint in an empty number field', () => {
     );
   });
 
+  it('names the verse fields, not 불러오는 중, after a chapter the book has not', () => {
+    const past = {...base, chapter: 22, lastVerse: undefined};
+    expect(numberPlaceholder('start', past)).toBe('시작절');
+    expect(numberPlaceholder('end', past)).toBe('끝절');
+  });
+
   it('shows the first and last verse beside the dialog', () => {
     const inline = {...base, dialogMode: false};
     expect(numberPlaceholder('start', inline)).toBe('1');

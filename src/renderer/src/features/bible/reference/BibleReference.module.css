@@ -164,6 +164,11 @@
   outline: 0;
   box-shadow: none;
 }
+/* NOTE(0913vision): A refused value keeps the error ring with focus, as on
+   every field. */
+.dialogForm .argument > span:has(> input[aria-invalid='true']) {
+  box-shadow: var(--ring-field-error);
+}
 .dialogForm .argument input {
   field-sizing: content;
   min-width: 2ch;

@@ -154,7 +154,11 @@ export function numberPlaceholder(
         ? REFERENCE_LABELS.chapter
         : `1~${chapters}`;
     }
-    if (chapter <= 0) return REFERENCE_LABELS[part];
+    // NOTE(0913vision): A chapter past the book's last has no verses to wait
+    // for; its fields keep their names.
+    if (chapter <= 0 || (chapters !== undefined && chapter > chapters)) {
+      return REFERENCE_LABELS[part];
+    }
     if (lastVerse === undefined) return '불러오는 중';
     return `${part === 'end' && start ? start : 1}~${lastVerse}`;
   }
