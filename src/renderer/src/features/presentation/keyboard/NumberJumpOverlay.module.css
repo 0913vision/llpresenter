@@ -80,7 +80,6 @@
 .backdrop[data-variant='c'] .panel {
   width: var(--dialog-s);
   padding: var(--space-24);
-  border-top: 3px solid var(--accent);
   border-radius: var(--radius-xl);
   background: var(--bg-panel);
 }
