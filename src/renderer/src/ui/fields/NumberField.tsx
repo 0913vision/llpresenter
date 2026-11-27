@@ -13,6 +13,7 @@ import {classNames} from '../classNames';
 import {onShortcutCommit} from './commitDraft';
 import {FieldFrame, useFieldReason} from './fieldFrame';
 import {isComposing} from './ime';
+import {useTypedValue} from './typedValue';
 import {hasModifier} from '../keys/modifierKeys';
 import {
   formatNumberText,
@@ -188,6 +189,8 @@ export function NumberField({
     stepBy(direction, event.shiftKey ? largeStep : step);
   };
 
+  const typedText = useTypedValue(inputRef, draft ?? shown);
+
   const field = (
     <FieldFrame
       className={classNames(styles.field, styles.number, className)}
@@ -207,9 +210,12 @@ export function NumberField({
         aria-invalid={invalid ? true : undefined}
         aria-describedby={reason.describedBy}
         readOnly={readOnly}
-        value={draft ?? shown}
+        defaultValue={typedText.initial}
         className={styles.input}
-        onChange={event => type(event.target.value)}
+        onChange={event => {
+          type(event.target.value);
+          typedText.typed(event.target.value);
+        }}
         onKeyDown={handleKeyDown}
         onBlur={event => {
           commit();

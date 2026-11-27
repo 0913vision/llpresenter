@@ -2,6 +2,7 @@ import {labelInk} from '@renderer/ui/labels/labelInk';
 import {useShortcutText} from '../keys/commandBindings';
 import {pointerMenuAnchor} from '@renderer/ui/menus/contextMenu';
 import {useRef, type JSX} from 'react';
+import {useTypedValue} from '../fields/typedValue';
 import {Icon} from '../Icon';
 import {
   hasIconColumn,
@@ -196,6 +197,10 @@ export function MenuSearchField({
   readonly pointedId?: string | undefined;
 }): JSX.Element {
   const placeholder = search.placeholder ?? SEARCH_PLACEHOLDER;
+  // NOTE(0913vision): Before the completion, whose caret placement must run
+  // after a completed value is written into the box.
+  const box = useRef<HTMLInputElement>(null);
+  const shown = useTypedValue(box, search.value);
   const complete = useInputCompletion(search.onChange);
   const reason = useFieldReason({
     invalid: search.invalidReason !== undefined,
@@ -221,11 +226,15 @@ export function MenuSearchField({
           aria-activedescendant={activeId}
           aria-label={placeholder}
           placeholder={placeholder}
-          value={search.value}
+          ref={box}
+          defaultValue={shown.initial}
           maxLength={search.maxLength}
           aria-invalid={search.invalidReason ? true : undefined}
           aria-describedby={reason.describedBy}
-          onChange={event => search.onChange(event.target.value)}
+          onChange={event => {
+            search.onChange(event.target.value);
+            shown.typed(event.target.value);
+          }}
           onKeyDown={event => {
             if (event.key === 'Tab') {
               complete(

@@ -463,3 +463,41 @@ describe('NumberField', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 });
+
+describe('NumberField typed text', () => {
+  it('keeps what was just typed when a render with the older value lands before its change is heard', () => {
+    const onChange = vi.fn();
+    const {rerender} = render(
+      <NumberField
+        aria-label="분"
+        value={5}
+        min={0}
+        max={99}
+        onChange={onChange}
+      />,
+    );
+    const input = screen.getByRole('spinbutton', {name: '분'});
+    if (!(input instanceof HTMLInputElement)) throw new Error('no input');
+    input.value = '57';
+    rerender(
+      <NumberField
+        aria-label="분"
+        value={5}
+        min={0}
+        max={99}
+        onChange={onChange}
+      />,
+    );
+    expect(input.value).toBe('57');
+    rerender(
+      <NumberField
+        aria-label="분"
+        value={9}
+        min={0}
+        max={99}
+        onChange={onChange}
+      />,
+    );
+    expect(input.value).toBe('9');
+  });
+});

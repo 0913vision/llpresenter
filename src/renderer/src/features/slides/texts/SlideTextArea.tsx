@@ -71,8 +71,10 @@ export function SlideTextArea({
   const many = takesManyRows(theme, box);
   const readOnly = deck.readOnly || locked;
   const input = useRef<HTMLTextAreaElement>(null);
-  useWantedCaret(input, place, inList);
+  // NOTE(0913vision): The value goes into the box before the wanted caret is
+  // placed in it, as both run after the same render.
   const shown = useTypedValue(input, value);
+  useWantedCaret(input, place, inList);
   const set = (text: string): void => {
     const own = many ? text : text.replace(/\s*\n\s*/gu, ' ');
     deck.edit(

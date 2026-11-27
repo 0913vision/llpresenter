@@ -11,6 +11,7 @@ import {Icon} from '@renderer/ui/Icon';
 import {LabelSwatch} from '@renderer/ui/labels/LabelChip';
 import {Menu} from '@renderer/ui/menus/Menu';
 import {isComposing} from '@renderer/ui/fields/ime';
+import {useTypedValue} from '@renderer/ui/fields/typedValue';
 import {hasModifier} from '@renderer/ui/keys/modifierKeys';
 import {labelMenuEntries} from '@renderer/features/labels/labelMenuEntries';
 import {useImportLabelWindow} from './useImportLabelWindow';
@@ -29,6 +30,7 @@ function LabelField({
 }): JSX.Element {
   const [field, setField] = useState<HTMLDivElement | null>(null);
   const input = useRef<HTMLInputElement>(null);
+  const shown = useTypedValue(input, value);
   const [open, setOpen] = useState(false);
   const [menuTakesFocus, setMenuTakesFocus] = useState(false);
   const current = matchingImportLabel(value, labels);
@@ -50,11 +52,12 @@ function LabelField({
           aria-haspopup="menu"
           aria-expanded={open}
           placeholder="이름표 없음"
-          value={value}
+          defaultValue={shown.initial}
           maxLength={TEXT_IMPORT_LIMITS.label}
           onFocus={event => event.currentTarget.select()}
           onChange={event => {
             onChange(event.currentTarget.value);
+            shown.typed(event.currentTarget.value);
             setOpen(false);
           }}
           onKeyDown={event => {

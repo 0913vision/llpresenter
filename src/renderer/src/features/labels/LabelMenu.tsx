@@ -15,6 +15,7 @@ import {useChoicePopup} from '@renderer/ui/choices/useChoicePopup';
 import type {LabelCatalog} from './labelCatalog';
 import styles from './LabelMenu.module.css';
 import {SLIDE_LIMITS} from '@core/schema/slides/slide';
+import {useTypedValue} from '@renderer/ui/fields/typedValue';
 
 interface LabelMenuProps {
   readonly store: LabelCatalog;
@@ -40,6 +41,8 @@ export function LabelMenu({
   const [managing, setManaging] = useState(false);
   const [naming, setNaming] = useState(false);
   const [name, setName] = useState(selected ?? '');
+  const nameBox = useRef<HTMLInputElement>(null);
+  const shownName = useTypedValue(nameBox, name);
   const wasManaging = useRef(false);
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
@@ -96,11 +99,15 @@ export function LabelMenu({
             />
             {naming ? (
               <input
+                ref={nameBox}
                 aria-label="이름 적기"
                 autoFocus
                 maxLength={SLIDE_LIMITS.label}
-                value={name}
-                onChange={event => setName(event.currentTarget.value)}
+                defaultValue={shownName.initial}
+                onChange={event => {
+                  setName(event.currentTarget.value);
+                  shownName.typed(event.currentTarget.value);
+                }}
                 onKeyDown={event => {
                   event.stopPropagation();
                   if (
