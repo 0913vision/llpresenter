@@ -1,5 +1,11 @@
 import {songSlidesOf} from '@core/schema/songs/song';
-import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {parseServiceItemId, type SongId} from '@core/schema/common/ids';
 import {
@@ -182,6 +188,14 @@ export function usePrepPanels({
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): WorkspacePanels {
   const report = onProblem ?? logPanelProblem;
+  const songShown = useSongDraft(view => view.draft !== null);
+  const songTarget = target?.kind === 'song';
+  // NOTE(0913vision): 라이브러리 is 준비 with a song open. A song that closes
+  // without the editor, as one deleted while it is open, leaves 라이브러리 as
+  // closing it does; else the tab stays on and shows the 예배 순서.
+  useEffect(() => {
+    if (songTarget && !songShown) closePrepEditor();
+  }, [songTarget, songShown]);
   const requestedItem = useShow(view => view.openItemId);
   const selectedItem =
     retainedItem === undefined ? requestedItem : retainedItem;
