@@ -1,3 +1,4 @@
+import type {SongId} from '@core/schema/common/ids';
 import {useMemo, useState, type JSX} from 'react';
 import {displayReference} from '@core/bible';
 import type {BibleLookupPassage} from '@core/schema/bible/bibleLookup';
@@ -16,13 +17,18 @@ import {SelectMenu} from '@renderer/ui/choices/SelectMenu';
 import {useServiceSongMenu} from '../order/menu/useServiceSongMenu';
 import {useShow} from '@renderer/session/show/showStore';
 
-/** Saves the slides of a song item as the song of the library. */
+/**
+ * Saves the slides of a song item as the song of the library, and opens that
+ * song in 라이브러리 (USER Nov 27: from 준비 straight to the song).
+ */
 function SongTools({
   item,
   report,
+  onShowInLibrary,
 }: {
   readonly item: ServiceItemOf<'song'>;
   readonly report: Report;
+  readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
   const target = useMemo(
@@ -39,6 +45,15 @@ function SongTools({
       >
         라이브러리에 저장…
       </Button>
+      {onShowInLibrary === undefined ? null : (
+        <Button
+          disabled={menu.reason !== undefined}
+          title={menu.reason}
+          onClick={() => onShowInLibrary(item.song)}
+        >
+          라이브러리에서 보기
+        </Button>
+      )}
       {menu.dialog}
     </>
   );
@@ -161,14 +176,22 @@ export function LiturgyVersion({
 export function ItemTools({
   deck,
   report,
+  onShowInLibrary,
 }: {
   readonly deck: SlideDeck;
   readonly report: Report;
+  readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
 }): JSX.Element | null {
   const {item} = deck;
   switch (item?.kind) {
     case 'song':
-      return <SongTools item={item} report={report} />;
+      return (
+        <SongTools
+          item={item}
+          report={report}
+          onShowInLibrary={onShowInLibrary}
+        />
+      );
     case 'bible':
     case 'sermon':
       return <PassageTools deck={deck} item={item} report={report} />;

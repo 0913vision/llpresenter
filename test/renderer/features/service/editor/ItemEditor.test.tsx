@@ -8,8 +8,9 @@ import {
 import userEvent from '@testing-library/user-event';
 import type {JSX} from 'react';
 import {beforeEach, expect, it, onTestFinished, vi} from 'vitest';
-import {translationIdSchema} from '@core/schema/common/ids';
+import {createSongId, translationIdSchema} from '@core/schema/common/ids';
 import type {ServiceItem} from '@core/schema/services/service';
+import {SONG_SCHEMA_VERSION} from '@core/schema/songs/song';
 import {liturgyItem, withOpeningTitle} from '@core/slides/items';
 import {defaultSlideTransitions} from '@core/schema/app/preferences';
 import {BUILT_IN_THEME_IDS} from '@core/theme/builtIn/ids';
@@ -35,8 +36,15 @@ const report = vi.fn();
 const back = vi.fn();
 const making = {themes: themes(), transitions: defaultSlideTransitions};
 
+const showInLibrary = vi.fn();
+
 function Harness(): JSX.Element {
-  const editor = useItemEditor({itemId: ITEM, report, onBack: back});
+  const editor = useItemEditor({
+    itemId: ITEM,
+    report,
+    onBack: back,
+    onShowInLibrary: showInLibrary,
+  });
   return (
     <>
       {editor?.editor}
@@ -121,6 +129,46 @@ it('has the name of a song only to read', () => {
     screen.getByRole<HTMLInputElement>('textbox', {name: '이름'}).readOnly,
   ).toBe(true);
   expect(screen.getByRole('button', {name: '라이브러리에 저장…'})).toBeTruthy();
+});
+
+it('opens the song of a song item in 라이브러리 from 준비 (USER Nov 27)', async () => {
+  const song = createSongId('00000000-0000-4000-8000-000000000301');
+  openServiceFixture(
+    [
+      {
+        id: ITEM,
+        kind: 'song',
+        name: '새 노래',
+        song,
+        slides: [lyricsSlide(1, '가사')],
+      },
+    ],
+    {
+      api: {
+        songs: {
+          get: () =>
+            Promise.resolve({
+              song: {
+                format: 'llsong',
+                schemaVersion: SONG_SCHEMA_VERSION,
+                id: song,
+                title: '새 노래',
+                slides: [lyricsSlide(1, '가사')],
+              },
+              revision: 1,
+              access: 'editable',
+            }),
+        },
+      },
+    },
+  );
+  render(<Harness />);
+  const button = screen.getByRole('button', {name: '라이브러리에서 보기'});
+  await waitFor(() =>
+    expect(button.getAttribute('aria-disabled')).not.toBe('true'),
+  );
+  await userEvent.click(button);
+  expect(showInLibrary).toHaveBeenCalledExactlyOnceWith(song);
 });
 
 it('adds the title of an item at its start, once', async () => {

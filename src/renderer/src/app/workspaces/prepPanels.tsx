@@ -206,6 +206,7 @@ export function usePrepPanels({
     itemId: target?.itemId ?? null,
     report,
     onBack: closePrepEditor,
+    onShowInLibrary,
     ui: prep?.api.ui,
   });
   const shownSearch = useShownSearch('prep');

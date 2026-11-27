@@ -1,3 +1,4 @@
+import type {SongId} from '@core/schema/common/ids';
 import type {JSX, ReactNode} from 'react';
 import type {UiApi} from '@contracts/ipc/ui';
 import type {SlidesItem} from '@core/schema/services/service';
@@ -36,10 +37,12 @@ function ItemHeader({
   deck,
   report,
   onBack,
+  onShowInLibrary,
 }: {
   readonly deck: SlideDeck;
   readonly report: Report;
   readonly onBack: () => void;
+  readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
   const serviceName = useShow(view => view.serviceName);
   const {item} = deck;
@@ -65,7 +68,11 @@ function ItemHeader({
         />
       </div>
       <div className={styles.commands}>
-        <ItemTools deck={deck} report={report} />
+        <ItemTools
+          deck={deck}
+          report={report}
+          onShowInLibrary={onShowInLibrary}
+        />
       </div>
     </header>
   );
@@ -76,11 +83,14 @@ export function useItemEditor({
   itemId,
   report,
   onBack,
+  onShowInLibrary,
   ui,
 }: {
   readonly itemId: string | null;
   readonly report: Report;
   readonly onBack: () => void;
+  /** Opens a library song in 라이브러리, for a song item's own song. */
+  readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
 }): {readonly editor: ReactNode; readonly inspector: ReactNode} | null {
   const deck = useItemDeck(itemId, report);
@@ -95,7 +105,14 @@ export function useItemEditor({
         <SlideEditor
           deck={deck}
           tiles={tiles}
-          header={<ItemHeader deck={deck} report={report} onBack={onBack} />}
+          header={
+            <ItemHeader
+              deck={deck}
+              report={report}
+              onBack={onBack}
+              onShowInLibrary={onShowInLibrary}
+            />
+          }
           add={<ItemAdders deck={deck} item={deck.item} report={report} />}
           extraMenu={index => control.entries(index + 1)}
           decoration={revision => (
