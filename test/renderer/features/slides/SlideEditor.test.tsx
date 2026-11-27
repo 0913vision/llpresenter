@@ -1,3 +1,4 @@
+import {lendPreviewImage} from '@renderer/rendering/media/previewMedia';
 import {act, fireEvent, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
@@ -562,6 +563,28 @@ describe('the background of a slide', () => {
     ).toBeNull();
     expect(row(1).querySelector('[data-state~="warning"]')).not.toBeNull();
     expect(row(2).querySelector('[data-state~="warning"]')).toBeNull();
+  });
+
+  it('draws the background of a song being imported, lent to the previews, without the missing mark', () => {
+    const lent = lendPreviewImage(
+      new Blob(['<svg/>'], {type: 'image/svg+xml'}),
+    );
+    if (lent === null) throw new Error('No lent preview image');
+    try {
+      renderEditor(
+        song().map((slide, index) =>
+          index === 1
+            ? {...slide, background: {kind: 'media' as const, media: lent.id}}
+            : slide,
+        ),
+      );
+      expect(
+        row(1).querySelector('[title^="파일을 찾을 수 없습니다"]'),
+      ).toBeNull();
+      expect(row(1).querySelector('[data-state~="warning"]')).toBeNull();
+    } finally {
+      lent.release();
+    }
   });
 
   it('warns beside the background select when the chosen background file is missing, naming it', async () => {

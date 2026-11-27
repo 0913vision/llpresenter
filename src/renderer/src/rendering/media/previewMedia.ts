@@ -50,6 +50,15 @@ export function lentPreviewUrl(id: string): string | undefined {
   return temporaryImages.get(id)?.url;
 }
 
+/**
+ * Whether an id names an image lent to previews now, as the backgrounds of a
+ * song that is being imported until it is saved: it is there, though the
+ * media list doesn't hold it yet.
+ */
+export function isLentPreviewImage(id: string): boolean {
+  return temporaryImages.has(id);
+}
+
 /** Where a preview finds the address of a media file. */
 export interface PreviewMediaSource {
   /** The picture's address, when this window already knows it. */

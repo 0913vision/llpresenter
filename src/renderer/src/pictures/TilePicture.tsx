@@ -3,6 +3,7 @@ import type {ShowTile} from '@core/schema/services/showService';
 import type {Slide} from '@core/schema/slides/slide';
 import {unavailableMedia, useMedia} from '@renderer/platform/documents/media';
 import {useThemes} from '@renderer/platform/documents/themes';
+import {isLentPreviewImage} from '@renderer/rendering/media/previewMedia';
 import {tileDrawing, type TileDrawingOptions} from './slideDrawing';
 import {SlidePicture} from './SlidePicture';
 
@@ -36,8 +37,12 @@ export function useMissingFileOf(): (
   const document = useMedia(view => view.document);
   const missing = useMedia(view => view.missing);
   const items = useMedia(view => view.items);
+  // NOTE(0913vision): The backgrounds of a song being imported are pictures
+  // lent to the previews until the song is saved: they are there, though the
+  // media list doesn't hold them yet.
   return ({background}) =>
     background?.kind === 'media' &&
+    !isLentPreviewImage(background.media) &&
     unavailableMedia({document, items, missing}, background.media)
       ? (items.find(item => item.id === background.media)?.file ??
         background.media)
