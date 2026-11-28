@@ -5,3 +5,11 @@
 .button {
   width: 100%;
 }
+
+/* NOTE(0913vision): A narrow 세부정보 column (1366 x 768) cuts a long button
+   name with an ellipsis instead of letting it spill past the column. */
+.buttonName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

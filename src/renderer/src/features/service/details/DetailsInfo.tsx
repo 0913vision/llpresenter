@@ -76,7 +76,7 @@ function SongSource({
                 title={reason}
                 onClick={transfer.save}
               >
-                라이브러리에 저장…
+                <span className={styles.buttonName}>라이브러리에 저장…</span>
               </Button>
             )}
           </PropertyRow>
@@ -88,7 +88,9 @@ function SongSource({
                 title={reason}
                 onClick={transfer.reload}
               >
-                라이브러리에서 다시 불러오기
+                <span className={styles.buttonName}>
+                  라이브러리에서 다시 불러오기
+                </span>
               </Button>
             )}
           </PropertyRow>
