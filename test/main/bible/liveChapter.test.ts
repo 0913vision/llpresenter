@@ -1,4 +1,5 @@
 import {loadBibleChapterLibrary} from '@main/bible/chapterLibrary';
+import {bibleFolder} from '@fixtures/main/bible/mockBibleFolder';
 import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {
@@ -10,29 +11,13 @@ import {BibleChapterCache} from '../../../src/main/bible/chapterCache';
 import {BibleLibrary} from '../../../src/main/bible/library';
 import {LIVE_BIBLE_ID} from '../../../src/core/schema/common/ids';
 
-const disk = vi.hoisted(() => new Map<string, readonly string[]>());
-
-vi.mock('@main/bible/liveChapterDisk', () => ({
-  readLiveChapter: vi.fn(
-    async (folder: string, book: number, chapter: number) =>
-      disk.get(`${folder}/${book}-${chapter}`) ?? null,
-  ),
-  writeLiveChapter: vi.fn(
-    async (
-      folder: string,
-      chapter: {book: number; chapter: number; verses: readonly string[]},
-    ) => {
-      disk.set(`${folder}/${chapter.book}-${chapter.chapter}`, chapter.verses);
-    },
-  ),
+vi.mock('@main/bible/liveChapterDisk', async () => ({
+  ...(await import('@fixtures/main/bible/mockBibleFolder')),
 }));
 
 const html =
   '<div id="tdBible1"><f><span><b class="number">1</b>alpha<font class="name">beta</font>gamma<div>heading</div><font size="2">footnote</font>&amp;delta</span><span><b class="number">3</b>last</span></f></div>';
-afterEach(() => {
-  vi.unstubAllGlobals();
-  disk.clear();
-});
+afterEach(() => vi.unstubAllGlobals());
 describe('live Bible chapters', () => {
   it('cleans wrapped verses without adding spaces and preserves missing verse slots', () => {
     expect(parseLiveChapter(html)).toEqual([
@@ -116,7 +101,7 @@ describe('live Bible chapters', () => {
     library.clear();
   });
   it('keeps a fetched chapter on disk for the next launch, and fetches again when the disk has none', async () => {
-    const folder = 'D:/LoveLight/bible';
+    const folder = bibleFolder.create();
     const count = BIBLE_VERSE_COUNTS[0]?.[0];
     if (count === undefined) throw Error('Missing bounds');
     const page = `<div id="tdBible1">${Array.from(
@@ -132,7 +117,7 @@ describe('live Bible chapters', () => {
       onProblem: vi.fn(),
     });
     expect(await first.chapter(LIVE_BIBLE_ID, 1, 1)).toHaveLength(count);
-    expect(disk.get(`${folder}/1-1`)).toHaveLength(count);
+    expect(bibleFolder.liveChapter(folder, 1, 1)).toHaveLength(count);
     first.clear();
     const next = await loadBibleChapterLibrary({
       folder,
@@ -142,7 +127,7 @@ describe('live Bible chapters', () => {
     expect(await next.cachedLiveChapter(1, 1)).toHaveLength(count);
     expect(fetch).toHaveBeenCalledTimes(1);
     next.clear();
-    disk.clear();
+    bibleFolder.removeLiveChapter(folder, 1, 1);
     const emptied = await loadBibleChapterLibrary({
       folder,
       translations: [],

@@ -1,6 +1,5 @@
 import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
 import type {SettingsReader} from '@core/schema/app/settingsReader';
-import {unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {
@@ -9,12 +8,18 @@ import {
 } from '@core/schema/bible/bibleLookup';
 import {parseSettingsDocument} from '@core/schema/app/settingsDocuments';
 import {defaultPreferences} from '@core/schema/app/preferences';
-import {makeTempDir} from '@fixtures/tempDir';
 import {BibleLookupSession} from '@main/bible/lookup';
 import * as library from '@main/bible/library';
 import * as chapterFile from '@main/bible/chapterFile';
-import {chunkedTranslationFile} from '@fixtures/core/bible/testFiles';
+import {bibleFolder} from '@fixtures/main/bible/mockBibleFolder';
 import {LIVE_BIBLE_ID} from '@core/schema/common/ids';
+
+vi.mock('@main/bible/chapterFile', async () => ({
+  ...(await import('@fixtures/main/bible/mockBibleFolder')),
+}));
+vi.mock('@main/bible/liveChapterDisk', async () => ({
+  ...(await import('@fixtures/main/bible/mockBibleFolder')),
+}));
 
 const log = {
   info: vi.fn(),
@@ -49,19 +54,14 @@ function request(input = '요 3:16-18') {
   return parsed.value;
 }
 
-/** Writes files that are there but are no Bible, which every load skips. */
-async function broken(folder: string, ...files: readonly string[]) {
-  await Promise.all(
-    files.map(file => writeFile(join(folder, file), 'not a Bible')),
-  );
+/** Puts files that are there but are no Bible, which every load skips. */
+function broken(folder: string, ...files: readonly string[]) {
+  for (const file of files) bibleFolder.breakFile(join(folder, file));
 }
 
 async function setup() {
-  const folder = await makeTempDir();
-  await writeFile(
-    join(folder, 'sample.llbible'),
-    chunkedTranslationFile().bytes,
-  );
+  const folder = bibleFolder.create();
+  bibleFolder.put(join(folder, 'sample.llbible'));
   const get = vi.fn(() => document());
   const settings: SettingsReader = {
     get,
@@ -107,9 +107,9 @@ describe('Bible lookup session', () => {
     // NOTE(0913vision): Remove the file after indexing but before chapter reads.
     await session.lookup(request('John'));
     const file = join(folder, 'sample.llbible');
-    await unlink(file);
+    bibleFolder.remove(file);
     expect((await session.lookup(request())).result.ok).toBe(false);
-    await writeFile(file, chunkedTranslationFile().bytes);
+    bibleFolder.put(file);
     expect((await session.lookup(request())).result.ok).toBe(true);
   });
   it('returns chapter bounds for a book-only request without reading chapter text', async () => {
@@ -197,7 +197,7 @@ describe('Bible lookup session', () => {
         },
       },
     });
-    await unlink(join(folder, 'sample.llbible'));
+    bibleFolder.remove(join(folder, 'sample.llbible'));
     expect((await session.lookup(request('요 3장 16-18절'))).result).toEqual(
       first.result,
     );
@@ -236,7 +236,7 @@ describe('Bible lookup session', () => {
     const {session, get, folder} = await setup();
     await session.lookup(request());
     const warnings = vi.mocked(log.warn).mock.calls.length;
-    await broken(folder, 'missing.llbible', 'other-missing.llbible');
+    broken(folder, 'missing.llbible', 'other-missing.llbible');
     get.mockImplementation(() => document('missing.llbible'));
     expect((await session.lookup(request())).result).toMatchObject({
       ok: false,
@@ -272,10 +272,7 @@ describe('Bible lookup session', () => {
             message === 'a Bible translation file is not in the Bible folder',
         ),
     ).toHaveLength(1);
-    await writeFile(
-      join(folder, 'krv.llbible'),
-      chunkedTranslationFile().bytes,
-    );
+    bibleFolder.put(join(folder, 'krv.llbible'));
     expect((await session.lookup(request())).result).toMatchObject({ok: true});
   });
 
@@ -283,7 +280,7 @@ describe('Bible lookup session', () => {
     const {session, get, folder} = await setup();
     await session.lookup(request());
     const warnings = vi.mocked(log.warn).mock.calls.length;
-    await broken(
+    broken(
       folder,
       ...Array.from({length: 129}, (_, index) => `missing-${index}.llbible`),
     );
@@ -301,7 +298,7 @@ describe('Bible lookup session', () => {
   });
 
   it('rejects unavailable settings and releases queued requests after disposal', async () => {
-    const folder = await makeTempDir();
+    const folder = bibleFolder.create();
     const unavailable = new BibleLookupSession({
       folder,
       settings: Promise.resolve(null),
@@ -350,7 +347,7 @@ describe('Bible lookup session', () => {
   });
 
   it('caps pending work and recovers the queue after failures', async () => {
-    const folder = await makeTempDir();
+    const folder = bibleFolder.create();
     const session = new BibleLookupSession({
       folder,
       settings: Promise.resolve(null),

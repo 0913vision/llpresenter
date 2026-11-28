@@ -157,6 +157,13 @@ describe('positioned Bible file reads', () => {
     );
   });
 
+  it('refuses a translation kept as one whole JSON file and leaves the file as it was', async () => {
+    const bytes = Buffer.from(JSON.stringify(translationFile()));
+    const file = await fixtureFile(bytes);
+    await expect(readBibleChapterFile(file, 'sample')).rejects.toThrow();
+    expect(await fs.readFile(file)).toEqual(bytes);
+  });
+
   it('does no IO for a chapter outside the validated table', async () => {
     const file = await fixtureFile(
       chunkedTranslationFile(translationFile([57])).bytes,

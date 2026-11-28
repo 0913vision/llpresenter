@@ -1,16 +1,21 @@
-import {truncate, unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import type {Translation} from '@core/schema/bible/bible';
 import type {FileError} from '@core/schema/common/fileFormat';
-import {makeTempDir} from '@fixtures/tempDir';
 import * as chapterFile from '@main/bible/chapterFile';
 import {loadBibleChapterLibrary} from '@main/bible/chapterLibrary';
 import {
-  chunkedTranslationFile,
   parsedTranslation,
   translationFile,
 } from '@fixtures/core/bible/testFiles';
+import {bibleFolder} from '@fixtures/main/bible/mockBibleFolder';
+
+vi.mock('@main/bible/chapterFile', async () => ({
+  ...(await import('@fixtures/main/bible/mockBibleFolder')),
+}));
+vi.mock('@main/bible/liveChapterDisk', async () => ({
+  ...(await import('@fixtures/main/bible/mockBibleFolder')),
+}));
 
 function installed(id = 'sample', file = `${id}.llbible`): Translation {
   return {
@@ -23,10 +28,12 @@ function installed(id = 'sample', file = `${id}.llbible`): Translation {
 }
 
 async function setup(ids = ['sample'], books = [43]) {
-  const folder = await makeTempDir();
+  const folder = bibleFolder.create();
   for (const id of ids) {
-    const fixture = chunkedTranslationFile({...translationFile(books), id});
-    await writeFile(join(folder, `${id}.llbible`), fixture.bytes);
+    bibleFolder.put(join(folder, `${id}.llbible`), {
+      ...translationFile(books),
+      id,
+    });
   }
   const onProblem = vi.fn<(problem: FileError) => void>();
   const library = await loadBibleChapterLibrary({
@@ -46,7 +53,7 @@ describe('indexed Bible chapter library', () => {
     expect(library.header('sample')?.books[0]?.chapters[2]?.verses).toBe(36);
     const verses = await library.chapter('sample', 43, 3);
     expect(verses?.[15]).toBe('Invented book 43, chapter 3, verse 16');
-    await unlink(join(folder, 'sample.llbible'));
+    bibleFolder.remove(join(folder, 'sample.llbible'));
     expect(await library.chapter('sample', 43, 3)).toBe(verses);
     expect(read).toHaveBeenCalledOnce();
     expect(onProblem).not.toHaveBeenCalled();
@@ -84,7 +91,7 @@ describe('indexed Bible chapter library', () => {
     await library.chapter('broken', 43, 1);
     const good = await library.chapter('good', 43, 1);
     const file = join(folder, 'broken.llbible');
-    await truncate(file, 4);
+    bibleFolder.breakFile(file);
     expect(await library.chapter('broken', 43, 2)).toBeNull();
     expect(await library.chapter('broken', 43, 1)).toBeNull();
     expect(await library.chapter('broken', 43, 2)).toBeNull();
@@ -126,10 +133,7 @@ describe('indexed Bible chapter library', () => {
 
   it('skips a broken header once while retaining the next valid translation', async () => {
     const {folder} = await setup(['good']);
-    await writeFile(
-      join(folder, 'broken.llbible'),
-      Buffer.from([1, 0, 0, 0, 255]),
-    );
+    bibleFolder.breakFile(join(folder, 'broken.llbible'));
     const onProblem = vi.fn<(problem: FileError) => void>();
     const library = await loadBibleChapterLibrary({
       folder,
