@@ -204,3 +204,55 @@ it('returns to the live tile after scrolling it out of view', () => {
     expect.objectContaining({top: 0, behavior: 'smooth'}),
   );
 });
+
+/** A service of six songs of four slides each, taller than the view. */
+function applyLongService(): void {
+  const ids = ['a', 'b', 'c', 'd', 'e', 'f'];
+  applyService({
+    id: 'service',
+    name: 'Service',
+    revision: 2,
+    readOnly: false,
+    rows: ids.map(id => ({id, kind: 'song', title: `Song ${id}`})),
+    tiles: Object.fromEntries(
+      ids.map((id, at) => [
+        id,
+        [1, 2, 3, 4].map(n => ({
+          slide: lyricsSlide(at * 10 + n, `${id} ${n}`),
+          auto: {},
+          caption: null,
+          labelColor: 'none' as const,
+        })),
+      ]),
+    ),
+  });
+  openItem('a');
+}
+
+it('keeps the keyboard in the grid when the band that held it scrolls out of its window', () => {
+  applyLongService();
+  const viewport = measuredViewport();
+  const first = screen.getAllByRole('listbox')[0];
+  if (!first) throw new Error('Missing listbox');
+  act(() => first.focus());
+  fireEvent.wheel(viewport);
+  viewport.scrollTop = 600;
+  fireEvent.scroll(viewport);
+  expect(first.isConnected).toBe(false);
+  expect(document.activeElement?.getAttribute('role')).toBe('listbox');
+  expect(viewport.contains(document.activeElement)).toBe(true);
+});
+
+it('lets the grid go once the operator clicks elsewhere', () => {
+  applyLongService();
+  const viewport = measuredViewport();
+  const first = screen.getAllByRole('listbox')[0];
+  if (!first) throw new Error('Missing listbox');
+  act(() => first.focus());
+  fireEvent.pointerDown(document.body);
+  act(() => first.blur());
+  fireEvent.wheel(viewport);
+  viewport.scrollTop = 600;
+  fireEvent.scroll(viewport);
+  expect(document.activeElement).toBe(document.body);
+});

@@ -29,6 +29,7 @@ import styles from './SlideGrid.module.css';
 import {tileReflowIds} from './tileReflowIds';
 import {useReflow} from '@renderer/ui/panels/useReflow';
 import {useContinuousViewport} from './useContinuousViewport';
+import {useGridKeepsFocus} from './useGridKeepsFocus';
 import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
 
 const BAND = 30;
@@ -130,6 +131,7 @@ export function ContinuousSlideGrid({
   doubleClickPrep = false,
 }: SlideGridProps): JSX.Element {
   const keeper = useRef<HTMLDivElement>(null);
+  useGridKeepsFocus(keeper);
   const entryRef = useContext(ShowSlideEntry);
   const [menu, setMenu] = useState<TileMenu | null>(null);
   const initialized = useRef(false);
