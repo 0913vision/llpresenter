@@ -226,18 +226,6 @@ describe('다음 항목 and 이전 항목', () => {
     stop();
   });
 
-  it('step on from the item they reached while LIVE stays, and come back with the other key', () => {
-    const stop = onScrollGridToItem(() => undefined);
-    goLive('song-morning', 0);
-    openNextItem();
-    expect(useShow.getState().openItemId).toBe('song-river');
-    openNextItem();
-    expect(useShow.getState().openItemId).toBe('psalm-23');
-    openPreviousItem();
-    expect(useShow.getState().openItemId).toBe('song-river');
-    stop();
-  });
-
   it('go on from the live item, whatever the list or the grid points at', () => {
     const stop = onScrollGridToItem(() => undefined);
     openItem('song-morning');

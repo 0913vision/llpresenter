@@ -91,9 +91,8 @@ list and item picker. Empty, text, and mixed decks keep the slides icon.
   next and previous 슬라이드 while the list has focus (10, focus precedence).
 - Ctrl ↓ and Ctrl ↑ select the next and previous item that can output and open
   it in the 슬라이드 panel, without outputting (다음 항목, 이전 항목; decided,
-  10). They count from the live item, pressed again before LIVE moves from the
-  item they reached (two presses step two items, the other key comes back); with
-  nothing of the service live, from the selected item.
+  10). They count from the live item; with nothing of the service live, from the
+  selected item.
 - 진행 rows don't show details such as the 슬라이드 count (`ShowH`). 준비 rows
   do (see 05).
 
