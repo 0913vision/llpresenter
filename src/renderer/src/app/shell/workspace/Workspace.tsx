@@ -117,7 +117,7 @@ export function Workspace({
   if (visibleId !== lastVisible) setLastVisible(visibleId);
   const showVisible = visibleId === 'show';
   useWorkspaceServiceHistory(visibleId !== 'screens', problem);
-  useUndoReveal(onShowInLibrary);
+  useUndoReveal(onShowInLibrary, visibleId);
   useWorkspaceUndo(visibleId);
   // NOTE(0913vision): 진행 stays built, hidden, while another workspace
   // shows, so going back to 진행 shows its panels in the next frame instead of

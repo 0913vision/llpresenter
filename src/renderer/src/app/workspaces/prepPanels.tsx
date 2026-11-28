@@ -1,5 +1,12 @@
 import {songSlidesOf} from '@core/schema/songs/song';
-import {useLayoutEffect, useRef, useState, type ReactNode} from 'react';
+import {
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {parseServiceItemId, type SongId} from '@core/schema/common/ids';
 import {
@@ -39,6 +46,7 @@ import {
 } from '../shell/workspace/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 import {useShow} from '@renderer/session/show/showStore';
+import {usePrepLibraryChoice} from '@renderer/session/prepLibraryChoice';
 import type {SizeClass} from '@core/schema/app/appConfig';
 import {readLibrarySong} from '@renderer/features/songs/library/readLibrarySong';
 import {editorTask} from '@renderer/platform/editorTask';
@@ -92,6 +100,21 @@ function Library({
       ),
     );
   };
+  // NOTE(0913vision): 실행 취소 of a song deleted here brings this screen
+  // back: the 라이브러리 tab of the palette, with the song chosen in it.
+  const choice = usePrepLibraryChoice();
+  const showChoice = useEffectEvent((songId: SongId): void => {
+    setTab('songs');
+    selectSong(songId);
+  });
+  useEffect(() => {
+    if (navigating) return undefined;
+    return usePrepLibraryChoice.subscribe((next, previous) => {
+      if (next.turn !== previous.turn && next.songId !== null) {
+        showChoice(next.songId);
+      }
+    });
+  }, [navigating]);
   return (
     <PrepPalette
       tab={tab}
@@ -103,6 +126,7 @@ function Library({
           api={prep.api}
           navigating={navigating}
           embedded={!navigating}
+          chosen={navigating ? undefined : choice}
           onProblem={report}
           onNewSong={prep.onNewSong}
           onSelectSong={selectSong}

@@ -39,6 +39,12 @@ export interface LibraryPanelProps {
    * row of its own, and 새 곡 goes to the palette's row (USER Nov 27).
    */
   readonly embedded?: boolean | undefined;
+  /**
+   * A song the host asks to choose, each ask with a new `turn`, as 실행 취소
+   * bringing a deleted song back to 준비's list.
+   */
+  readonly chosen?:
+    {readonly songId: SongId | null; readonly turn: number} | undefined;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
   readonly onSelectSong?: ((songId: SongId) => void) | undefined;
@@ -53,6 +59,7 @@ export function LibraryPanel({
   api,
   navigating = false,
   embedded = false,
+  chosen,
   onOpenSong,
   onSelectSong,
   onNewSong,
@@ -75,6 +82,13 @@ export function LibraryPanel({
   // NOTE(0913vision): In 라이브러리 the list chooses the song the editor has
   // open, however it was opened (실행 취소 bringing a song back, 라이브러리에서
   // 보기), so the list and the editor never show two songs.
+  const chooseAsked = useEffectEvent((id: SongId): void => {
+    library.setQuery('');
+    library.select(id);
+  });
+  useEffect(() => {
+    if (chosen?.songId != null) chooseAsked(chosen.songId);
+  }, [chosen?.turn, chosen?.songId]);
   const openSongId = useSongDraft(view => view.draft?.song.id ?? null);
   const chooseOpenSong = useEffectEvent((id: SongId): void => {
     if (library.selected !== id) library.select(id);
