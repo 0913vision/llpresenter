@@ -60,6 +60,23 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
 // NOTE(0913vision): A Bible passage that grew around the live verse is a new
 // item, so the next and previous 장 keys go on from that verse inside it
 // instead of starting the passage over.
+/**
+ * The item 다음 항목 or 이전 항목 reached, with the item live then: the next-장
+ * key starts it only while that item is still the live one.
+ */
+let cued: {readonly itemId: ItemId; readonly liveAt: string | null} | null =
+  null;
+
+/** The live slide's own item, as main has it. */
+function liveSlideItem(): string | null {
+  return useLive.getState().state?.layers.slide?.itemId ?? null;
+}
+
+/** The item the next-장 key starts, if 다음 항목 reached one since LIVE moved. */
+function cuedItem(): ItemId | null {
+  return cued !== null && cued.liveAt === liveSlideItem() ? cued.itemId : null;
+}
+
 function sequenceState(): SequenceState {
   const view = useShow.getState();
   const index = liveTileIndex(
@@ -70,7 +87,7 @@ function sequenceState(): SequenceState {
     view.openItemId !== null && index !== null
       ? {itemId: view.openItemId, index}
       : (liveCursor() ?? lastShownCursor());
-  return {tilesOf, live, openItemId: view.openItemId};
+  return {tilesOf, live, openItemId: view.openItemId, cuedItemId: cuedItem()};
 }
 
 /** Resolves a live quick-run library slide to its service-order position. */
@@ -92,6 +109,7 @@ function previousSequenceState(): SequenceState {
  * that is already open keeps its tile selection.
  */
 export function openItem(itemId: ItemId): void {
+  cued = null;
   if (useShow.getState().openItemId === itemId) return;
   useShow.setState({openItemId: itemId, selectedTile: 0});
 }
@@ -352,7 +370,9 @@ function openAdjacentItem(direction: 'next' | 'previous'): void {
     current: adjacentFrom(),
     direction,
   });
-  if (target !== null) openItemOnGrid(target);
+  if (target === null) return;
+  openItemOnGrid(target);
+  cued = {itemId: target, liveAt: liveSlideItem()};
 }
 
 /** 다음 항목: opens the next item that can output, without outputting. */

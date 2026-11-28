@@ -70,12 +70,19 @@ describe('nextTile', () => {
     expect(nextTile(stateOf({live: {itemId: 'c', index: 0}}))).toBeNull();
   });
 
-  it('outputs the first tile of another open item instead of following the live one', () => {
+  it('stays in the live item when another item is open to look ahead', () => {
     const live = {itemId: 'b', index: 0};
     expect(nextTile(stateOf({live, openItemId: 'a'}))).toEqual({
-      itemId: 'a',
-      index: 0,
+      itemId: 'b',
+      index: 1,
     });
+  });
+
+  it('starts an item reached with 다음 항목 at its first tile', () => {
+    const live = {itemId: 'b', index: 0};
+    expect(
+      nextTile({...stateOf({live, openItemId: 'a'}), cuedItemId: 'a'}),
+    ).toEqual({itemId: 'a', index: 0});
   });
 
   it('follows the live item when it is the open one', () => {
@@ -132,10 +139,10 @@ describe('nextTileAtLast', () => {
     expect(next('nextItem', {live: {itemId: 'c', index: 0}})).toBeNull();
   });
 
-  it('keeps the open item rule when another item is open or nothing is live', () => {
+  it('goes on from the live item when another is open, and starts the open item when nothing is live', () => {
     expect(
       next('nextItem', {live: {itemId: 'a', index: 3}, openItemId: 'c'}),
-    ).toEqual({itemId: 'c', index: 0});
+    ).toEqual({itemId: 'b', index: 0});
     expect(next('nextItem', {openItemId: 'b'})).toEqual({
       itemId: 'b',
       index: 0,

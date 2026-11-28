@@ -23,6 +23,11 @@ export interface SequenceState {
   readonly live: TileCursor | null;
   /** The item open in the 장 panel, or null when none is open. */
   readonly openItemId: ItemId | null;
+  /**
+   * The item reached with 다음 항목 or 이전 항목 since the last live change,
+   * which the next-장 key starts; null when none.
+   */
+  readonly cuedItemId?: ItemId | null | undefined;
 }
 
 function firstTileOf(itemId: ItemId, tilesOf: TilesOf): TileCursor | null {
@@ -30,17 +35,19 @@ function firstTileOf(itemId: ItemId, tilesOf: TilesOf): TileCursor | null {
 }
 
 /**
- * The tile that the next-장 key outputs. When the 장 panel shows an item other
- * than the live one, or no 장 is live, it is the first tile of the open item.
- * Otherwise it is the tile after the live one, and null after the last tile:
- * the key stops there and does not move on to the next item.
+ * The tile that the next-장 key outputs. With no 장 live, the first tile of
+ * the open item. With one live, it stays in the live item (decision Nov 28,
+ * "지금곡에서만"): the tile after the live one, and null after the last tile,
+ * where the key stops; an item opened to look ahead never takes over, only one
+ * reached with 다음 항목 or 이전 항목 since the last live change starts.
  */
 export function nextTile(state: SequenceState): TileCursor | null {
-  const {live, openItemId, tilesOf} = state;
-  if (openItemId !== null && live?.itemId !== openItemId) {
-    return firstTileOf(openItemId, tilesOf);
+  const {live, openItemId, cuedItemId = null, tilesOf} = state;
+  if (!live)
+    return openItemId === null ? null : firstTileOf(openItemId, tilesOf);
+  if (cuedItemId !== null && cuedItemId !== live.itemId) {
+    return firstTileOf(cuedItemId, tilesOf);
   }
-  if (!live) return null;
   if (live.index + 1 >= tilesOf(live.itemId).length) return null;
   return {itemId: live.itemId, index: live.index + 1};
 }

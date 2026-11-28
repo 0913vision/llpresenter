@@ -303,9 +303,11 @@ source was found.
   슬라이드, and after a click on a 매크로, Space still outputs the next 슬라이드
   instead of running the 매크로 again.
 - Next and previous are the tiles after and before the live 슬라이드 in the
-  current item's sequence. If there is no live 슬라이드, or the item open in the
-  슬라이드 panel isn't the current item, next outputs the first tile of the item
-  in the 슬라이드 panel (decided, no ProPresenter source found; 10).
+  current item's sequence, and stay in the live item (user decision, November
+  28: an item opened to look ahead never takes over). If there is no live
+  슬라이드, next outputs the first tile of the item in the 슬라이드 panel; an
+  item reached with 다음 항목 or 이전 항목 since the last live change is started
+  by next at its first tile.
 - On the last tile, next does nothing with 마지막 슬라이드에서: 멈춤, the
   default (decided, no ProPresenter source found; 10). To move on, the operator
   picks the next item (다음 항목, Ctrl ↓) and presses →. With 다음 항목

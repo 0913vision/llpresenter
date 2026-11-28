@@ -361,11 +361,28 @@ describe('next and previous', () => {
     expect(shown()).toEqual([]);
   });
 
-  it('starts an open item that is not live at its first slide', () => {
+  it('stays in the live song when another item is opened to look ahead', () => {
     goLive('song-morning', 1);
     openItem('song-river');
     outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 2});
+  });
+
+  it('starts the item 다음 항목 reached, at its first slide', () => {
+    goLive('song-morning', 1);
+    openNextItem();
+    outputNext();
     expect(shown()[0]).toMatchObject({itemId: 'song-river', position: 0});
+  });
+
+  it('forgets the item 다음 항목 reached once another slide goes live', () => {
+    goLive('song-morning', 1);
+    openNextItem();
+    goLive('song-river', 0);
+    openItem('song-river');
+    goLive('song-morning', 0);
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 1});
   });
 
   it('plays the transition of the live slide backward on the way back', () => {
