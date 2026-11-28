@@ -1,33 +1,41 @@
-import {join} from 'node:path';
+import {resolve} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {openAppConfig} from '@main/store/locations/appConfigFile';
-import {loadStore} from '@main/store/locations/fileStore';
+import type {LoadedStore} from '@main/store/locations/fileStore';
+import {resolveLocations} from '@main/store/locations/locations';
+import {NO_MEDIA} from '@main/store/media/mediaLibrary';
 import {defaultPreferences} from '@core/schema/app/preferences';
 import {openContent} from '@main/store/content/openContent';
 import {SettingsStore} from '@main/store/settings/settingsStore';
 
-async function setup() {
-  const folder = await makeTempDir();
+// NOTE(0913vision): An empty library: no song, 예배 or 템플릿 is edited, so
+// nothing is written to these folders.
+const EMPTY_STORE: LoadedStore = {
+  locations: resolveLocations(
+    {},
+    {documents: resolve('/open-content-tests'), developmentFolder: null},
+  ).locations,
+  developmentFolder: null,
+  songs: new Map(),
+  services: new Map(),
+  templates: new Map(),
+  media: NO_MEDIA,
+  openServiceId: null,
+  problems: [],
+};
+
+function setup() {
   const log = recordingLogger();
-  const appConfig = await openAppConfig({file: join(folder, 'app.json'), log});
-  const loaded = await loadStore({
-    documents: folder,
-    developmentFolder: folder,
-    appConfig,
-  });
-  if (!loaded.ok) throw new Error(loaded.error.message);
   const readers = {
     settings: Promise.resolve(null),
     media: Promise.resolve(null),
     failures: {waiting: vi.fn(), saved: vi.fn(), remind: vi.fn()},
   };
-  return {store: loaded.value, log, readers};
+  return {store: EMPTY_STORE, log, readers};
 }
 
 it('logs a reader that fails to open and returns no content', async () => {
-  const {store, log, readers} = await setup();
+  const {store, log, readers} = setup();
   const failure = new Error('invented reader failure');
   const opened = await openContent(Promise.resolve(store), log, {
     ...readers,
@@ -40,7 +48,7 @@ it('logs a reader that fails to open and returns no content', async () => {
 });
 
 it('refreshes the open service for 환경설정 only for labels and Bible changes, never for another 환경설정 change', async () => {
-  const {store, log, readers} = await setup();
+  const {store, log, readers} = setup();
   const settings = new SettingsStore({
     documents: new Map([
       [

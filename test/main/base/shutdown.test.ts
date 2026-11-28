@@ -1,10 +1,7 @@
-import {readFile} from 'node:fs/promises';
-import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
-import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {createLogger, type Logger} from '@main/base/log';
+import type {Logger} from '@main/base/log';
 import {
   LOG_FLUSH_LIMIT_MS,
   SAVE_LIMIT_MS,
@@ -283,7 +280,7 @@ describe('ShutdownCoordinator', () => {
   });
   it('quits with nothing to save and nothing in the log', async () => {
     const app = new MockApp();
-    new ShutdownCoordinator({app, log: createLogger(await makeTempDir())});
+    new ShutdownCoordinator({app, log: recordingLogger()});
     app.quit();
     await vi.waitFor(() => expect(app.quitted).toBe(true));
   });
@@ -292,7 +289,7 @@ describe('ShutdownCoordinator', () => {
     const app = new MockApp();
     const shutdown = new ShutdownCoordinator({
       app,
-      log: createLogger(await makeTempDir()),
+      log: recordingLogger(),
     });
     const save = deferred();
     shutdown.add({name: 'save the UI state', run: () => save.promise});
@@ -305,11 +302,15 @@ describe('ShutdownCoordinator', () => {
   });
 
   it('runs the steps in order, then flushes the log, then quits', async () => {
-    const dir = await makeTempDir();
-    const log = createLogger(dir);
+    const order: string[] = [];
+    const log = recordingLogger();
+    const flushed = deferred();
+    vi.spyOn(log, 'flush').mockImplementation(() => {
+      order.push('log');
+      return flushed.promise;
+    });
     const app = new MockApp();
     const shutdown = new ShutdownCoordinator({app, log});
-    const order: string[] = [];
     const soak = deferred();
     shutdown.add({
       name: 'stop the outputs',
@@ -320,7 +321,6 @@ describe('ShutdownCoordinator', () => {
       run: async () => {
         order.push('soak');
         await soak.promise;
-        log.info('soak record closed');
       },
     });
     shutdown.add({name: 'save the UI state', run: () => void order.push('ui')});
@@ -328,17 +328,19 @@ describe('ShutdownCoordinator', () => {
     await vi.waitFor(() => expect(order).toEqual(['outputs', 'soak']));
     expect(app.quitted).toBe(false);
     soak.resolve();
+    await vi.waitFor(() =>
+      expect(order).toEqual(['outputs', 'soak', 'ui', 'log']),
+    );
+    expect(app.quitted).toBe(false);
+    flushed.resolve();
     await vi.waitFor(() => expect(app.quitted).toBe(true));
-    expect(order).toEqual(['outputs', 'soak', 'ui']);
-    const text = await readFile(join(dir, 'main.log'), 'utf8');
-    expect(text).toContain('soak record closed');
   });
 
   it('holds every quit request on the same shutdown', async () => {
     const app = new MockApp();
     const shutdown = new ShutdownCoordinator({
       app,
-      log: createLogger(await makeTempDir()),
+      log: recordingLogger(),
     });
     const save = deferred();
     const run = vi.fn(() => save.promise);
