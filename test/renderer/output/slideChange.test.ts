@@ -110,6 +110,47 @@ describe('slideChangeOf', () => {
     });
   });
 
+  it('cuts every screen out of sight to 대기 화면 on its own background', () => {
+    const before: LiveState = {...live(2), themeOutput: themeOutput()};
+    const standby: LiveState = {
+      ...live(null),
+      themeOutput: themeOutput(undefined, {
+        background: {kind: 'color', color: '#203040'},
+      }),
+    };
+    for (const kind of ['audience', 'stage', 'broadcast']) {
+      expect(slideChangeOf(before, standby, {...audience, kind})).toEqual({
+        kind: 'change',
+        effect: CUT,
+      });
+    }
+    expect(
+      slideChangeOf(before, standby, {...audience, revealing: true}),
+    ).toEqual({kind: 'draw', end: true});
+    expect(
+      slideChangeOf(
+        before,
+        {...live(null), themeOutput: themeOutput()},
+        audience,
+      ),
+    ).toEqual({kind: 'draw', end: true});
+    // A clear of everything keeps the 테마, so its fade draws at once.
+    const withVideo: LiveState = {
+      ...before,
+      layers: {
+        ...before.layers,
+        media: {mediaId: 'video', loop: true, chosen: true, startedAt: 1},
+      },
+    };
+    expect(
+      slideChangeOf(
+        withVideo,
+        {...live(null), themeOutput: themeOutput()},
+        audience,
+      ),
+    ).toEqual({kind: 'draw', end: true});
+  });
+
   it('cuts any screen to a slide on another background', () => {
     const before = live(1);
     const after: LiveState = {

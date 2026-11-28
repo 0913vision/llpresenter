@@ -57,14 +57,17 @@ export function slideChangeOf(
   if (stillOn && !screen.revealing && slide !== null && (animates || cuts)) {
     return {kind: 'change', effect: animates ? effect : CUT};
   }
-  // NOTE(0913vision): A picture or video that takes the slide's place waits out
-  // of sight too, so the lyrics leave in the frame it comes in and no screen
-  // shows a frame without both (user rule: no flash).
-  const replaced =
-    before !== null &&
-    slide === null &&
-    next.layers.media !== null &&
-    next.layers.media.mediaId !== shown?.layers.media?.mediaId;
+  // NOTE(0913vision): A picture or video that takes the slide's place, or
+  // 대기 화면 on its own background, waits out of sight too, so the lyrics
+  // leave in the frame it comes in and no screen shows a frame without both
+  // (user rule: no flash; the church frame check of Nov 28 caught one frame of
+  // the item's background without its texts on every switch to 대기 화면).
+  // A clear (F1 to F6) never changes the 테마, so its fade still draws at once.
+  const backdropChanged =
+    next.layers.media === null
+      ? !sameJson(shown?.themeOutput?.background, next.themeOutput?.background)
+      : next.layers.media.mediaId !== shown?.layers.media?.mediaId;
+  const replaced = before !== null && slide === null && backdropChanged;
   if (stillOn && !screen.revealing && replaced) {
     return {kind: 'change', effect: CUT};
   }

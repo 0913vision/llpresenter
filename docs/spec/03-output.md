@@ -294,6 +294,12 @@ replays an effect or sends output commands (05).
   retains its selected duration; settings changes apply at the next slide. A new
   slide interrupts the previous effect, reusing two pages. Clearing, standby,
   and disposal cancel their animations.
+- A change that takes the live slide away onto another picture, a picture or
+  video in its place or 대기 화면 on its own background, is drawn out of sight
+  and shown in one frame once that picture is ready, like a slide moving onto
+  another background; no screen shows the old background without its texts first
+  (church frame check, November 28). A clear (F1 to F6) keeps the 테마 and draws
+  at once with its own fade.
 - Lyric elements (current and next lyrics, reference, slide name and number,
   current and next labels) follow the slide effect. When a new slide changes its
   item, song or theme background, the background and text share one effect,
