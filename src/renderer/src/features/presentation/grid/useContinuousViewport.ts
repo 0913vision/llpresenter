@@ -85,9 +85,12 @@ export function useContinuousViewport(
       setMetrics(next);
     };
     // NOTE(0913vision): Where the user scrolls, the grid stays; it follows
-    // the live slide again only when the live slide changes.
+    // the live slide again only when the live slide changes. A scroll after a
+    // key press wins over that key too, so a wheel turned right after → isn't
+    // undone when the slide it put out arrives (church check B3, Nov 28).
     const defer = (): void => {
       pausedUntil.current = Date.now() + PAUSE_MS;
+      keyedAt.current = 0;
     };
     // NOTE(0913vision): A resize renders in its own frame, before it paints.
     const observer = new ResizeObserver(() => flushSync(read));

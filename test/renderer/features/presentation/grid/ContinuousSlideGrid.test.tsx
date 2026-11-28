@@ -257,28 +257,42 @@ it('lets the grid go once the operator clicks elsewhere', () => {
   expect(document.activeElement).toBe(document.body);
 });
 
+/** Puts the first slide of an item of the service live. */
+function goLive(itemId: string): void {
+  const slideId = useShow.getState().tiles[itemId]?.[0]?.slide.id;
+  if (slideId === undefined) throw new Error(`No slide in ${itemId}`);
+  const state = emptyLiveState();
+  act(() =>
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {...shownText(['Live']), itemId, position: 0, slideId},
+        },
+      },
+    }),
+  );
+}
+
 it('keeps the live slide in sight while the grid itself scrolls to it', () => {
   applyLongService();
-  const goLive = (itemId: string): void => {
-    const slideId = useShow.getState().tiles[itemId]?.[0]?.slide.id;
-    if (slideId === undefined) throw new Error(`No slide in ${itemId}`);
-    const state = emptyLiveState();
-    act(() =>
-      useLive.setState({
-        state: {
-          ...state,
-          layers: {
-            ...state.layers,
-            slide: {...shownText(['Live']), itemId, position: 0, slideId},
-          },
-        },
-      }),
-    );
-  };
   goLive('a');
   const viewport = measuredViewport();
   expect(liveReturn.get()).toBe('here');
   goLive('e');
   expect(viewport.scrollTo).toHaveBeenCalled();
   expect(liveReturn.get()).toBe('here');
+});
+
+it('leaves the view where the operator wheeled it right after a key press', () => {
+  applyLongService();
+  goLive('a');
+  const viewport = measuredViewport();
+  vi.mocked(viewport.scrollTo).mockClear();
+  fireEvent.keyDown(window, {key: 'ArrowRight', code: 'ArrowRight'});
+  fireEvent.wheel(viewport);
+  goLive('e');
+  expect(viewport.scrollTo).not.toHaveBeenCalled();
+  expect(liveReturn.get()).toBe('away');
 });
