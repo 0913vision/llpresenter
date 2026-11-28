@@ -5,6 +5,7 @@ import {boxesOf, fillsItself, NEXT_BOX, showsHymn} from '@core/slides';
 import {PropertyGroup} from '@renderer/ui/panels/PropertyRow';
 import {SlideTextField} from '../texts/SlideTextField';
 import type {ChosenSlides} from './changeSelected';
+import {ContinuedRow} from './ContinuedRow';
 import {HideNextRow} from './HideNextRow';
 import {HymnGroup} from './HymnGroup';
 import {LabelRow} from './LabelRow';
@@ -48,6 +49,7 @@ export function TextsTab({
               <SlideTextField key={box} {...place} box={box} />
             ))}
           </div>
+          <ContinuedRow deck={deck} chosen={chosen} />
         </PropertyGroup>
       )}
       <PropertyGroup title="이름표">

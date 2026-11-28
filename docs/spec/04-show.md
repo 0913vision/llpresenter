@@ -1008,7 +1008,12 @@ A new passage is cut for the 본문 box of the 말씀 본문 테마, and the cut
 saved as 슬라이드 with their own texts (02, "Passages"). A passage in a 빈
 슬라이드 item keeps its address on every 슬라이드. Non-last parts of a verse end
 with the smaller ` (계속)` marker. A later change of the 테마 cuts nothing
-again.
+again. In 슬라이드 속성, the 텍스트 group of a Bible slide has the checkbox 끝에
+(계속) 붙이기, which shows and changes the marker of the selected slides (mixed
+when they differ). Turning it off hides the marker on that slide only: the verse
+stays cut, since a cut verse is known by several slides holding the same verse,
+not by its marker. Changing the 본문 text keeps the marker as it is. Cutting the
+verse again (절 나누기 확정, 새 번역) sets it on every part but the last.
 
 Rules split all verses first. Valid confirmed cuts skip both AI and review. If
 the local AI is ready when a lookup starts, unconfirmed multi-part verses are

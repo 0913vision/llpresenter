@@ -17,6 +17,7 @@ import {
 } from '@core/slides/edits';
 import {createMediaId} from '@core/schema/common/ids';
 import {withHideNext} from '@core/slides/nextText';
+import {continues, withContinued} from '@core/slides/continued';
 import type {Slide} from '@core/schema/slides/slide';
 import {lyricsSlide, slideId, verseOf} from '@fixtures/core/slides';
 
@@ -55,6 +56,17 @@ describe('slide edits', () => {
       'KeyQ',
     );
     expect(keyed.map(slide => slide.hotKey)).toEqual([undefined, 'KeyQ']);
+  });
+
+  it('keeps the (계속) of a part when its text changes, and turns it on and off on its own', () => {
+    const part = {...lyricsSlide(1, '본문'), continued: true as const};
+    expect(withText(part, '본문', '새 본문').continued).toBe(true);
+    expect(continues(withContinued(part, false))).toBe(false);
+    expect(withContinued(part, false)).not.toHaveProperty('continued');
+    expect(withContinued(part, true)).toBe(part);
+    expect(withContinued(withContinued(part, false), true).continued).toBe(
+      true,
+    );
   });
 
   it('leaves out an empty text and an empty next text', () => {

@@ -53,6 +53,7 @@ export {
 export {type SlideMaking, makeSlide} from './make';
 export {slideAfter, slidesOfText} from './newSlides';
 export {hidesNext, withHideNext} from './nextText';
+export {continues, withContinued} from './continued';
 export {
   type CutVerse,
   passageAddress,

@@ -698,6 +698,55 @@ describe('the title slide of a hymn', () => {
   });
 });
 
+describe('the (계속) of a Bible slide', () => {
+  const split = () => [
+    slideOf(1, 'scripture', {
+      texts: {본문: '앞 조각'},
+      verse: verseOf(1),
+      continued: true,
+    }),
+    slideOf(2, 'scripture', {texts: {본문: '뒤 조각'}, verse: verseOf(1)}),
+  ];
+  const continued = () =>
+    inspector().getByRole('checkbox', {name: '끝에 (계속) 붙이기'});
+
+  it('shows whether a part ends with (계속) and turns it off and on for that slide only', async () => {
+    const {current} = renderEditor(split());
+    await userEvent.click(row(0));
+    await openTab('내용');
+    expect(continued().getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(continued());
+    expect(current.slides[0]).not.toHaveProperty('continued');
+    expect(current.slides.map(slide => slide.verse)).toEqual([
+      verseOf(1),
+      verseOf(1),
+    ]);
+    await userEvent.click(continued());
+    expect(current.slides[0]?.continued).toBe(true);
+    await userEvent.click(row(1));
+    expect(continued().getAttribute('aria-checked')).toBe('false');
+  });
+
+  it('keeps the (계속) when the text of the part is changed', async () => {
+    const {current} = renderEditor(split());
+    await userEvent.click(row(0));
+    await openTab('내용');
+    const text = inspector().getByRole('textbox', {name: '본문'});
+    await userEvent.type(text, ' 더');
+    expect(current.slides[0]?.texts['본문']).toBe('앞 조각 더');
+    expect(current.slides[0]?.continued).toBe(true);
+  });
+
+  it('is not shown on a slide that holds no verse', async () => {
+    renderEditor(song());
+    await userEvent.click(row(0));
+    await openTab('내용');
+    expect(
+      inspector().queryByRole('checkbox', {name: '끝에 (계속) 붙이기'}),
+    ).toBeNull();
+  });
+});
+
 describe('showing the next slide', () => {
   const passage = () =>
     [1, 2].map(verse =>

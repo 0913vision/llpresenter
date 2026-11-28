@@ -23,11 +23,9 @@ export function changeSlides(
 export function withText(slide: Slide, box: string, text: string): Slide {
   const {[box]: before, ...others} = slide.texts;
   if ((before ?? '') === text) return slide;
-  const {continued: _continued, ...kept} = slide;
-  return {
-    ...(box === '본문' ? kept : slide),
-    texts: text === '' ? others : {...others, [box]: text},
-  };
+  // NOTE(0913vision): The (계속) of a part stays when its text changes: it is
+  // a checkbox of its own in 슬라이드 속성 (USER Nov 29, card 97).
+  return {...slide, texts: text === '' ? others : {...others, [box]: text}};
 }
 
 /** The slide with a text of its own for the slide before; empty for none. */
