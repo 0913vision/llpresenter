@@ -8,6 +8,7 @@ import {
   libraryFixture,
 } from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
+import {closeSongDraft, openSongDraft} from '@renderer/features/songs/draft';
 import {pastDocument} from '@fixtures/core/serviceList';
 import {applyService} from '@renderer/session/show/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
@@ -194,5 +195,29 @@ describe('library panel', () => {
     expect(onProblem.mock.lastCall?.[0]?.actions).toBeUndefined();
     expect(create.getAttribute('aria-disabled')).not.toBe('true');
     expect(onOpenSong).not.toHaveBeenCalled();
+  });
+});
+
+describe('library panel in 라이브러리', () => {
+  it('chooses the song the editor has open, however it was opened', async () => {
+    const fixture = libraryFixture();
+    render(
+      <LibraryPanel
+        api={fixture.api}
+        navigating
+        onOpenSong={vi.fn()}
+        onProblem={vi.fn()}
+      />,
+    );
+    await screen.findAllByRole('option');
+    onTestFinished(closeSongDraft);
+    act(() => openSongDraft(fixtureSong(1, '찬송 10')));
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('option', {name: '찬송 10'})
+          .getAttribute('aria-selected'),
+      ).toBe('true'),
+    );
   });
 });

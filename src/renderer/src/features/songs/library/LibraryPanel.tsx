@@ -28,6 +28,7 @@ import styles from './LibraryPanel.module.css';
 import {libraryMenuEntries} from './libraryMenuEntries';
 import {useLibraryServices} from './useLibraryServices';
 import {useSongDelete, useSongKeys} from './useSongCommands';
+import {useSongDraft} from '../draft';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
 /** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
@@ -102,6 +103,16 @@ export function LibraryPanel({
   useEffect(() => {
     if (selectionRequest) selectRequested(selectionRequest);
   }, [selectionRequest]);
+  // NOTE(0913vision): In 라이브러리 the list chooses the song the editor has
+  // open, however it was opened (실행 취소 bringing a song back, 라이브러리에서
+  // 보기), so the list and the editor never show two songs.
+  const openSongId = useSongDraft(view => view.draft?.song.id ?? null);
+  const chooseOpenSong = useEffectEvent((id: SongId): void => {
+    if (library.selected !== id) library.select(id);
+  });
+  useEffect(() => {
+    if (navigating && openSongId !== null) chooseOpenSong(openSongId);
+  }, [navigating, openSongId]);
   const [menu, setMenu] = useState<{id: SongId; anchor: MenuAnchor} | null>(
     null,
   );
