@@ -1,47 +1,8 @@
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {fireEvent, screen, waitFor, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import {libraryFixture} from '@fixtures/renderer/features/songs/library/libraryFixture';
 import {setup} from '@fixtures/renderer/features/songs/library/libraryPanelFixtures';
-import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
 
 describe('library panel menu rows', () => {
-  it('makes a new song when the 새 곡 request arrives, once', async () => {
-    const fixture = libraryFixture();
-    const edit = vi.spyOn(fixture.api.content, 'edit');
-    const handled = vi.fn();
-    const onOpenSong = vi.fn();
-    const view = render(
-      <LibraryPanel
-        api={fixture.api}
-        onOpenSong={onOpenSong}
-        onProblem={vi.fn()}
-      />,
-    );
-    await screen.findAllByRole('option');
-    const request = {kind: 'create'} as const;
-    view.rerender(
-      <LibraryPanel
-        api={fixture.api}
-        onOpenSong={onOpenSong}
-        onProblem={vi.fn()}
-        selectionRequest={request}
-        onSelectionHandled={handled}
-      />,
-    );
-    await waitFor(() => expect(onOpenSong).toHaveBeenCalledOnce());
-    expect(edit).toHaveBeenCalledExactlyOnceWith({type: 'song.create'});
-    expect(onOpenSong).toHaveBeenCalledWith(
-      expect.objectContaining({focusTitle: true}),
-    );
-    expect(handled).toHaveBeenCalledExactlyOnceWith(request);
-  });
-
   it('renames a song by the title rule of 곡 편집 and refuses a title another song has', async () => {
     const {fixture, user} = await setup();
     const edit = vi.spyOn(fixture.api.content, 'edit');

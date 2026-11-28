@@ -9,10 +9,7 @@ import {
 import {useItemEditor} from '@renderer/features/service/editor/useItemEditor';
 import {PrepPalette} from '@renderer/features/service/items/PrepPalette';
 import {openDeckAt} from '@renderer/features/slides/deckSelection';
-import {
-  LibraryPanel,
-  type LibrarySelectionRequest,
-} from '@renderer/features/songs/library/LibraryPanel';
+import {LibraryPanel} from '@renderer/features/songs/library/LibraryPanel';
 import {useSongEditor} from '@renderer/features/songs/SongEditor';
 import {
   closeSongDraft,
@@ -55,9 +52,6 @@ export interface PrepBinding {
   readonly api: LlpApi;
   readonly onNewSong: () => void;
   readonly openSong: (songId: SongId, position?: number) => void;
-  readonly selectionRequest?: LibrarySelectionRequest | undefined;
-  readonly onSelectionHandled?:
-    ((request: LibrarySelectionRequest) => void) | undefined;
 }
 
 /** Opens an item in the editor of 준비, at a slide. */
@@ -109,8 +103,6 @@ function Library({
           api={prep.api}
           navigating={navigating}
           embedded={!navigating}
-          selectionRequest={prep.selectionRequest}
-          onSelectionHandled={prep.onSelectionHandled}
           onProblem={report}
           onNewSong={prep.onNewSong}
           onSelectSong={selectSong}

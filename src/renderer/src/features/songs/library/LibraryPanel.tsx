@@ -31,16 +31,6 @@ import {useSongDelete, useSongKeys} from './useSongCommands';
 import {useSongDraft} from '../draft';
 import {type MenuAnchor} from '@renderer/ui/menus/menuModel';
 
-/** A one-shot host request, acknowledged after dispatch so remount cannot replay it. */
-export type LibrarySelectionRequest =
-  | {
-      readonly kind: 'open';
-      readonly songId: SongId;
-      readonly position?: number | undefined;
-    }
-  | {readonly kind: 'clear'}
-  | {readonly kind: 'create'};
-
 export interface LibraryPanelProps {
   readonly api: LibraryApi;
   readonly navigating?: boolean | undefined;
@@ -56,9 +46,6 @@ export interface LibraryPanelProps {
   readonly beforeOpen?: ((open: () => void) => void) | undefined;
   /** The workspace host merges problems into its one notification list. */
   readonly onProblem: (notice: Notice) => void;
-  readonly selectionRequest?: LibrarySelectionRequest | undefined;
-  readonly onSelectionHandled?:
-    ((request: LibrarySelectionRequest) => void) | undefined;
 }
 
 /** The independent library panel; the workspace host mounts it beside its editor. */
@@ -71,8 +58,6 @@ export function LibraryPanel({
   onNewSong,
   beforeOpen,
   onProblem,
-  selectionRequest,
-  onSelectionHandled,
 }: LibraryPanelProps): JSX.Element {
   const library = useLibrary(api, onOpenSong, onProblem);
   const serviceMenu = useLibraryServices(api, onProblem);
@@ -87,22 +72,6 @@ export function LibraryPanel({
     if (beforeOpen === undefined) proceed();
     else beforeOpen(proceed);
   };
-  const selectRequested = useEffectEvent(
-    (request: LibrarySelectionRequest): void => {
-      if (request.kind === 'clear') {
-        library.clearSelection();
-      } else if (request.kind === 'create') {
-        createSong();
-      } else {
-        library.setQuery('');
-        open(request.songId, request.position);
-      }
-      onSelectionHandled?.(request);
-    },
-  );
-  useEffect(() => {
-    if (selectionRequest) selectRequested(selectionRequest);
-  }, [selectionRequest]);
   // NOTE(0913vision): In 라이브러리 the list chooses the song the editor has
   // open, however it was opened (실행 취소 bringing a song back, 라이브러리에서
   // 보기), so the list and the editor never show two songs.
