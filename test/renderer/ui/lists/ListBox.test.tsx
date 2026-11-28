@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -110,6 +110,24 @@ describe('ListBox', () => {
     view.rerender(rows('copy'));
     expect(document.activeElement).toBe(
       screen.getByRole('option', {name: '첫째 복사본'}),
+    );
+  });
+
+  it('moves the focus to a chosen row once it is drawn, as a song that comes back', async () => {
+    const rows = (selected: string, back: boolean): JSX.Element => (
+      <ListBox label="곡" selected={selected} onSelect={vi.fn()}>
+        <ListRow value="first" title="첫째" />
+        {back ? <ListRow value="back" title="되살린 곡" /> : null}
+      </ListBox>
+    );
+    const view = render(rows('first', false));
+    screen.getByRole('option', {name: '첫째'}).focus();
+    view.rerender(rows('back', false));
+    view.rerender(rows('back', true));
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('option', {name: '되살린 곡'}),
+      ),
     );
   });
 

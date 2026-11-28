@@ -119,10 +119,14 @@ describe('library panel', () => {
     await setup();
     const song = screen.getByRole('option', {name: '찬송 10'});
     act(() => song.focus());
+    const rows = screen.getAllByRole('option');
+    const next = rows[rows.indexOf(song) + 1] ?? rows[rows.indexOf(song) - 1];
     fireEvent.keyDown(song, {key: 'Delete', code: 'Delete'});
     await waitFor(() =>
       expect(screen.queryByRole('option', {name: '찬송 10'})).toBeNull(),
     );
+    expect(next?.getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(next);
   });
 
   it('hands deletion failures to the host without a reload action', async () => {

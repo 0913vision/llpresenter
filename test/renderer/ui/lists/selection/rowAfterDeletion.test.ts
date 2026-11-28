@@ -1,5 +1,5 @@
 import {expect, it} from 'vitest';
-import {rowAfterDeletion} from '@renderer/features/service/order/edits/useOrderEditFocus';
+import {rowAfterDeletion} from '@renderer/ui/lists/selection/rowAfterDeletion';
 
 function rows(...ids: string[]) {
   return ids.map(id => ({id}));

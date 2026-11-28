@@ -4,6 +4,7 @@ import type {contentDeleteHistory} from '@renderer/platform/undo/contentDeleteHi
 import {useWindowShortcuts} from '@renderer/platform/shortcuts/windowShortcuts';
 import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import {focusHistorySurface} from '@renderer/ui/lists/selection/focusHistorySurface';
+import {rowAfterDeletion} from '@renderer/ui/lists/selection/rowAfterDeletion';
 import {useMenuHandoff} from '@renderer/ui/menus/useMenuHandoff';
 import {songChangeReason} from './libraryMenuEntries';
 import type {Library} from './useLibrary';
@@ -77,8 +78,9 @@ export function useSongKeys({
 
 /**
  * 삭제 of a library song: it goes at once, can come back with 실행 취소, and
- * the list keeps the keyboard. `remove` deletes now (the Delete key);
- * `afterMenu` deletes once the row menu has closed.
+ * the choice moves on to the next song (the one before at the end), as in the
+ * 예배 순서, so the keyboard stays in the list. `remove` deletes now (the
+ * Delete key); `afterMenu` deletes once the row menu has closed.
  */
 export function useSongDelete({
   list,
@@ -100,9 +102,27 @@ export function useSongDelete({
       song.access === 'editable' &&
       library.songs.some(row => row.id === song.id);
     deleteSelection(1, stillThere, () => {
-      focusHistorySurface(
-        list.current?.querySelector<HTMLElement>('[role="listbox"]') ?? null,
+      const rows = library.visible.map(row => ({id: row.song.id}));
+      const next = rowAfterDeletion(
+        rows,
+        [song.id],
+        rows.filter(row => row.id !== song.id),
       );
+      const nextSong = library.songs.find(row => row.id === next);
+      const nextRow =
+        nextSong === undefined
+          ? null
+          : (list.current?.querySelector<HTMLElement>(
+              `[role="option"][data-value="${nextSong.id}"]`,
+            ) ?? null);
+      if (nextSong !== undefined) library.select(nextSong.id);
+      if (nextRow === null) {
+        focusHistorySurface(
+          list.current?.querySelector<HTMLElement>('[role="listbox"]') ?? null,
+        );
+      } else {
+        nextRow.focus({preventScroll: true});
+      }
       library
         .remove(song.id)
         .then(removed => {

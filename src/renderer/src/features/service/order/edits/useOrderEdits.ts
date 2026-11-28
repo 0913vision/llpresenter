@@ -14,7 +14,8 @@ import {deleteSelection} from '@renderer/ui/lists/selection/deleteSelection';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {canMoveItems, movableItems} from '../orderRows';
 import {useMovedRowFocus} from './useMovedRowFocus';
-import {rowAfterDeletion, useOrderEditFocus} from './useOrderEditFocus';
+import {useOrderEditFocus} from './useOrderEditFocus';
+import {rowAfterDeletion} from '@renderer/ui/lists/selection/rowAfterDeletion';
 import {useShow} from '@renderer/session/show/showStore';
 
 /** The rows chosen in the list and the way to choose others. */

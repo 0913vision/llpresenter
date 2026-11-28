@@ -1,5 +1,6 @@
 import {useLayoutEffect, useRef, type RefObject} from 'react';
 import type {ServiceRow} from '@core/presentation';
+import {rowAfterDeletion} from '@renderer/ui/lists/selection/rowAfterDeletion';
 
 /** What an edit of the list remembers until the list shows its result. */
 interface PendingFocus {
@@ -27,27 +28,6 @@ function focusMovedOn(
     active !== document.body &&
     active !== null &&
     !(token.deleted !== undefined && list?.contains(active) === true)
-  );
-}
-
-/**
- * The row the cursor goes to after rows were deleted: the first one left
- * after them, or else the last one left before them.
- */
-export function rowAfterDeletion(
-  before: ReadonlyArray<{readonly id: string}>,
-  deleted: readonly string[],
-  after: ReadonlyArray<{readonly id: string}>,
-): string | undefined {
-  const index = before.findIndex(row => deleted.includes(row.id));
-  if (index < 0) return undefined;
-  const left = new Set(after.map(row => row.id));
-  return (
-    before.slice(index).find(row => left.has(row.id))?.id ??
-    before
-      .slice(0, index)
-      .reverse()
-      .find(row => left.has(row.id))?.id
   );
 }
 
