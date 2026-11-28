@@ -330,12 +330,24 @@ export function outputHotKey(code: string): boolean {
 // NOTE(0913vision): A continuous grid shows every item; the one it scrolled
 // to is where the operator is, and the item that opens is scrolled to as a
 // click on its 예배 순서 row does.
-function openAdjacentItem(direction: 'next' | 'previous'): void {
+/**
+ * Where 다음 항목 and 이전 항목 count from: the item on the screens, so the next
+ * item is always the one after what goes out, whatever the list points at
+ * (decision Nov 28, after the rehearsal put an earlier item live); with
+ * nothing of the service live, the item the list points at.
+ */
+function adjacentFrom(): string | null {
   const {rows, openItemId} = useShow.getState();
+  const live = liveCursor()?.itemId;
+  if (live !== undefined && rows.some(row => row.id === live)) return live;
+  return scrolledSlideItem() ?? openItemId;
+}
+
+function openAdjacentItem(direction: 'next' | 'previous'): void {
   const target = adjacentItem({
-    rows,
+    rows: useShow.getState().rows,
     tilesOf,
-    current: scrolledSlideItem() ?? openItemId,
+    current: adjacentFrom(),
     direction,
   });
   if (target !== null) openItemOnGrid(target);

@@ -214,7 +214,7 @@ describe('outputting a slide', () => {
 });
 
 describe('다음 항목 and 이전 항목', () => {
-  it('go on from the item a continuous grid scrolled to, and scroll to the item they open', () => {
+  it('with nothing live, go on from the item a continuous grid scrolled to, and scroll to the item they open', () => {
     const asked: string[] = [];
     const stop = onScrollGridToItem(itemId => asked.push(itemId));
     openItem('song-morning');
@@ -222,6 +222,20 @@ describe('다음 항목 and 이전 항목', () => {
     openNextItem();
     expect(useShow.getState().openItemId).toBe('psalm-23');
     expect(asked).toEqual(['psalm-23']);
+    revealSlideItem(null);
+    stop();
+  });
+
+  it('go on from the live item, whatever the list or the grid points at', () => {
+    const stop = onScrollGridToItem(() => undefined);
+    openItem('song-morning');
+    goLive('song-river', 0);
+    revealSlideItem('song-morning');
+    openNextItem();
+    expect(useShow.getState().openItemId).toBe('psalm-23');
+    openItem('psalm-23');
+    openPreviousItem();
+    expect(useShow.getState().openItemId).toBe('song-morning');
     revealSlideItem(null);
     stop();
   });
