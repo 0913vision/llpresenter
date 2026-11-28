@@ -1,5 +1,6 @@
 .field {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   flex: 1 1 0;
   align-content: start;
   gap: var(--space-4);
