@@ -37,14 +37,15 @@ function firstTileOf(itemId: ItemId, tilesOf: TilesOf): TileCursor | null {
 /**
  * The tile that the next-장 key outputs. With no 장 live, the first tile of
  * the open item. With one live, it stays in the live item (decision Nov 28,
- * "지금곡에서만"): the tile after the live one, and null after the last tile,
+ * the live song only): the tile after the live one, and null after the last tile,
  * where the key stops; an item opened to look ahead never takes over, only one
  * reached with 다음 항목 or 이전 항목 since the last live change starts.
  */
 export function nextTile(state: SequenceState): TileCursor | null {
   const {live, openItemId, cuedItemId = null, tilesOf} = state;
-  if (!live)
+  if (!live) {
     return openItemId === null ? null : firstTileOf(openItemId, tilesOf);
+  }
   if (cuedItemId !== null && cuedItemId !== live.itemId) {
     return firstTileOf(cuedItemId, tilesOf);
   }
