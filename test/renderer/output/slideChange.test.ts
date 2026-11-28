@@ -134,7 +134,7 @@ describe('slideChangeOf', () => {
         audience,
       ),
     ).toEqual({kind: 'draw', end: true});
-    // A clear of everything keeps the 테마, so its fade draws at once.
+    // NOTE(0913vision): A clear of everything keeps the 테마, so its fade draws at once.
     const withVideo: LiveState = {
       ...before,
       layers: {
