@@ -172,7 +172,6 @@ export function startOutput({
   };
   const frames = new ScreenFrames({
     transparent: ndi,
-    fonts: api.fonts,
     settings: api.settings,
     clock: () => api.live.clock(),
     wallClock: api.live,

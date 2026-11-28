@@ -62,7 +62,6 @@ export function ScreenPreview({
     const own =
       followed === null
         ? new ScreenFrames({
-            fonts: api.fonts,
             settings: api.settings,
             clock: () => api.live.clock(),
             wallClock: api.live,

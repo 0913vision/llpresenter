@@ -40,7 +40,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-it('answers trusted main frames, rejects foreign output pages and frames, and removes the handler', async () => {
+it('answers the control page and its 화면 설정 and 환경설정 windows, refuses output pages, other pages and frames, and removes the handler', async () => {
   const control = {
     webContents: {mainFrame: {}, getURL: () => 'file:///app/index.html'},
   };
@@ -78,9 +78,9 @@ it('answers trusted main frames, rejects foreign output pages and frames, and re
       getURL: () => 'file:///app/output.html?screen=main',
     };
     native.fromWebContents.mockReturnValue({});
-    await expect(
-      ask({sender: output, senderFrame: output.mainFrame}),
-    ).resolves.toEqual([fontFamilyFixture()]);
+    expect(() => ask({sender: output, senderFrame: output.mainFrame})).toThrow(
+      'Invalid',
+    );
     const screens = {
       ...output,
       getURL: () => 'file:///app/index.html?window=screens',
@@ -102,11 +102,7 @@ it('answers trusted main frames, rejects foreign output pages and frames, and re
     expect(() =>
       ask({sender: foreignSettings, senderFrame: foreignSettings.mainFrame}),
     ).toThrow('Invalid');
-    expect(() => ask({sender: output, senderFrame: {}})).toThrow('Invalid');
-    const foreign = {...output, getURL: () => 'file:///other/output.html'};
-    expect(() =>
-      ask({sender: foreign, senderFrame: foreign.mainFrame}),
-    ).toThrow('Invalid');
+    expect(() => ask({sender: settings, senderFrame: {}})).toThrow('Invalid');
     expect(native.read).toHaveBeenCalledOnce();
   } finally {
     stop();
@@ -115,7 +111,7 @@ it('answers trusted main frames, rejects foreign output pages and frames, and re
   expect(native.handlers.has(outputEndpoints.fontSnapshot.channel)).toBe(false);
 });
 
-it('drops quietly a request of an output page whose window was just closed', () => {
+it('drops quietly a request of a 환경설정 window that was just closed', () => {
   const control = {
     webContents: {mainFrame: {}, getURL: () => 'file:///app/index.html'},
   };
@@ -133,7 +129,7 @@ it('drops quietly a request of an output page whose window was just closed', () 
       id: 8,
       mainFrame: {},
       isDestroyed: () => false,
-      getURL: () => 'file:///app/output.html?screen=main',
+      getURL: () => 'file:///app/index.html?window=settings',
     };
     native.fromWebContents.mockReturnValue(null);
     expect(() =>
@@ -141,7 +137,7 @@ it('drops quietly a request of an output page whose window was just closed', () 
     ).toThrow('closed window');
     expect(log.info).toHaveBeenCalledWith(
       'Dropped a font catalog request of a closed window',
-      {id: 8, url: 'file:///app/output.html?screen=main'},
+      {id: 8, url: 'file:///app/index.html?window=settings'},
     );
     expect(log.warn).not.toHaveBeenCalled();
     expect(native.read).not.toHaveBeenCalled();

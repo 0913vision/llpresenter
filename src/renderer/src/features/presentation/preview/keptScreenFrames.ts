@@ -29,7 +29,6 @@ export class KeptScreenFrames {
       if (this.kept.has(screenId)) continue;
       const listeners = new Set<() => void>();
       const frames = new ScreenFrames({
-        fonts: api.fonts,
         settings: api.settings,
         clock: () => api.live.clock(),
         wallClock: api.live,

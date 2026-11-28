@@ -7,10 +7,6 @@ import {
   resolveMessageStyle,
 } from '@core/screens';
 import type {Timer} from '@core/schema/tools/timers';
-import type {
-  FontCatalog,
-  FontCatalogSnapshot,
-} from '@core/schema/screens/fontCatalog';
 import type {RenderFrame, RenderScreen} from '../layer';
 import {MainTimerClock} from './mainTimerClock';
 import {resolveRenderScreen} from './screenIdentity';
@@ -18,7 +14,6 @@ import {followSettingsDocument} from './settingsFeed';
 
 interface ScreenFramesOptions {
   readonly transparent?: boolean;
-  readonly fonts?: LlpApi['fonts'];
   readonly settings: LlpApi['settings'];
   readonly clock: LlpApi['live']['clock'];
   readonly wallClock?: Pick<LlpApi['live'], 'wallClock' | 'subscribeWallClock'>;
@@ -28,11 +23,9 @@ interface ScreenFramesOptions {
   readonly onError: (message: string, error: unknown) => void;
 }
 
-/** Follows screen identity, fonts, and timers for the main-owned live theme. */
+/** Follows screen identity, timers and 메시지 styles for the main-owned live theme. */
 export class ScreenFrames {
   private readonly transparent: boolean;
-  private fonts: FontCatalog | undefined;
-  private disposed = false;
   private screen: RenderScreen | undefined;
   private timers: readonly Timer[] = [];
   private messageStyles: readonly MessageStyle[] | undefined;
@@ -53,30 +46,7 @@ export class ScreenFrames {
             onChange: options.onChange,
           },
     );
-    let pushedFonts = false;
-    const receiveFonts = (value: FontCatalogSnapshot): void => {
-      if (this.disposed) return;
-      const fonts = value.verified ? value.families : undefined;
-      if (this.fonts === fonts) return;
-      this.fonts = fonts;
-      options.onChange();
-    };
-    const stopFonts = options.fonts?.subscribe(value => {
-      pushedFonts = true;
-      receiveFonts(value);
-    });
-    options.fonts?.snapshot().then(
-      value => {
-        if (!pushedFonts) receiveFonts(value);
-      },
-      (error: unknown) => {
-        if (!this.disposed) {
-          onError('could not read output font catalog', error);
-        }
-      },
-    );
     this.stops = [
-      () => stopFonts?.(),
       followSettingsDocument({
         settings,
         name: 'screens',
@@ -141,7 +111,6 @@ export class ScreenFrames {
       ...(state?.blackScreen === true && screen.kind !== 'stage'
         ? {blackScreen: true}
         : {}),
-      ...(this.fonts === undefined ? {} : {fonts: this.fonts}),
       ...(state?.stageTimerId === undefined
         ? {}
         : {stageTimerId: state.stageTimerId}),
@@ -164,7 +133,6 @@ export class ScreenFrames {
   }
 
   dispose(): void {
-    this.disposed = true;
     this.timerClock.dispose();
     for (const stop of this.stops) stop();
   }

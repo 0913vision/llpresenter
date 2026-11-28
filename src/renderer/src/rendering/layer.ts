@@ -5,7 +5,6 @@ import type {RenderTimers} from './timerTokens';
 import type {ScreenId, TimerId} from '@core/schema/common/ids';
 import type {Screen} from '@core/schema/screens/screens';
 import type {LiveItem, LiveThemeOutput} from '@core/schema/live/liveTheme';
-import type {FontCatalog} from '@core/schema/screens/fontCatalog';
 import type {MessageBand} from '@core/screens';
 import type {PreviewMediaSource} from './media/previewMedia';
 
@@ -43,7 +42,6 @@ export interface RenderFrame {
   readonly stageTimerId?: TimerId;
   readonly theme?: LiveThemeOutput;
   readonly item?: LiveItem | null;
-  readonly fonts?: FontCatalog;
   readonly clearEffects?: readonly ClearEffect[];
   readonly clearOpacity?: Readonly<Partial<Record<LayerKind, number>>>;
   readonly propOpacity?: ReadonlyMap<string, number>;

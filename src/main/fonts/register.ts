@@ -15,30 +15,27 @@ interface FontReader {
 }
 
 /**
- * Whether a page is one of the app's own that draws with the fonts: the
- * output page, or 화면 설정 or 환경설정 of the control page.
+ * Whether a page is one of the app's own that lists the fonts: 화면 설정 or
+ * 환경설정 of the control page. The screens themselves draw with the fonts
+ * Windows has and never ask.
  */
-function isAppRenderPage(sender: WebContents, control: FontReader): boolean {
+function isAppFontPage(sender: WebContents, control: FontReader): boolean {
   try {
     const controlPage = new URL(control.getURL());
-    const expected = new URL('output.html', controlPage);
     const actual = new URL(sender.getURL());
     return (
-      actual.protocol === expected.protocol &&
-      actual.host === expected.host &&
-      actual.origin === expected.origin &&
-      (actual.pathname === expected.pathname ||
-        (actual.pathname === controlPage.pathname &&
-          ['screens', 'settings'].includes(
-            actual.searchParams.get('window') ?? '',
-          )))
+      actual.protocol === controlPage.protocol &&
+      actual.host === controlPage.host &&
+      actual.origin === controlPage.origin &&
+      actual.pathname === controlPage.pathname &&
+      ['screens', 'settings'].includes(actual.searchParams.get('window') ?? '')
     );
   } catch {
     return false;
   }
 }
 
-/** Exposes cached font metadata to control and trusted rendering main frames. */
+/** Exposes cached font metadata to the control page and its 화면 설정 and 환경설정 windows. */
 export function registerFonts(
   control: {readonly webContents: FontReader},
   log: Logger,
@@ -57,14 +54,11 @@ export function registerFonts(
   });
   const check = ({contents, isMainFrame}: Caller): void => {
     if (isMainFrame && contents === control.webContents) return;
-    const appPage =
-      isMainFrame && isAppRenderPage(contents, control.webContents);
+    const appPage = isMainFrame && isAppFontPage(contents, control.webContents);
     if (appPage && BrowserWindow.fromWebContents(contents) !== null) return;
     if (appPage) {
       // NOTE(0913vision): The page of a window that was just closed can still
-      // ask while it goes: the 청중 output window does when its presenter
-      // comes back with the monitor (church Nov 23 and 26). It needs no
-      // answer.
+      // ask while it goes. It needs no answer.
       log.info(
         'Dropped a font catalog request of a closed window',
         contentsForLog(contents),
