@@ -23,7 +23,7 @@ function message(
 }
 
 describe('logConsoleErrors', () => {
-  it('writes the console errors of the window and nothing else', () => {
+  it('writes the console errors of the window, not warnings, uncaught errors or the browser resize loop notice', () => {
     const contents = new EventEmitter();
     const log = logger();
     logConsoleErrors(contents, {window: 'control window', log});
@@ -31,6 +31,10 @@ describe('logConsoleErrors', () => {
     contents.emit('console-message', message('Repeat callback failed: x'));
     contents.emit('console-message', message('note', 'warning'));
     contents.emit('console-message', message('Uncaught Error: shown'));
+    contents.emit(
+      'console-message',
+      message('ResizeObserver loop completed with undelivered notifications.'),
+    );
 
     expect(log.error).toHaveBeenCalledTimes(1);
     expect(log.error).toHaveBeenCalledWith(

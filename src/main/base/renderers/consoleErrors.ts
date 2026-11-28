@@ -1,3 +1,4 @@
+import {isResizeLoopNotice} from '@core/common/browserNotices';
 import type {Logger} from '../log';
 
 /** The most console errors one window writes to the log in a minute. */
@@ -28,7 +29,8 @@ export interface ConsoleSource {
 /**
  * Writes the console errors of a window's page to the app log, so a failure
  * that the page only printed is in the log on the church PC. An uncaught error
- * is left to the page, which logs it with its stack. At most
+ * is left to the page, which logs it with its stack, and the browser's
+ * ResizeObserver loop notice is no failure. At most
  * {@link CONSOLE_ERRORS_PER_MINUTE} a minute are written; the rest of that
  * minute is counted and written as one line, so a failure repeated every frame
  * can't fill the log.
@@ -60,7 +62,11 @@ export function logConsoleErrors(
     dropped = 0;
   };
   const listener = (details: ConsoleMessage): void => {
-    if (details.level !== 'error' || details.message.startsWith('Uncaught')) {
+    if (
+      details.level !== 'error' ||
+      details.message.startsWith('Uncaught') ||
+      isResizeLoopNotice(details.message)
+    ) {
       return;
     }
     const time = now();

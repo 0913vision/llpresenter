@@ -1,10 +1,12 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {isResizeLoopNotice} from '@core/common/browserNotices';
 import {rendererErrorEntry} from '@core/schema/app/ipcPayloads';
 
 /**
  * Sends every uncaught error and unhandled rejection of this window to the app
  * log, named by `window`, so a failure on the church PC is in its log as the
- * output windows' are (docs/TECH.md, error handling).
+ * output windows' are (docs/TECH.md, error handling). The browser's
+ * ResizeObserver loop notice is no failure and is left out.
  *
  * @returns A function that stops it.
  */
@@ -14,6 +16,7 @@ export function logUncaughtErrors(
 ): () => void {
   if (api === undefined) return () => undefined;
   const onError = (event: ErrorEvent): void => {
+    if (isResizeLoopNotice(event.message)) return;
     api.log.write(
       rendererErrorEntry(
         `uncaught error in the ${window}`,

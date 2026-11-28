@@ -32,6 +32,30 @@ describe('logUncaughtErrors', () => {
     ]);
   });
 
+  it('leaves out the browser notice of a ResizeObserver loop, which loses nothing', () => {
+    const write = vi.fn();
+    const stop = logUncaughtErrors({log: {write}}, 'control window');
+    window.dispatchEvent(
+      new ErrorEvent('error', {
+        message:
+          'ResizeObserver loop completed with undelivered notifications.',
+      }),
+    );
+    window.dispatchEvent(
+      new ErrorEvent('error', {message: 'ResizeObserver broke the panel'}),
+    );
+    stop();
+    expect(write.mock.calls).toEqual([
+      [
+        {
+          level: 'error',
+          message: 'uncaught error in the control window',
+          detail: 'ResizeObserver broke the panel',
+        },
+      ],
+    ]);
+  });
+
   it('does nothing without the app API', () => {
     expect(() =>
       logUncaughtErrors(undefined, 'control window')(),
