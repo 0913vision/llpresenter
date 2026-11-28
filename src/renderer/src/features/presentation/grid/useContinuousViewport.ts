@@ -91,6 +91,10 @@ export function useContinuousViewport(
     const defer = (): void => {
       pausedUntil.current = Date.now() + PAUSE_MS;
       keyedAt.current = 0;
+      // NOTE(0913vision): A smooth scroll the grid started (to the live slide,
+      // to a picked item) runs on through a wheel turn; stopping it where it
+      // is lets the operator's scroll take over (church check B3, Nov 28).
+      viewport.scrollTo({top: viewport.scrollTop, behavior: 'instant'});
     };
     // NOTE(0913vision): A resize renders in its own frame, before it paints.
     const observer = new ResizeObserver(() => flushSync(read));

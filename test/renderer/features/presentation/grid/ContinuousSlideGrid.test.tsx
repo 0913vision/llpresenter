@@ -293,6 +293,24 @@ it('leaves the view where the operator wheeled it right after a key press', () =
   fireEvent.keyDown(window, {key: 'ArrowRight', code: 'ArrowRight'});
   fireEvent.wheel(viewport);
   goLive('e');
-  expect(viewport.scrollTo).not.toHaveBeenCalled();
+  expect(viewport.scrollTo).not.toHaveBeenCalledWith(
+    expect.objectContaining({behavior: 'smooth'}),
+  );
   expect(liveReturn.get()).toBe('away');
+});
+
+it('stops a smooth scroll of its own when the operator turns the wheel', () => {
+  applyLongService();
+  goLive('a');
+  const viewport = measuredViewport();
+  goLive('e');
+  expect(viewport.scrollTo).toHaveBeenCalledWith(
+    expect.objectContaining({behavior: 'smooth'}),
+  );
+  viewport.scrollTop = 120;
+  fireEvent.wheel(viewport);
+  expect(viewport.scrollTo).toHaveBeenLastCalledWith({
+    top: 120,
+    behavior: 'instant',
+  });
 });
