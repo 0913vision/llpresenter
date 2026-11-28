@@ -349,12 +349,17 @@ export function outputHotKey(code: string): boolean {
 // to is where the operator is, and the item that opens is scrolled to as a
 // click on its 예배 순서 row does.
 /**
- * Where 다음 항목 and 이전 항목 count from: the item on the screens, so the next
- * item is always the one after what goes out, whatever the list points at
- * (decision Nov 28, after the rehearsal put an earlier item live); with
- * nothing of the service live, the item the list points at.
+ * Where 다음 항목 and 이전 항목 count from: the item they reached last, while
+ * LIVE has not moved since; else the item on the screens, so the next item is
+ * always the one after what goes out, whatever the list points at (decision
+ * Nov 28, after the rehearsal put an earlier item live); with nothing of the
+ * service live, the item the list points at.
  */
 function adjacentFrom(): string | null {
+  // NOTE(0913vision): Pressed again before LIVE moves, they go on from the
+  // item they reached, so two presses step two items and Ctrl+↑ comes back.
+  const reached = cuedItem();
+  if (reached !== null) return reached;
   const {rows, openItemId} = useShow.getState();
   // NOTE(0913vision): The live slide's own item, as main has it: the window's
   // cursor projects the live slide only onto tiles it has drawn.
