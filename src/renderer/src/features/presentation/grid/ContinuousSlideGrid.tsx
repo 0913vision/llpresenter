@@ -33,6 +33,8 @@ import {useGridKeepsFocus} from './useGridKeepsFocus';
 import {ShowTileMenu, ShowTiles, type TileMenu} from './ShowTiles';
 
 const BAND = 30;
+/** How long the grid's own scroll to the live slide may take. */
+const FOLLOW_MS = 1500;
 const HEADING = 37;
 const INSET = 14;
 
@@ -159,6 +161,8 @@ export function ContinuousSlideGrid({
     keeper,
     windowKeyRef,
   );
+  /** Until when the grid's own scroll is bringing the live slide into sight. */
+  const bringingLive = useRef(0);
   const followRef = useRef<
     (behavior?: ScrollBehavior, keyed?: 'down' | 'other') => void
   >(() => undefined);
@@ -224,6 +228,7 @@ export function ContinuousSlideGrid({
         keyed === 'down' &&
         center - viewport.scrollTop > viewport.clientHeight * 0.55;
       if (offscreen || pastLine) {
+        bringingLive.current = performance.now() + FOLLOW_MS;
         viewport.scrollTo({top: readingTop(liveTile, viewport), behavior});
       }
     };
@@ -312,12 +317,22 @@ export function ContinuousSlideGrid({
   }, [liveTile, scrolling]);
   useEffect(() => () => liveReturn.offer(null), []);
   useEffect(() => {
-    liveReturn.report(
+    const away =
       liveTile !== null &&
-        (liveTile.top < metrics.top ||
-          liveTile.bottom > metrics.top + metrics.height),
-    );
-  }, [liveTile, metrics.top, metrics.height]);
+      (liveTile.top < metrics.top ||
+        liveTile.bottom > metrics.top + metrics.height);
+    // NOTE(0913vision): While the grid itself brings the live slide into
+    // sight, it isn't away, so the blue row stays on LIVE (church check, Nov
+    // 28: the row before LIVE showed for a moment at an item change). The
+    // operator's own scroll ends that at once.
+    const bringing =
+      performance.now() < bringingLive.current &&
+      !scrolling.paused() &&
+      !scrolling.dragging();
+    if (!away) bringingLive.current = 0;
+    if (away && bringing) return;
+    liveReturn.report(away);
+  }, [liveTile, metrics.top, metrics.height, scrolling]);
   const drawn = {top: metrics.top, height: metrics.height, stride, tracks};
   return (
     <div

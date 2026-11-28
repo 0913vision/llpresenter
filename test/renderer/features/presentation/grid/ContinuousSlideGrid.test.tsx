@@ -256,3 +256,29 @@ it('lets the grid go once the operator clicks elsewhere', () => {
   fireEvent.scroll(viewport);
   expect(document.activeElement).toBe(document.body);
 });
+
+it('keeps the live slide in sight while the grid itself scrolls to it', () => {
+  applyLongService();
+  const goLive = (itemId: string): void => {
+    const slideId = useShow.getState().tiles[itemId]?.[0]?.slide.id;
+    if (slideId === undefined) throw new Error(`No slide in ${itemId}`);
+    const state = emptyLiveState();
+    act(() =>
+      useLive.setState({
+        state: {
+          ...state,
+          layers: {
+            ...state.layers,
+            slide: {...shownText(['Live']), itemId, position: 0, slideId},
+          },
+        },
+      }),
+    );
+  };
+  goLive('a');
+  const viewport = measuredViewport();
+  expect(liveReturn.get()).toBe('here');
+  goLive('e');
+  expect(viewport.scrollTo).toHaveBeenCalled();
+  expect(liveReturn.get()).toBe('here');
+});
