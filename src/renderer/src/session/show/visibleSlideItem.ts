@@ -1,10 +1,23 @@
 import {useSyncExternalStore} from 'react';
 import {useShownItemId} from './shownItem';
+import {useLive} from '../live';
+
+/** A row the operator picked, and the item live when they picked it. */
+export interface PickedSlideItem {
+  readonly id: string;
+  readonly liveItemId: string | null;
+}
 
 /** How long a grid may take to scroll to the item it was asked for. */
 const SCROLL_SETTLE_MS = 1000;
 
 let current: string | null = null;
+/**
+ * The item the operator picked by a click in the 예배 순서 or 다음 항목, with
+ * the item that was live then: the pick holds until they scroll the grid
+ * themselves, and only while that item stays live.
+ */
+let picked: PickedSlideItem | null = null;
 /** The item a grid scrolls to now, and until when its passing items don't count. */
 let target: {readonly id: string; readonly until: number} | null = null;
 const listeners = new Set<() => void>();
@@ -22,8 +35,24 @@ export function revealSlideItem(id: string | null): void {
       return;
     }
     target = null;
+  } else if (id !== current) {
+    // NOTE(0913vision): A new item at the top with no scroll asked for is the
+    // operator's own scroll, which ends the pick.
+    setPicked(null);
   }
   setCurrent(id);
+}
+
+function setPicked(next: PickedSlideItem | null): void {
+  if (picked === next) return;
+  picked = next;
+  for (const listener of listeners) listener();
+}
+
+/** The item on the screens now, as the live state names it. */
+function liveItemNow(): string | null {
+  const layers = useLive.getState().state?.layers;
+  return layers?.slide?.itemId ?? layers?.media?.itemId ?? null;
 }
 
 function setCurrent(id: string | null): void {
@@ -46,6 +75,7 @@ export function scrollGridToItem(itemId: string): void {
   // NOTE(0913vision): The grid scrolls smoothly; the item it goes to is where
   // the operator is at once, so the next 다음 항목 goes on from it.
   target = {id: itemId, until: performance.now() + SCROLL_SETTLE_MS};
+  setPicked({id: itemId, liveItemId: liveItemNow()});
   setCurrent(itemId);
   for (const listener of scrollRequests) listener(itemId);
 }
@@ -74,4 +104,15 @@ export function useVisibleSlideItem(): string | null {
     () => current,
   );
   return scrolled ?? shown;
+}
+
+/** The row the operator picked while a continuous grid shows, or null. */
+export function usePickedSlideItem(): PickedSlideItem | null {
+  return useSyncExternalStore(
+    listener => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    () => picked,
+  );
 }

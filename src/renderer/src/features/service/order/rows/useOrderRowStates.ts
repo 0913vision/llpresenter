@@ -1,8 +1,13 @@
-import {useMemo} from 'react';
+import {useMemo, useSyncExternalStore} from 'react';
 import type {ServiceRow} from '@core/presentation';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {useShownItemId} from '@renderer/session/show/shownItem';
-import {useVisibleSlideItem} from '@renderer/session/show/visibleSlideItem';
+import {
+  usePickedSlideItem,
+  useVisibleSlideItem,
+} from '@renderer/session/show/visibleSlideItem';
+import {liveReturn} from '@renderer/features/presentation/grid/liveReturn';
+import {pointedItem} from './pointedItem';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';
 import {itemNumbers} from '../orderRows';
@@ -32,13 +37,21 @@ export function useOrderRowStates(
   const openItemId = useShownItemId();
   const liveItemId = useLiveItemId();
   const visibleSlideItem = useVisibleSlideItem();
+  const picked = usePickedSlideItem();
+  const liveInSight =
+    useSyncExternalStore(liveReturn.subscribe, liveReturn.get) === 'here';
   const show = useSettingsDocument('preferences', '환경설정', onProblem)?.value
     .show;
   // NOTE(0913vision): With one grid of every item, the list points at the item
-  // whose slides are in view rather than the one opened.
+  // in view, leaning to the live one while its slide is in sight.
   const pointedItemId =
     workspace === 'show' && show?.continuousGrid === true
-      ? visibleSlideItem
+      ? pointedItem({
+          picked,
+          liveItemId,
+          liveInSight,
+          topItemId: visibleSlideItem,
+        })
       : openItemId;
   const dimPast = show?.dimPastItems === true;
   const done = useMemo(

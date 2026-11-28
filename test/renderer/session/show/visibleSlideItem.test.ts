@@ -1,10 +1,16 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
+import {renderHook} from '@testing-library/react';
 import {
   onScrollGridToItem,
   revealSlideItem,
   scrollGridToItem,
   scrolledSlideItem,
+  usePickedSlideItem,
 } from '@renderer/session/show/visibleSlideItem';
+
+function picked(): string | null {
+  return renderHook(() => usePickedSlideItem()).result.current?.id ?? null;
+}
 
 afterEach(() => {
   vi.useRealTimers();
@@ -39,5 +45,19 @@ describe('the item a continuous grid shows', () => {
   it('changes nothing without a continuous grid', () => {
     scrollGridToItem('third');
     expect(scrolledSlideItem()).toBeNull();
+  });
+
+  it('keeps the row picked by a scroll request after the grid gets there, and drops it on a scroll of the operator', () => {
+    vi.useFakeTimers();
+    const stop = onScrollGridToItem(() => undefined);
+    revealSlideItem('first');
+    scrollGridToItem('third');
+    expect(picked()).toBe('third');
+    revealSlideItem('second');
+    revealSlideItem('third');
+    expect(picked()).toBe('third');
+    revealSlideItem('fourth');
+    expect(picked()).toBeNull();
+    stop();
   });
 });

@@ -331,13 +331,17 @@ on a new row with a band naming it, without a slide count (user decision,
 November 27). Service section headers use the order list's heading style. The
 panel header shows the live item's name and its position within that item; when
 no slide is live it shows the item at the top of the view. Slide numbers remain
-service-wide. Selecting an order item smoothly scrolls to its band; the order
-selection follows the band at the top. 다음 항목 and 이전 항목 (Ctrl ↓, Ctrl ↑)
-go from the live item, so the next item is always the one after what goes out
-(decision November 28, after the Saturday rehearsal put an earlier item live
-from a selection left behind by the scroll); with nothing of the service live
-they go from the item at the top, or the one being scrolled to. They scroll to
-the next or previous item the same way. Clicking a tile outputs it. When off,
+service-wide. Selecting an order item smoothly scrolls to its band. The blue row
+of the order list leans to LIVE (decision November 28): it marks the live item
+while the live slide is in sight of the grid (as long as 현 위치로 is off), and
+the item at the top once the operator scrolls the live slide out of sight; a row
+picked by a click or by 다음 항목 and 이전 항목 keeps it until the operator
+scrolls again or LIVE moves to another item. 다음 항목 and 이전 항목 (Ctrl ↓,
+Ctrl ↑) go from the live item, so the next item is always the one after what
+goes out (decision November 28, after the Saturday rehearsal put an earlier item
+live from a selection left behind by the scroll); with nothing of the service
+live they go from the item at the top, or the one being scrolled to. They scroll
+to the next or previous item the same way. Clicking a tile outputs it. When off,
 the grid shows only the open item. The grid stays where the operator scrolled;
 it moves only when the live tile leaves the view, or when a key moves the live
 tile down past the lower part of the view, including across items. A click on a
