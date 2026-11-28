@@ -70,22 +70,29 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
  * it also holds only while the blue row still marks it, so the row and the key
  * always name the same item.
  */
-let cued: {
+interface Cue {
   readonly itemId: ItemId;
   readonly liveAt: string | null;
   readonly marked: boolean;
-} | null = null;
+}
 
-// NOTE(0913vision): Any other slide going out forgets the reached item for
-// good: the slide it was reached on going out again doesn't bring it back.
-useLive.subscribe((next, before) => {
-  if (
-    cued !== null &&
-    liveSlideKey(next.state?.layers) !== liveSlideKey(before.state?.layers)
-  ) {
-    cued = null;
-  }
-});
+let cued: Cue | null = null;
+let stopWatchingCue: (() => void) | null = null;
+
+/**
+ * Sets the reached item, or forgets it. A cue watches the live slide while it
+ * lasts and is forgotten for good when any other slide goes out, so the slide
+ * it was reached on going out again doesn't bring it back.
+ */
+function cue(next: Cue | null): void {
+  stopWatchingCue?.();
+  stopWatchingCue = null;
+  cued = next;
+  if (next === null) return;
+  stopWatchingCue = useLive.subscribe(view => {
+    if (liveSlideKey(view.state?.layers) !== next.liveAt) cue(null);
+  });
+}
 
 /** The item the next-장 key starts, if 다음 항목 reached one on this slide. */
 function cuedItem(): ItemId | null {
@@ -129,7 +136,7 @@ function previousSequenceState(): SequenceState {
  * that is already open keeps its tile selection.
  */
 export function openItem(itemId: ItemId): void {
-  cued = null;
+  cue(null);
   if (useShow.getState().openItemId === itemId) return;
   useShow.setState({openItemId: itemId, selectedTile: 0});
 }
@@ -399,11 +406,11 @@ function openAdjacentItem(direction: 'next' | 'previous'): void {
   });
   if (target === null) return;
   openItemOnGrid(target);
-  cued = {
+  cue({
     itemId: target,
     liveAt: liveSlideKeyNow(),
     marked: pickedSlideItem()?.id === target,
-  };
+  });
 }
 
 /** 다음 항목: opens the next item that can output, without outputting. */
