@@ -29,3 +29,11 @@ it('starts anew when something else opens another item', () => {
   view.rerender({cursor: 'c'});
   expect([...view.result.current.selected]).toEqual(['c']);
 });
+
+it('starts anew when the open item goes back to the one open before, once the chosen row was reached', () => {
+  const {view} = setup();
+  act(() => view.result.current.replace(['b'], 'b'));
+  view.rerender({cursor: 'b'});
+  view.rerender({cursor: 'a'});
+  expect([...view.result.current.selected]).toEqual(['a']);
+});

@@ -43,6 +43,7 @@ import {
 import {beginOutputRequest} from './showOutput';
 import {noService, useShow, type ShowView} from './showStore';
 import {
+  liveSlideKey,
   liveSlideKeyNow,
   pickedSlideItem,
   scrollGridToItem,
@@ -74,6 +75,17 @@ let cued: {
   readonly liveAt: string | null;
   readonly marked: boolean;
 } | null = null;
+
+// NOTE(0913vision): Any other slide going out forgets the reached item for
+// good: the slide it was reached on going out again doesn't bring it back.
+useLive.subscribe((next, before) => {
+  if (
+    cued !== null &&
+    liveSlideKey(next.state?.layers) !== liveSlideKey(before.state?.layers)
+  ) {
+    cued = null;
+  }
+});
 
 /** The item the next-장 key starts, if 다음 항목 reached one on this slide. */
 function cuedItem(): ItemId | null {
@@ -357,12 +369,19 @@ export function outputHotKey(code: string): boolean {
 // to is where the operator is, and the item that opens is scrolled to as a
 // click on its 예배 순서 row does.
 /**
- * Where 다음 항목 and 이전 항목 count from: the item on the screens, so the next
- * item is always the one after what goes out, whatever the list points at
- * (decision Nov 28, after the rehearsal put an earlier item live); with
- * nothing of the service live, the item the list points at.
+ * Where 다음 항목 and 이전 항목 count from: the item they reached, while it is
+ * still pending (the same slide live, and the blue row on it); else the item
+ * on the screens, so the next item is always the one after what goes out,
+ * whatever the list points at (decision Nov 28, after the rehearsal put an
+ * earlier item live); with nothing of the service live, the item the list
+ * points at.
  */
 function adjacentFrom(): string | null {
+  // NOTE(0913vision): Pressed again while the item they reached is still
+  // pending, they go on from it: two presses step two items, and the other
+  // key undoes a press (church check X7b, Nov 28).
+  const reached = cuedItem();
+  if (reached !== null) return reached;
   const {rows, openItemId} = useShow.getState();
   // NOTE(0913vision): The live slide's own item, as main has it: the window's
   // cursor projects the live slide only onto tiles it has drawn.

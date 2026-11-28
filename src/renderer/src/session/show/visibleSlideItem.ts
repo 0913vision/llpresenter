@@ -9,20 +9,23 @@ export interface PickedSlideItem {
   readonly liveAt: string | null;
 }
 
-/** Names the slide on the screens: its item and slide, or the media's item. */
+/**
+ * Names the slide on the screens: its item and its place in the item (a
+ * chorus sung twice is one slide at two places), or the media's item.
+ */
 export function liveSlideKey(
   layers:
     | {
         readonly slide?: {
           readonly itemId: string;
-          readonly slideId: string;
+          readonly position: number;
         } | null;
         readonly media?: {readonly itemId?: string | undefined} | null;
       }
     | undefined,
 ): string | null {
   if (layers?.slide != null) {
-    return `${layers.slide.itemId}:${layers.slide.slideId}`;
+    return `${layers.slide.itemId}#${layers.slide.position}`;
   }
   return layers?.media?.itemId ?? null;
 }

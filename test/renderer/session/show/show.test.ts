@@ -385,6 +385,28 @@ describe('next and previous', () => {
     expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 1});
   });
 
+  it('step on from the item they reached while it is pending, and the other key undoes a press', () => {
+    goLive('song-morning', 0);
+    openNextItem();
+    expect(useShow.getState().openItemId).toBe('song-river');
+    openNextItem();
+    expect(useShow.getState().openItemId).toBe('psalm-23');
+    openPreviousItem();
+    openPreviousItem();
+    expect(useShow.getState().openItemId).toBe('song-morning');
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 1});
+  });
+
+  it('does not bring the reached item back when the slide it was reached on goes out again', () => {
+    goLive('song-morning', 1);
+    openNextItem();
+    goLive('song-morning', 0);
+    goLive('song-morning', 1);
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 2});
+  });
+
   it('forgets the item 다음 항목 reached once another slide of the live song goes out', () => {
     goLive('song-morning', 1);
     openNextItem();

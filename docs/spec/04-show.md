@@ -91,8 +91,10 @@ list and item picker. Empty, text, and mixed decks keep the slides icon.
   next and previous 슬라이드 while the list has focus (10, focus precedence).
 - Ctrl ↓ and Ctrl ↑ select the next and previous item that can output and open
   it in the 슬라이드 panel, without outputting (다음 항목, 이전 항목; decided,
-  10). They count from the live item; with nothing of the service live, from the
-  selected item.
+  10). They count from the live item, and pressed again while the item they
+  reached is still pending, from that item: two presses step two items and the
+  other key undoes a press. With nothing of the service live, they count from
+  the selected item.
 - 진행 rows don't show details such as the 슬라이드 count (`ShowH`). 준비 rows
   do (see 05).
 
@@ -309,7 +311,8 @@ source was found.
   item reached with 다음 항목 or 이전 항목 is started by next at its first tile
   while the same slide is still live and, with the continuous grid, while the
   blue row still marks it, so the blue row and next always name the same item;
-  any other slide going out, a tile click in the live song too, forgets it.
+  any other slide going out, a tile click in the live song too, forgets it for
+  good (a slide sung twice counts as two slides).
 - On the last tile, next does nothing with 마지막 슬라이드에서: 멈춤, the
   default (decided, no ProPresenter source found; 10). To move on, the operator
   picks the next item (다음 항목, Ctrl ↓) and presses →. With 다음 항목
@@ -343,16 +346,17 @@ picked by a click or by 다음 항목 and 이전 항목 keeps it, through the wh
 smooth scroll to it, until the operator scrolls again or another slide goes out.
 다음 항목 and 이전 항목 (Ctrl ↓, Ctrl ↑) go from the live item, so the next item
 is always the one after what goes out (decision November 28, after the Saturday
-rehearsal put an earlier item live from a selection left behind by the scroll);
-with nothing of the service live they go from the item at the top, or the one
-being scrolled to. They scroll to the next or previous item the same way.
-Clicking a tile outputs it. When off, the grid shows only the open item. The
-grid stays where the operator scrolled; it moves only when the live tile leaves
-the view, or when a key moves the live tile down past the lower part of the
-view, including across items. A click on a tile never moves it. While the
-continuous grid shows, the footer has 현 위치로, which smoothly brings the live
-tile back to the reading line; it is off while the live tile is in view. This
-choice does not change the last-slide action.
+rehearsal put an earlier item live from a selection left behind by the scroll),
+or, pressed again, from the item they reached while it is still pending; with
+nothing of the service live they go from the item at the top, or the one being
+scrolled to. They scroll to the next or previous item the same way. Clicking a
+tile outputs it. When off, the grid shows only the open item. The grid stays
+where the operator scrolled; it moves only when the live tile leaves the view,
+or when a key moves the live tile down past the lower part of the view,
+including across items. A click on a tile never moves it. While the continuous
+grid shows, the footer has 현 위치로, which smoothly brings the live tile back
+to the reading line; it is off while the live tile is in view. This choice does
+not change the last-slide action.
 
 ### Editing a song that is on output
 

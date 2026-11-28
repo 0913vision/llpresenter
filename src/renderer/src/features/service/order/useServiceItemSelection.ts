@@ -5,6 +5,8 @@ interface Selection {
   readonly cursor: string | null;
   /** The open item when the rows were chosen, until it becomes `cursor`. */
   readonly from: string | null;
+  /** The cursor reached `cursor` once, so `from` no longer counts. */
+  readonly reached: boolean;
   readonly anchor: string | null;
   readonly ids: readonly string[];
 }
@@ -30,10 +32,20 @@ export function useServiceItemSelection({
   const modifiers = useRef<Modifiers>(SINGLE);
   // NOTE(0913vision): Opening the chosen row takes a moment; until it is open
   // the rows stay chosen, so a key pressed meanwhile acts on them. The open
-  // item changed by anything else starts the choice anew.
+  // item changed by anything else starts the choice anew, also when it goes
+  // back to the item open before: the blue row leaning back to LIVE once held
+  // a row clicked to look ahead (church check, Nov 28).
+  if (
+    choice !== null &&
+    !choice.reached &&
+    choice.serviceId === serviceId &&
+    choice.cursor === cursor
+  ) {
+    setChoice({...choice, reached: true});
+  }
   const current =
     choice?.serviceId === serviceId &&
-    (choice.cursor === cursor || choice.from === cursor)
+    (choice.cursor === cursor || (!choice.reached && choice.from === cursor))
       ? choice
       : null;
   const selected = new Set(
@@ -46,6 +58,7 @@ export function useServiceItemSelection({
       serviceId,
       cursor: next,
       from: cursor,
+      reached: false,
       anchor: values[0] ?? next,
       ids: values,
     });
@@ -61,6 +74,7 @@ export function useServiceItemSelection({
         serviceId,
         cursor: id,
         from: cursor,
+        reached: false,
         anchor,
         ids: keys.ctrlKey ? [...new Set([...selected, ...range])] : range,
       });
@@ -71,11 +85,19 @@ export function useServiceItemSelection({
         serviceId,
         cursor: id,
         from: cursor,
+        reached: false,
         anchor: id,
         ids: [...selected],
       });
     } else {
-      setChoice({serviceId, cursor: id, from: cursor, anchor: id, ids: [id]});
+      setChoice({
+        serviceId,
+        cursor: id,
+        from: cursor,
+        reached: false,
+        anchor: id,
+        ids: [id],
+      });
     }
     onSelect(id);
   };

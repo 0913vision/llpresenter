@@ -1,6 +1,7 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {renderHook} from '@testing-library/react';
 import {
+  liveSlideKey,
   onScrollGridToItem,
   revealSlideItem,
   scrollGridToItem,
@@ -89,4 +90,10 @@ describe('the item a continuous grid shows', () => {
     expect(picked()).toBeNull();
     stop();
   });
+});
+
+it('names a slide sung twice in a song by its place, so each pass is another slide', () => {
+  const first = liveSlideKey({slide: {itemId: 'song', position: 1}});
+  const again = liveSlideKey({slide: {itemId: 'song', position: 3}});
+  expect(first).not.toBe(again);
 });
