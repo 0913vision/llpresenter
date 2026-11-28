@@ -2,24 +2,32 @@
   margin-top: var(--space-8);
 }
 
+/* NOTE(0913vision): A text box sizes to its text, and a long line must wrap at
+   the panel's width instead of widening the panel (USER Nov 28, 사도신경). */
 .texts {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-8);
   min-width: 0;
 }
 
 .body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   min-width: 0;
 }
 
+/* NOTE(0913vision): The line runs to both edges of the panel's content; on the
+   right that edge is the scroll bar's room (--inset-end), so it adds no
+   sideways scrolling. */
 .tabs {
   display: flex;
   align-items: stretch;
   height: var(--size-panel-header);
-  margin: var(--space-8) calc(-1 * var(--panel-inset)) 0;
-  padding: 0 var(--panel-inset);
+  margin: var(--space-8) calc(-1 * var(--inset-end)) 0
+    calc(-1 * var(--panel-inset));
+  padding: 0 var(--inset-end) 0 var(--panel-inset);
   border-bottom: 1px solid var(--line);
 }
 
