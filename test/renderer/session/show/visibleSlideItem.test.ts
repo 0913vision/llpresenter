@@ -42,6 +42,35 @@ describe('the item a continuous grid shows', () => {
     stop();
   });
 
+  it('keeps the pick through a smooth scroll longer than a second, to the end', () => {
+    vi.useFakeTimers();
+    const stop = onScrollGridToItem(() => undefined);
+    revealSlideItem('first');
+    scrollGridToItem('third');
+    for (let frame = 0; frame < 120; frame += 1) {
+      vi.advanceTimersByTime(16);
+      revealSlideItem('second');
+    }
+    revealSlideItem('third');
+    expect(picked()).toBe('third');
+    expect(scrolledSlideItem()).toBe('third');
+    stop();
+  });
+
+  it('keeps the pick where a scroll came to rest short of its item, at the end of the list', () => {
+    vi.useFakeTimers();
+    const stop = onScrollGridToItem(() => undefined);
+    revealSlideItem('first');
+    scrollGridToItem('last');
+    revealSlideItem('next-to-last');
+    vi.advanceTimersByTime(1001);
+    revealSlideItem('next-to-last');
+    expect(picked()).toBe('last');
+    revealSlideItem('first');
+    expect(picked()).toBeNull();
+    stop();
+  });
+
   it('changes nothing without a continuous grid', () => {
     scrollGridToItem('third');
     expect(scrolledSlideItem()).toBeNull();

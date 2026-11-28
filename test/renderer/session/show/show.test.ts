@@ -385,6 +385,26 @@ describe('next and previous', () => {
     expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 1});
   });
 
+  it('forgets the item 다음 항목 reached once another slide of the live song goes out', () => {
+    goLive('song-morning', 1);
+    openNextItem();
+    goLive('song-morning', 0);
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 1});
+  });
+
+  it('starts the item 다음 항목 reached only while the continuous grid still marks it', () => {
+    const stopGrid = onScrollGridToItem(() => undefined);
+    goLive('song-morning', 1);
+    openNextItem();
+    revealSlideItem('song-river');
+    revealSlideItem('psalm-23');
+    outputNext();
+    expect(shown()[0]).toMatchObject({itemId: 'song-morning', position: 2});
+    stopGrid();
+    revealSlideItem(null);
+  });
+
   it('plays the transition of the live slide backward on the way back', () => {
     const transition = {kind: 'push', dir: 'left', sec: 1} as const;
     applyService(

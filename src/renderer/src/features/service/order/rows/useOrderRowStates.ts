@@ -3,9 +3,11 @@ import type {ServiceRow} from '@core/presentation';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {useShownItemId} from '@renderer/session/show/shownItem';
 import {
+  liveSlideKey,
   usePickedSlideItem,
   useVisibleSlideItem,
 } from '@renderer/session/show/visibleSlideItem';
+import {useLive} from '@renderer/session/live';
 import {liveReturn} from '@renderer/session/show/liveReturn';
 import {pointedItem} from './pointedItem';
 import type {Notice} from '@renderer/ui/popups/notices';
@@ -38,6 +40,7 @@ export function useOrderRowStates(
   const liveItemId = useLiveItemId();
   const visibleSlideItem = useVisibleSlideItem();
   const picked = usePickedSlideItem();
+  const liveSlide = useLive(view => liveSlideKey(view.state?.layers));
   const liveInSight =
     useSyncExternalStore(liveReturn.subscribe, liveReturn.get) === 'here';
   const show = useSettingsDocument('preferences', '환경설정', onProblem)?.value
@@ -48,6 +51,7 @@ export function useOrderRowStates(
     workspace === 'show' && show?.continuousGrid === true
       ? pointedItem({
           picked,
+          liveSlide,
           liveItemId,
           liveInSight,
           topItemId: visibleSlideItem,

@@ -42,7 +42,12 @@ import {
 } from './showLibrary';
 import {beginOutputRequest} from './showOutput';
 import {noService, useShow, type ShowView} from './showStore';
-import {scrollGridToItem, scrolledSlideItem} from './visibleSlideItem';
+import {
+  liveSlideKeyNow,
+  pickedSlideItem,
+  scrollGridToItem,
+  scrolledSlideItem,
+} from './visibleSlideItem';
 
 type AtLastSlide = Preferences['show']['atLastSlide'];
 
@@ -57,26 +62,29 @@ if (typeof window !== 'undefined' && import.meta.env.DEV) {
   window.__llpShowStore = useShow;
 }
 
+/**
+ * The item 다음 항목 or 이전 항목 reached, with the slide live then: the next-장
+ * key starts it only while that same slide is still live, so any other slide
+ * going out (a tile click in the live song) forgets it. With a continuous grid
+ * it also holds only while the blue row still marks it, so the row and the key
+ * always name the same item.
+ */
+let cued: {
+  readonly itemId: ItemId;
+  readonly liveAt: string | null;
+  readonly marked: boolean;
+} | null = null;
+
+/** The item the next-장 key starts, if 다음 항목 reached one on this slide. */
+function cuedItem(): ItemId | null {
+  if (cued?.liveAt !== liveSlideKeyNow()) return null;
+  if (cued.marked && pickedSlideItem()?.id !== cued.itemId) return null;
+  return cued.itemId;
+}
+
 // NOTE(0913vision): A Bible passage that grew around the live verse is a new
 // item, so the next and previous 장 keys go on from that verse inside it
 // instead of starting the passage over.
-/**
- * The item 다음 항목 or 이전 항목 reached, with the item live then: the next-장
- * key starts it only while that item is still the live one.
- */
-let cued: {readonly itemId: ItemId; readonly liveAt: string | null} | null =
-  null;
-
-/** The live slide's own item, as main has it. */
-function liveSlideItem(): string | null {
-  return useLive.getState().state?.layers.slide?.itemId ?? null;
-}
-
-/** The item the next-장 key starts, if 다음 항목 reached one since LIVE moved. */
-function cuedItem(): ItemId | null {
-  return cued !== null && cued.liveAt === liveSlideItem() ? cued.itemId : null;
-}
-
 function sequenceState(): SequenceState {
   const view = useShow.getState();
   const index = liveTileIndex(
@@ -372,7 +380,11 @@ function openAdjacentItem(direction: 'next' | 'previous'): void {
   });
   if (target === null) return;
   openItemOnGrid(target);
-  cued = {itemId: target, liveAt: liveSlideItem()};
+  cued = {
+    itemId: target,
+    liveAt: liveSlideKeyNow(),
+    marked: pickedSlideItem()?.id === target,
+  };
 }
 
 /** 다음 항목: opens the next item that can output, without outputting. */
