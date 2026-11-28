@@ -227,8 +227,15 @@ export function startOutput({
   // once the first state is drawn.
   const applyState = (state: LiveState): void => {
     const wasEnabled = enabled();
+    const newVersion = latest?.version !== state.version;
     latest = state;
-    if (wasEnabled !== enabled()) reveal.restart();
+    // NOTE(0913vision): Main keeps an off screen's ready picture only for the
+    // live version it has, so a new version is told again even when the
+    // picture stays the same; else the screen waits until it is turned on
+    // (a missing media check at launch bumped the version that way).
+    if (wasEnabled !== enabled() || (!enabled() && newVersion)) {
+      reveal.restart();
+    }
     const content = drawnContent(state);
     if (content !== drawnState || wasEnabled !== enabled()) {
       drawnState = content;

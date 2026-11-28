@@ -122,7 +122,9 @@ screen's output on and off. There is no confirmation.
   screen settings arrive, even when all output switches are off. Keep them
   hidden without taking focus or showing on a monitor. The first turn-on uses
   that same window, as later turn-ons do; preloading does not enable an output
-  or acquire the display wake lock.
+  or acquire the display wake lock. A hidden output's ready picture counts only
+  for the live version main has: when the version changes, the output tells main
+  again, even when its picture stays the same.
 - While a hidden native output waits for its decoded, laid-out frame to paint,
   request a one-pixel page capture to wake the compositor without showing the
   window. Keep only one request in flight and discard the image. Stop requesting

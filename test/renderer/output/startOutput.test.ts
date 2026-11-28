@@ -461,6 +461,59 @@ describe('startOutput', () => {
       }
     },
   );
+  it('tells main again that an off screen is ready for a new live version, even when its picture stays the same', async () => {
+    const settings = overlaySettings();
+    const defaults = mockLlpApi();
+    const reportReady = vi.fn<(report: FrameReadyReport) => Promise<boolean>>(
+      () => Promise.resolve(false),
+    );
+    const off: LiveState = {
+      ...SHOWING,
+      outputs: {},
+      layers: {...SHOWING.layers, media: null},
+    };
+    let push: (state: LiveState) => void = () => undefined;
+    const api = mockLlpApi({
+      settings: {
+        get: ({name}) =>
+          name === 'screens'
+            ? Promise.resolve(settings.reader.get(name))
+            : defaults.settings.get({name}),
+      },
+      live: {
+        get: () => Promise.resolve(off),
+        subscribe: listener => {
+          push = listener;
+          return () => undefined;
+        },
+      },
+      output: {reportReady},
+    });
+    const stop = startOutput({
+      root: document.createElement('div'),
+      api,
+      screenId: MAIN,
+    });
+    try {
+      await Promise.resolve();
+      await pumpReadiness();
+      await pumpReadiness();
+      expect(reportReady).toHaveBeenLastCalledWith(
+        expect.objectContaining({version: off.version, ready: true}),
+      );
+      // NOTE(0913vision): Main answered for a version it had already left
+      // (a missing media check at launch bumps it without changing a picture).
+      push({...off, version: off.version + 1});
+      await pumpReadiness();
+      await pumpReadiness();
+      expect(reportReady).toHaveBeenLastCalledWith(
+        expect.objectContaining({version: off.version + 1, ready: true}),
+      );
+    } finally {
+      stop();
+    }
+  });
+
   it('rechecks the same live version without requiring a resize event until main acknowledges visibility', async () => {
     const settings = overlaySettings();
     const defaults = mockLlpApi();
