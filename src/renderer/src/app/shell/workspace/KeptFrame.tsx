@@ -23,6 +23,26 @@ function focusInUse(): boolean {
 }
 
 /**
+ * The row to give the focus back to: a list row that is no longer the chosen
+ * one gives way to the row chosen meanwhile (a song opened from 준비 while
+ * 라이브러리 was hidden), as entering a list lands on its chosen row.
+ */
+function returnTarget(element: HTMLElement): HTMLElement {
+  if (
+    !element.matches('[role="option"]') ||
+    element.getAttribute('aria-selected') === 'true'
+  ) {
+    return element;
+  }
+  return (
+    element
+      .closest('[role="listbox"]')
+      ?.querySelector<HTMLElement>('[role="option"][aria-selected="true"]') ??
+    element
+  );
+}
+
+/**
  * Gives the focus back to where it was in the frame when the frame shows
  * again, as a browser tab does, so the keys act there at once after a switch
  * by the mouse, whose tab buttons leave the focus where it was. A focus in use
@@ -45,7 +65,7 @@ function useFocusMemory(visible: boolean): {
     ) {
       return;
     }
-    element.focus({preventScroll: true});
+    returnTarget(element).focus({preventScroll: true});
   }, [visible]);
   return {
     frame,

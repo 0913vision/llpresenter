@@ -53,3 +53,49 @@ it('puts nothing in focus in a frame that never had it', () => {
   view.rerender(<Frames shown="show" />);
   expect(document.activeElement).toBe(document.body);
 });
+
+function ListFrames({
+  shown,
+  chosen,
+}: {
+  readonly shown: 'prep' | 'library';
+  readonly chosen: string;
+}): JSX.Element {
+  return (
+    <>
+      <KeptFrame workspace="prep" visible={shown === 'prep'}>
+        <button type="button">라이브러리에서 보기</button>
+      </KeptFrame>
+      <KeptFrame workspace="library" visible={shown === 'library'}>
+        <div role="listbox" aria-label="라이브러리 곡">
+          {['첫째 곡', '둘째 곡'].map(name => (
+            <div
+              key={name}
+              role="option"
+              tabIndex={-1}
+              aria-selected={name === chosen}
+            >
+              {name}
+            </div>
+          ))}
+        </div>
+      </KeptFrame>
+    </>
+  );
+}
+
+it('gives the focus back to the row chosen meanwhile, not the old row of the list', () => {
+  const view = render(<ListFrames shown="library" chosen="첫째 곡" />);
+  screen.getByRole('option', {name: '첫째 곡'}).focus();
+  view.rerender(<ListFrames shown="prep" chosen="첫째 곡" />);
+  act(() => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  });
+  view.rerender(<ListFrames shown="prep" chosen="둘째 곡" />);
+  view.rerender(<ListFrames shown="library" chosen="둘째 곡" />);
+  expect(document.activeElement).toBe(
+    screen.getByRole('option', {name: '둘째 곡'}),
+  );
+});
