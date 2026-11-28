@@ -31,6 +31,8 @@ export interface ContinuousMetrics {
 export function useContinuousViewport(
   keeper: RefObject<HTMLDivElement | null>,
   windowKey: RefObject<((top: number, height: number) => string) | undefined>,
+  /** The operator moved the view by hand. */
+  onOperatorScroll: () => void,
 ) {
   const [metrics, setMetrics] = useState<ContinuousMetrics>({
     height: 0,
@@ -95,6 +97,7 @@ export function useContinuousViewport(
       // to a picked item) runs on through a wheel turn; stopping it where it
       // is lets the operator's scroll take over (church check B3, Nov 28).
       viewport.scrollTo({top: viewport.scrollTop, behavior: 'instant'});
+      onOperatorScroll();
     };
     // NOTE(0913vision): A resize renders in its own frame, before it paints.
     const observer = new ResizeObserver(() => flushSync(read));
@@ -127,7 +130,7 @@ export function useContinuousViewport(
       window.removeEventListener('keydown', key, true);
       window.removeEventListener('pointerdown', pointer, true);
     };
-  }, [keeper, windowKey]);
+  }, [keeper, windowKey, onOperatorScroll]);
   const control = useMemo(
     () => ({
       /** A drag of the view is on. */

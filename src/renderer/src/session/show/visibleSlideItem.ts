@@ -110,6 +110,16 @@ function setCurrent(id: string | null): void {
   for (const listener of listeners) listener();
 }
 
+/**
+ * The operator moved the grid by hand (a wheel turn, a drag of its scroll
+ * bar): the row they picked and the scroll on its way to it end at once, so
+ * the blue row and the next-slide key leave the item 다음 항목 reached too.
+ */
+export function endGridPick(): void {
+  target = null;
+  setPicked(null);
+}
+
 /** The row the operator picked while a continuous grid shows, or null. */
 export function pickedSlideItem(): PickedSlideItem | null {
   return picked;

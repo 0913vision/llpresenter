@@ -1,4 +1,7 @@
-import {scrollGridToItem} from '@renderer/session/show/visibleSlideItem';
+import {
+  pickedSlideItem,
+  scrollGridToItem,
+} from '@renderer/session/show/visibleSlideItem';
 import {lyricsSlide} from '@fixtures/core/slides';
 import {shownText} from '@fixtures/core/liveSlide';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
@@ -313,4 +316,14 @@ it('stops a smooth scroll of its own when the operator turns the wheel', () => {
     top: 120,
     behavior: 'instant',
   });
+});
+
+it('drops the picked row when the operator wheels the grid on the way to it', () => {
+  applyLongService();
+  goLive('a');
+  const viewport = measuredViewport();
+  act(() => scrollGridToItem('e'));
+  expect(pickedSlideItem()?.id).toBe('e');
+  fireEvent.wheel(viewport);
+  expect(pickedSlideItem()).toBeNull();
 });

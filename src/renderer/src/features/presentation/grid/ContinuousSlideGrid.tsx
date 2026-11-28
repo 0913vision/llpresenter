@@ -19,6 +19,7 @@ import {firstSlideWindowSize} from './useSlideWindow';
 import {useGridMeasure} from '@renderer/ui/lists/measure/useGridMeasure';
 import {useSlideTransitionProgress} from '../useSlideTransitionProgress';
 import {
+  endGridPick,
   onScrollGridToItem,
   revealSlideItem,
 } from '@renderer/session/show/visibleSlideItem';
@@ -160,6 +161,7 @@ export function ContinuousSlideGrid({
   const {metrics, control: scrolling} = useContinuousViewport(
     keeper,
     windowKeyRef,
+    endGridPick,
   );
   /** Until when the grid's own scroll is bringing the live slide into sight. */
   const bringingLive = useRef(0);
