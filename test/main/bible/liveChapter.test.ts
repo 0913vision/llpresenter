@@ -1,6 +1,3 @@
-import {readFile, writeFile} from 'node:fs/promises';
-import {join} from 'node:path';
-import {makeTempDir} from '@fixtures/tempDir';
 import {loadBibleChapterLibrary} from '@main/bible/chapterLibrary';
 import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -13,9 +10,29 @@ import {BibleChapterCache} from '../../../src/main/bible/chapterCache';
 import {BibleLibrary} from '../../../src/main/bible/library';
 import {LIVE_BIBLE_ID} from '../../../src/core/schema/common/ids';
 
+const disk = vi.hoisted(() => new Map<string, readonly string[]>());
+
+vi.mock('@main/bible/liveChapterDisk', () => ({
+  readLiveChapter: vi.fn(
+    async (folder: string, book: number, chapter: number) =>
+      disk.get(`${folder}/${book}-${chapter}`) ?? null,
+  ),
+  writeLiveChapter: vi.fn(
+    async (
+      folder: string,
+      chapter: {book: number; chapter: number; verses: readonly string[]},
+    ) => {
+      disk.set(`${folder}/${chapter.book}-${chapter.chapter}`, chapter.verses);
+    },
+  ),
+}));
+
 const html =
   '<div id="tdBible1"><f><span><b class="number">1</b>alpha<font class="name">beta</font>gamma<div>heading</div><font size="2">footnote</font>&amp;delta</span><span><b class="number">3</b>last</span></f></div>';
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  disk.clear();
+});
 describe('live Bible chapters', () => {
   it('cleans wrapped verses without adding spaces and preserves missing verse slots', () => {
     expect(parseLiveChapter(html)).toEqual([
@@ -98,8 +115,8 @@ describe('live Bible chapters', () => {
     expect(fetch).toHaveBeenCalledTimes(1);
     library.clear();
   });
-  it('persists validated chapters across restarts and ignores corrupt cache files', async () => {
-    const folder = await makeTempDir();
+  it('keeps a fetched chapter on disk for the next launch, and fetches again when the disk has none', async () => {
+    const folder = 'D:/LoveLight/bible';
     const count = BIBLE_VERSE_COUNTS[0]?.[0];
     if (count === undefined) throw Error('Missing bounds');
     const page = `<div id="tdBible1">${Array.from(
@@ -115,9 +132,7 @@ describe('live Bible chapters', () => {
       onProblem: vi.fn(),
     });
     expect(await first.chapter(LIVE_BIBLE_ID, 1, 1)).toHaveLength(count);
-    expect(
-      JSON.parse(await readFile(join(folder, 'live', '1-1.json'), 'utf8')),
-    ).toHaveLength(count);
+    expect(disk.get(`${folder}/1-1`)).toHaveLength(count);
     first.clear();
     const next = await loadBibleChapterLibrary({
       folder,
@@ -127,16 +142,16 @@ describe('live Bible chapters', () => {
     expect(await next.cachedLiveChapter(1, 1)).toHaveLength(count);
     expect(fetch).toHaveBeenCalledTimes(1);
     next.clear();
-    await writeFile(join(folder, 'live', '1-1.json'), '{bad');
-    const damaged = await loadBibleChapterLibrary({
+    disk.clear();
+    const emptied = await loadBibleChapterLibrary({
       folder,
       translations: [],
       onProblem: vi.fn(),
     });
-    expect(await damaged.cachedLiveChapter(1, 1)).toBeNull();
-    expect(await damaged.chapter(LIVE_BIBLE_ID, 1, 1)).toHaveLength(count);
+    expect(await emptied.cachedLiveChapter(1, 1)).toBeNull();
+    expect(await emptied.chapter(LIVE_BIBLE_ID, 1, 1)).toHaveLength(count);
     expect(fetch).toHaveBeenCalledTimes(2);
-    damaged.clear();
+    emptied.clear();
   });
   it('keeps fetched live chapters across cache pressure and library refresh', async () => {
     const fetch = vi.fn().mockResolvedValue({ok: true, text: async () => html});
