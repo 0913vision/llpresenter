@@ -338,7 +338,9 @@ export function outputHotKey(code: string): boolean {
  */
 function adjacentFrom(): string | null {
   const {rows, openItemId} = useShow.getState();
-  const live = liveCursor()?.itemId;
+  // NOTE(0913vision): The live slide's own item, as main has it: the window's
+  // cursor projects the live slide only onto tiles it has drawn.
+  const live = useLive.getState().state?.layers.slide?.itemId;
   if (live !== undefined && rows.some(row => row.id === live)) return live;
   return scrolledSlideItem() ?? openItemId;
 }
