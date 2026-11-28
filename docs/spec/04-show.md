@@ -349,14 +349,16 @@ is always the one after what goes out (decision November 28, after the Saturday
 rehearsal put an earlier item live from a selection left behind by the scroll),
 or, pressed again, from the item they reached while it is still pending; with
 nothing of the service live they go from the item at the top, or the one being
-scrolled to. They scroll to the next or previous item the same way. Clicking a
-tile outputs it. When off, the grid shows only the open item. The grid stays
-where the operator scrolled; it moves only when the live tile leaves the view,
-or when a key moves the live tile down past the lower part of the view,
-including across items. A click on a tile never moves it. While the continuous
-grid shows, the footer has 현 위치로, which smoothly brings the live tile back
-to the reading line; it is off while the live tile is in view. This choice does
-not change the last-slide action.
+scrolled to. They scroll to the next or previous item the same way. The keyboard
+stays in the grid: when the band that holds the focus scrolls out of the drawn
+part, the focus moves to a band still drawn, never onto the page; a click or Tab
+elsewhere lets the grid go. Clicking a tile outputs it. When off, the grid shows
+only the open item. The grid stays where the operator scrolled; it moves only
+when the live tile leaves the view, or when a key moves the live tile down past
+the lower part of the view, including across items. A click on a tile never
+moves it. While the continuous grid shows, the footer has 현 위치로, which
+smoothly brings the live tile back to the reading line; it is off while the live
+tile is in view. This choice does not change the last-slide action.
 
 ### Editing a song that is on output
 
