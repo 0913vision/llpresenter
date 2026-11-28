@@ -52,7 +52,7 @@ export function ServiceOrderPage({edits}: PageProps): JSX.Element | null {
         }
       />
       <CheckboxRow
-        label="두 번 클릭하면 준비에서 열기"
+        label="진행 슬라이드 두 번 클릭해서 준비로 이동하기"
         disabled={lockedReason !== undefined}
         title={lockedReason}
         checked={preferences.show.doubleClickPrep}
