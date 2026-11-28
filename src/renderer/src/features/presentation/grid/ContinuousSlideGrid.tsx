@@ -22,7 +22,7 @@ import {
   onScrollGridToItem,
   revealSlideItem,
 } from '@renderer/session/show/visibleSlideItem';
-import {liveReturn} from './liveReturn';
+import {liveReturn} from '@renderer/session/show/liveReturn';
 import type {SlideGridProps} from './SlideGrid';
 import {ShowSlideEntry} from '../keyboard/showPanelNavigation';
 import styles from './SlideGrid.module.css';

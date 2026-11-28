@@ -6,7 +6,7 @@ import {
   usePickedSlideItem,
   useVisibleSlideItem,
 } from '@renderer/session/show/visibleSlideItem';
-import {liveReturn} from '@renderer/features/presentation/grid/liveReturn';
+import {liveReturn} from '@renderer/session/show/liveReturn';
 import {pointedItem} from './pointedItem';
 import type {Notice} from '@renderer/ui/popups/notices';
 import type {ListWorkspace} from '@renderer/ui/lists/workspace';

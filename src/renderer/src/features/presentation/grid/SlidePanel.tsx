@@ -16,7 +16,7 @@ import {GridFooter} from '@renderer/ui/lists/GridFooter';
 import {useTooltip} from '@renderer/ui/popups/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import {ContinuousSlideGrid} from './ContinuousSlideGrid';
-import {liveReturn} from './liveReturn';
+import {liveReturn} from '@renderer/session/show/liveReturn';
 import {useSettingsDocument} from '@renderer/platform/documents/useSettingsDocument';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import styles from './SlidePanel.module.css';

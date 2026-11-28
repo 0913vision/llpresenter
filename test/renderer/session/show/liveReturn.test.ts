@@ -1,5 +1,5 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {liveReturn} from '@renderer/features/presentation/grid/liveReturn';
+import {liveReturn} from '@renderer/session/show/liveReturn';
 
 afterEach(() => liveReturn.offer(null));
 
